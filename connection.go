@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/golang/glog"
-	"github.com/links123com/linker/library/linker/interanl/utils"
+	"github.com/wpajqz/linker/utils"
 )
 
 func (s *Server) handleConnection(conn net.Conn) {

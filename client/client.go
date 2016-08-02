@@ -3,7 +3,7 @@ package client
 import (
 	"net"
 
-	"github.com/links123com/linker/library/linker"
+	"github.com/wpajqz/linker"
 )
 
 type Handler func(*Context)

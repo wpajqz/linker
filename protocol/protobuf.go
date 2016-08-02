@@ -3,10 +3,10 @@ package protocol
 import (
 	"fmt"
 
+	"github.com/wpajqz/linker"
+	"github.com/wpajqz/linker/utils"
+
 	"github.com/golang/protobuf/proto"
-	"github.com/links123com/linker/library/linker"
-	"github.com/links123com/linker/library/linker/interanl/aes"
-	"github.com/links123com/linker/library/linker/interanl/utils"
 )
 
 type ProtoPacket struct {
@@ -34,7 +34,7 @@ func (p ProtoPacket) Pack(operator int32, pb interface{}) (linker.Packet, error)
 	p.Type = operator
 
 	// 对Data进行AES加密
-	p.Data, err = aes.Encrypt(pbData)
+	p.Data, err = utils.Encrypt(pbData)
 	if err != nil {
 		return ProtoPacket{}, fmt.Errorf("Pack error: %v", err.Error())
 	}
@@ -45,7 +45,7 @@ func (p ProtoPacket) Pack(operator int32, pb interface{}) (linker.Packet, error)
 }
 
 func (p ProtoPacket) UnPack(pb interface{}) error {
-	decryptData, err := aes.Decrypt(p.Data)
+	decryptData, err := utils.Decrypt(p.Data)
 	if err != nil {
 		return fmt.Errorf("Unpack error: %v", err.Error())
 	}

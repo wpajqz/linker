@@ -1,0 +1,12 @@
+package: github.com/wpajqz/linker
+import:
+- package: github.com/golang/glog
+- package: github.com/golang/protobuf
+  subpackages:
+  - proto
+- package: github.com/links123com/linker
+  subpackages:
+  - library/linker
+  - library/linker/interanl/aes
+  - library/linker/interanl/utils
+- package: gopkg.in/vmihailenco/msgpack.v2

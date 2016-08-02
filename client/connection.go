@@ -5,8 +5,8 @@ import (
 	"io"
 	"net"
 
-	"github.com/links123com/linker/library/linker"
-	"github.com/links123com/linker/library/linker/interanl/utils"
+	"github.com/wpajqz/linker"
+	"github.com/wpajqz/linker/utils"
 )
 
 func (c *Client) handleConnection(conn net.Conn) {

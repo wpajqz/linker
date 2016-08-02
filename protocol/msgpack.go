@@ -3,9 +3,9 @@ package protocol
 import (
 	"fmt"
 
-	"github.com/links123com/linker/library/linker"
-	"github.com/links123com/linker/library/linker/interanl/aes"
-	"github.com/links123com/linker/library/linker/interanl/utils"
+	"github.com/wpajqz/linker"
+	"github.com/wpajqz/linker/utils"
+
 	"gopkg.in/vmihailenco/msgpack.v2"
 )
 
@@ -34,7 +34,7 @@ func (p MsgPacket) Pack(dataType int32, data interface{}) (linker.Packet, error)
 	p.Type = dataType
 
 	// 对Data进行AES加密
-	p.Data, err = aes.Encrypt(pbData)
+	p.Data, err = utils.Encrypt(pbData)
 	if err != nil {
 		return MsgPacket{}, fmt.Errorf("Pack error: %v", err.Error())
 	}
@@ -45,7 +45,7 @@ func (p MsgPacket) Pack(dataType int32, data interface{}) (linker.Packet, error)
 }
 
 func (p MsgPacket) UnPack(pb interface{}) error {
-	decryptData, err := aes.Decrypt(p.Data)
+	decryptData, err := utils.Decrypt(p.Data)
 	if err != nil {
 		return fmt.Errorf("Unpack error: %v", err.Error())
 	}

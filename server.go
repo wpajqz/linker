@@ -1,12 +1,9 @@
 package linker
 
 import (
+	"hash/crc32"
 	"net"
 	"time"
-
-	"hash/crc32"
-
-	"github.com/golang/glog"
 )
 
 const (
@@ -73,7 +70,6 @@ func (s *Server) Run(name, address string) {
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
-			glog.Errorln(err.Error())
 			continue
 		}
 		go s.handleConnection(conn)

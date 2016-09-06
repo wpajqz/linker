@@ -3,10 +3,10 @@ package linker
 import (
 	"context"
 	"io"
+	"log"
 	"net"
 	"time"
 
-	"github.com/golang/glog"
 	"github.com/wpajqz/linker/utils"
 )
 
@@ -35,24 +35,24 @@ func (s *Server) handleConnection(conn net.Conn) {
 
 	for {
 		if n, err := io.ReadFull(conn, bLen); err != nil && n != 4 {
-			glog.Errorf("Read packetLength failed: %v", err)
+			log.Printf("Read packetLength failed: %v", err)
 			return
 		}
 
 		if n, err := io.ReadFull(conn, bType); err != nil && n != 4 {
-			glog.Errorf("Read packetType failed: %v", err)
+			log.Printf("Read packetType failed: %v", err)
 			return
 		}
 
 		if pacLen = utils.BytesToUint32(bLen); pacLen > s.MaxPayload {
-			glog.Errorf("packet larger than MaxPayload")
+			log.Printf("packet larger than MaxPayload")
 			return
 		}
 
 		dataLength := pacLen - 8
 		data := make([]byte, dataLength)
 		if n, err := io.ReadFull(conn, data); err != nil && n != int(dataLength) {
-			glog.Errorf("Read packetData failed: %v", err)
+			log.Printf("Read packetData failed: %v", err)
 		}
 
 		// 0号包预留为心跳包使用,其他handler不能够使用
@@ -97,7 +97,7 @@ func (s *Server) handlePacket(conn net.Conn, receivePackets <-chan Packet, quit 
 			}(handler)
 
 		case <-quit:
-			glog.Info("Stop handle receivePackets.")
+			log.Println("Stop handle receivePackets.")
 			return
 		}
 	}

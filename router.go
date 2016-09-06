@@ -1,7 +1,7 @@
 package linker
 
 type Router struct {
-	Operator   int32
+	Operator   string
 	Handler    Handler
 	Middleware []string
 }

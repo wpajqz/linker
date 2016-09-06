@@ -4,6 +4,8 @@ import (
 	"net"
 	"time"
 
+	"hash/crc32"
+
 	"github.com/golang/glog"
 )
 
@@ -89,12 +91,16 @@ func (s *Server) Handle(pattern int32, handler Handler) {
 // 绑定Server需要处理的router
 func (s *Server) BindRouter(routers []Router) {
 	for _, router := range routers {
+		data := []byte(router.Operator)
+		operator := int32(crc32.ChecksumIEEE(data))
+
 		for _, m := range router.Middleware {
 			if rm, ok := s.routeMiddleware[m]; ok {
-				s.int32Middleware[router.Operator] = append(s.int32Middleware[router.Operator], rm)
+				s.int32Middleware[operator] = append(s.int32Middleware[operator], rm)
 			}
 		}
-		s.Handle(router.Operator, router.Handler)
+
+		s.Handle(operator, router.Handler)
 	}
 }
 

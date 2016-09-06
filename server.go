@@ -18,20 +18,20 @@ type Handler func(*Context)
 type Server struct {
 	readTimeout      time.Duration
 	writeTimeout     time.Duration
-	handlerContainer map[int32]Handler
+	handlerContainer map[uint32]Handler
 	middleware       []Middleware
 	routeMiddleware  map[string]Middleware
-	int32Middleware  map[int32][]Middleware
-	MaxPayload       int32
+	int32Middleware  map[uint32][]Middleware
+	MaxPayload       uint32
 	protocolPacket   Packet
 }
 
 func NewServer() *Server {
 	return &Server{
 		MaxPayload:       MaxPayload,
-		handlerContainer: make(map[int32]Handler),
+		handlerContainer: make(map[uint32]Handler),
 		routeMiddleware:  make(map[string]Middleware),
-		int32Middleware:  make(map[int32][]Middleware),
+		int32Middleware:  make(map[uint32][]Middleware),
 	}
 }
 
@@ -52,7 +52,7 @@ func (s *Server) SetWriteTimeout(writeTimeout time.Duration) {
 }
 
 // 设置可处理的数据包的最大长度
-func (s *Server) SetMaxPayload(maxPayload int32) {
+func (s *Server) SetMaxPayload(maxPayload uint32) {
 	s.MaxPayload = maxPayload
 }
 
@@ -81,7 +81,7 @@ func (s *Server) Run(name, address string) {
 }
 
 // 在服务中注册要处理的handler
-func (s *Server) Handle(pattern int32, handler Handler) {
+func (s *Server) Handle(pattern uint32, handler Handler) {
 	_, ok := s.handlerContainer[pattern]
 	if !ok {
 		s.handlerContainer[pattern] = handler
@@ -92,7 +92,7 @@ func (s *Server) Handle(pattern int32, handler Handler) {
 func (s *Server) BindRouter(routers []Router) {
 	for _, router := range routers {
 		data := []byte(router.Operator)
-		operator := int32(crc32.ChecksumIEEE(data))
+		operator := crc32.ChecksumIEEE(data)
 
 		for _, m := range router.Middleware {
 			if rm, ok := s.routeMiddleware[m]; ok {

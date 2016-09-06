@@ -30,7 +30,7 @@ func (s *Server) handleConnection(conn net.Conn) {
 	var (
 		bLen   []byte = make([]byte, 4)
 		bType  []byte = make([]byte, 4)
-		pacLen int32
+		pacLen uint32
 	)
 
 	for {
@@ -44,7 +44,7 @@ func (s *Server) handleConnection(conn net.Conn) {
 			return
 		}
 
-		if pacLen = utils.BytesToInt32(bLen); pacLen > s.MaxPayload {
+		if pacLen = utils.BytesToUint32(bLen); pacLen > s.MaxPayload {
 			glog.Errorf("packet larger than MaxPayload")
 			return
 		}
@@ -60,11 +60,11 @@ func (s *Server) handleConnection(conn net.Conn) {
 		if operator == 0 {
 			// 只有设置有超时的情况下才进行心跳检测进行长连接
 			if s.writeTimeout > 0 || s.readTimeout > 0 {
-				heartbeatPackets <- s.protocolPacket.New(pacLen, utils.BytesToInt32(bType), data)
+				heartbeatPackets <- s.protocolPacket.New(pacLen, utils.BytesToUint32(bType), data)
 			}
 
 		} else {
-			receivePackets <- s.protocolPacket.New(pacLen, utils.BytesToInt32(bType), data)
+			receivePackets <- s.protocolPacket.New(pacLen, utils.BytesToUint32(bType), data)
 		}
 	}
 }

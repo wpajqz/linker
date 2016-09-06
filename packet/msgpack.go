@@ -10,22 +10,22 @@ import (
 )
 
 type MsgPacket struct {
-	Length int32
-	Type   int32
+	Length uint32
+	Type   uint32
 	Data   []byte
 }
 
 // 得到序列化后的Packet
 func (p MsgPacket) Bytes() (buf []byte) {
-	buf = append(buf, utils.Int32ToBytes(p.Length)...)
-	buf = append(buf, utils.Int32ToBytes(p.Type)...)
+	buf = append(buf, utils.Uint32ToBytes(p.Length)...)
+	buf = append(buf, utils.Uint32ToBytes(p.Type)...)
 	buf = append(buf, p.Data...)
 
 	return buf
 }
 
 // 将数据包类型和pb数据结构一起打包成Packet，并加密Packet.Data
-func (p MsgPacket) Pack(dataType int32, data interface{}) (linker.Packet, error) {
+func (p MsgPacket) Pack(dataType uint32, data interface{}) (linker.Packet, error) {
 	pbData, err := msgpack.Marshal(data)
 	if err != nil {
 		return MsgPacket{}, fmt.Errorf("Pack error: %v", err.Error())
@@ -39,7 +39,7 @@ func (p MsgPacket) Pack(dataType int32, data interface{}) (linker.Packet, error)
 		return MsgPacket{}, fmt.Errorf("Pack error: %v", err.Error())
 	}
 
-	p.Length = int32(8 + len(p.Data))
+	p.Length = uint32(8 + len(p.Data))
 
 	return p, nil
 }
@@ -58,7 +58,7 @@ func (p MsgPacket) UnPack(pb interface{}) error {
 	return nil
 }
 
-func (p MsgPacket) New(length, operator int32, data []byte) linker.Packet {
+func (p MsgPacket) New(length, operator uint32, data []byte) linker.Packet {
 	return MsgPacket{
 		Length: length,
 		Type:   operator,
@@ -66,6 +66,6 @@ func (p MsgPacket) New(length, operator int32, data []byte) linker.Packet {
 	}
 }
 
-func (p MsgPacket) OperateType() int32 {
+func (p MsgPacket) OperateType() uint32 {
 	return p.Type
 }

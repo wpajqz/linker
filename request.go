@@ -4,6 +4,6 @@ import "net"
 
 type Request struct {
 	net.Conn
-	Method int32
+	Method uint32
 	Params Packet
 }

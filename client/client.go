@@ -1,9 +1,8 @@
 package client
 
 import (
-	"net"
-
 	"hash/crc32"
+	"net"
 
 	"github.com/wpajqz/linker"
 )

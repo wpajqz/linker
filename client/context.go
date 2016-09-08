@@ -8,7 +8,7 @@ import (
 
 type Context struct {
 	conn   net.Conn
-	Method int32
+	Method uint32
 	Params linker.Packet
 }
 

@@ -20,7 +20,7 @@ func (c *Client) handleConnection(conn net.Conn) {
 	var (
 		bLen   []byte = make([]byte, 4)
 		bType  []byte = make([]byte, 4)
-		pacLen int32
+		pacLen uint32
 	)
 
 	for {
@@ -35,7 +35,7 @@ func (c *Client) handleConnection(conn net.Conn) {
 			return
 		}
 
-		if pacLen = utils.BytesToInt32(bLen); pacLen > 2048 {
+		if pacLen = utils.BytesToUint32(bLen); pacLen > 2048 {
 			fmt.Println(pacLen)
 			return
 		}
@@ -47,7 +47,7 @@ func (c *Client) handleConnection(conn net.Conn) {
 			return
 		}
 
-		receivePackets <- c.protocolPacket.New(pacLen, utils.BytesToInt32(bType), data)
+		receivePackets <- c.protocolPacket.New(pacLen, utils.BytesToUint32(bType), data)
 	}
 }
 

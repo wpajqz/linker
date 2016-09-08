@@ -3,20 +3,22 @@ package client
 import (
 	"net"
 
+	"hash/crc32"
+
 	"github.com/wpajqz/linker"
 )
 
 type Handler func(*Context)
 
 type Client struct {
-	handlerContainer map[int32]Handler
+	handlerContainer map[uint32]Handler
 	packet           chan linker.Packet
 	protocolPacket   linker.Packet
 }
 
 func NewClient() *Client {
 	return &Client{
-		handlerContainer: make(map[int32]Handler),
+		handlerContainer: make(map[uint32]Handler),
 		packet:           make(chan linker.Packet, 100),
 	}
 }
@@ -31,7 +33,7 @@ func (c *Client) Run(network, address string) {
 	c.handleConnection(conn)
 }
 
-func (c *Client) Handle(pattern int32, handler Handler) {
+func (c *Client) Handle(pattern uint32, handler Handler) {
 	if _, ok := c.handlerContainer[pattern]; !ok {
 		c.handlerContainer[pattern] = handler
 	}
@@ -39,11 +41,14 @@ func (c *Client) Handle(pattern int32, handler Handler) {
 
 func (c *Client) BindRouter(routers []Router) {
 	for _, router := range routers {
-		c.Handle(router.Operator, router.Handler)
+		data := []byte(router.Operator)
+		operator := crc32.ChecksumIEEE(data)
+
+		c.Handle(operator, router.Handler)
 	}
 }
 
-func (c *Client) Send(operator int32, pb interface{}) error {
+func (c *Client) Send(operator uint32, pb interface{}) error {
 	p, err := c.protocolPacket.Pack(operator, pb)
 	if err != nil {
 		return err

@@ -47,8 +47,15 @@ func (c *Client) BindRouter(routers []Router) {
 	}
 }
 
-func (c *Client) Send(operator uint32, pb interface{}) error {
-	p, err := c.protocolPacket.Pack(operator, pb)
+func (c *Client) SetProtocolPacket(packet linker.Packet) {
+	c.protocolPacket = packet
+}
+
+func (c *Client) Send(operator string, pb interface{}) error {
+	data := []byte(operator)
+	op := crc32.ChecksumIEEE(data)
+
+	p, err := c.protocolPacket.Pack(op, pb)
 	if err != nil {
 		return err
 	}

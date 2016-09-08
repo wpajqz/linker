@@ -32,18 +32,18 @@ func (c *Client) Run(network, address string) {
 	c.handleConnection(conn)
 }
 
-func (c *Client) Handle(pattern uint32, handler Handler) {
-	if _, ok := c.handlerContainer[pattern]; !ok {
-		c.handlerContainer[pattern] = handler
+func (c *Client) Handle(pattern string, handler Handler) {
+	data := []byte(pattern)
+	operator := crc32.ChecksumIEEE(data)
+
+	if _, ok := c.handlerContainer[operator]; !ok {
+		c.handlerContainer[operator] = handler
 	}
 }
 
 func (c *Client) BindRouter(routers []Router) {
 	for _, router := range routers {
-		data := []byte(router.Operator)
-		operator := crc32.ChecksumIEEE(data)
-
-		c.Handle(operator, router.Handler)
+		c.Handle(router.Operator, router.Handler)
 	}
 }
 

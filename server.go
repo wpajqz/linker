@@ -77,10 +77,13 @@ func (s *Server) Run(name, address string) {
 }
 
 // 在服务中注册要处理的handler
-func (s *Server) Handle(pattern uint32, handler Handler) {
-	_, ok := s.handlerContainer[pattern]
+func (s *Server) Handle(pattern string, handler Handler) {
+	data := []byte(pattern)
+	operator := crc32.ChecksumIEEE(data)
+
+	_, ok := s.handlerContainer[operator]
 	if !ok {
-		s.handlerContainer[pattern] = handler
+		s.handlerContainer[operator] = handler
 	}
 }
 
@@ -96,7 +99,7 @@ func (s *Server) BindRouter(routers []Router) {
 			}
 		}
 
-		s.Handle(operator, router.Handler)
+		s.Handle(router.Operator, router.Handler)
 	}
 }
 

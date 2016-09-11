@@ -1,6 +1,9 @@
 package linker
 
-import "context"
+import (
+	"context"
+	"hash/crc32"
+)
 
 type Context struct {
 	context.Context
@@ -20,6 +23,11 @@ func (c *Context) ParseParam(data interface{}) error {
 	return c.Request.Params.UnPack(data)
 }
 
-func (c *Context) Write(operator int, data interface{}) (int, error) {
-	return c.Response.Write(c.Request.Params.Bytes())
+func (c *Context) Write(operator string, data interface{}) (int, error) {
+	p, err := c.Request.Params.Pack(crc32.ChecksumIEEE([]byte(operator)), data)
+	if err != nil {
+		return 0, err
+	}
+
+	return c.Response.Write(p.Bytes())
 }

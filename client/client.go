@@ -74,7 +74,7 @@ func (c *Client) AsyncCall(operator string, pb interface{}, response func(*Conte
 		for {
 			if rp, ok := c.receivePackets[op]; ok {
 				response(&Context{op, rp})
-				return nil
+				return
 			}
 
 			continue

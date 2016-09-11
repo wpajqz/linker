@@ -5,7 +5,6 @@ import (
 	"io"
 	"net"
 
-	"github.com/wpajqz/linker"
 	"github.com/wpajqz/linker/utils"
 )
 
@@ -13,8 +12,6 @@ func (c *Client) handleConnection(conn net.Conn) {
 	quit := make(chan bool)
 	defer func() { quit <- true }()
 
-	receivePackets := make(chan linker.Packet, 100)
-	go c.handlePackets(conn, receivePackets, quit)
 	go c.handleSendPackets(conn, quit)
 
 	var (
@@ -47,25 +44,8 @@ func (c *Client) handleConnection(conn net.Conn) {
 			return
 		}
 
-		receivePackets <- c.protocolPacket.New(pacLen, utils.BytesToUint32(bType), data)
-	}
-}
-
-func (c *Client) handlePackets(conn net.Conn, receivePackets <-chan linker.Packet, quit <-chan bool) {
-	for {
-		select {
-		case p := <-receivePackets:
-			handler, ok := c.handlerContainer[p.OperateType()]
-			if !ok {
-				continue
-			}
-
-			ctx := &Context{conn, p.OperateType(), p}
-
-			go handler(ctx)
-		case <-quit:
-			return
-		}
+		packet := c.protocolPacket.New(pacLen, utils.BytesToUint32(bType), data)
+		c.receivePackets[packet.OperateType()] = packet
 	}
 }
 

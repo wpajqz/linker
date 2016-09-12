@@ -3,6 +3,7 @@ package client
 import (
 	"hash/crc32"
 	"net"
+	"time"
 
 	"github.com/wpajqz/linker"
 )
@@ -10,10 +11,11 @@ import (
 type Handler func(*Context)
 
 type Client struct {
-	conn           net.Conn
-	packet         chan linker.Packet
-	receivePackets map[uint32]linker.Packet
-	protocolPacket linker.Packet
+	readTimeout, writeTimeout time.Duration
+	conn                      net.Conn
+	packet                    chan linker.Packet
+	receivePackets            map[uint32]linker.Packet
+	protocolPacket            linker.Packet
 }
 
 func NewClient(network, address string) *Client {
@@ -39,6 +41,19 @@ func (c *Client) SetProtocolPacket(packet linker.Packet) {
 
 func (c *Client) Close() error {
 	return c.conn.Close()
+}
+
+func (c *Client) SetTimeout(timeout time.Duration) {
+	c.readTimeout = timeout
+	c.writeTimeout = timeout
+}
+
+func (c *Client) SetReadTimeout(readTimeout time.Duration) {
+	c.readTimeout = readTimeout
+}
+
+func (c *Client) SetWriteTimeout(writeTimeout time.Duration) {
+	c.writeTimeout = writeTimeout
 }
 
 func (c *Client) SyncCall(operator string, pb interface{}, response func(*Context)) error {

@@ -74,10 +74,12 @@ func (c *Client) SyncCall(operator string, pb interface{}, response func(*Contex
 	c.packet <- p
 
 	for {
+		c.receivePackets.RLock()
 		if rp, ok := c.receivePackets.m[op]; ok {
 			response(&Context{op, rp})
 			return nil
 		}
+		c.receivePackets.RUnlock()
 
 		continue
 	}
@@ -98,10 +100,12 @@ func (c *Client) AsyncCall(operator string, pb interface{}, response func(*Conte
 
 	go func() {
 		for {
+			c.receivePackets.RLock()
 			if rp, ok := c.receivePackets.m[op]; ok {
 				response(&Context{op, rp})
 				return
 			}
+			c.receivePackets.RUnlock()
 
 			continue
 		}

@@ -3,6 +3,7 @@ package client
 import (
 	"hash/crc32"
 	"net"
+	"sync"
 	"time"
 
 	"github.com/wpajqz/linker"
@@ -10,18 +11,23 @@ import (
 
 type Handler func(*Context)
 
+type packetContainer struct {
+	sync.RWMutex
+	m map[uint32]linker.Packet
+}
+
 type Client struct {
 	readTimeout, writeTimeout time.Duration
 	conn                      net.Conn
 	packet                    chan linker.Packet
-	receivePackets            map[uint32]linker.Packet
+	receivePackets            packetContainer
 	protocolPacket            linker.Packet
 }
 
 func NewClient(network, address string) *Client {
 	client := &Client{
 		packet:         make(chan linker.Packet, 100),
-		receivePackets: make(map[uint32]linker.Packet, 100),
+		receivePackets: packetContainer{m: make(map[uint32]linker.Packet)},
 	}
 
 	conn, err := net.Dial(network, address)
@@ -68,7 +74,7 @@ func (c *Client) SyncCall(operator string, pb interface{}, response func(*Contex
 	c.packet <- p
 
 	for {
-		if rp, ok := c.receivePackets[op]; ok {
+		if rp, ok := c.receivePackets.m[op]; ok {
 			response(&Context{op, rp})
 			return nil
 		}
@@ -92,7 +98,7 @@ func (c *Client) AsyncCall(operator string, pb interface{}, response func(*Conte
 
 	go func() {
 		for {
-			if rp, ok := c.receivePackets[op]; ok {
+			if rp, ok := c.receivePackets.m[op]; ok {
 				response(&Context{op, rp})
 				return
 			}

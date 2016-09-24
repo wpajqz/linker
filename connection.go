@@ -111,7 +111,6 @@ func (s *Server) checkHeartbeat(conn net.Conn, heartbeatPackets <-chan Packet, q
 			if s.timeout != 0 {
 				conn.SetDeadline(time.Now().Add(s.timeout))
 			}
-
 		case <-time.After(s.timeout):
 			// todo:添加心跳断开以后的处理逻辑
 			conn.Close()

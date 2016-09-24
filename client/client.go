@@ -99,3 +99,25 @@ func (c *Client) AsyncCall(operator string, pb interface{}, response func(*Conte
 
 	return nil
 }
+
+func (c *Client) Heartbeat(interval time.Duration, pb interface{}) error {
+	data := []byte("/heartbeat")
+	op := crc32.ChecksumIEEE(data)
+
+	p, err := c.protocolPacket.Pack(op, pb)
+	if err != nil {
+		return err
+	}
+
+	for {
+		timer := time.NewTimer(interval * time.Second)
+		select {
+		case <-timer.C:
+			c.packet <- p
+		case <-time.After(c.timeout):
+			return fmt.Errorf("can't handle %s", "/heartbeat")
+		}
+	}
+
+	return nil
+}

@@ -24,7 +24,7 @@ func (s *Server) handleConnection(conn net.Conn) {
 
 	// 只有设置有超时的情况下才进行心跳检测进行长连接
 	heartbeatPackets := make(chan Packet, 100)
-	if s.writeTimeout > 0 || s.readTimeout > 0 {
+	if s.timeout > 0 {
 		go s.checkHeartbeat(conn, heartbeatPackets, quit)
 	}
 
@@ -60,7 +60,7 @@ func (s *Server) handleConnection(conn net.Conn) {
 		operator := utils.BytesToUint32(bType)
 		if operator == crc32.ChecksumIEEE([]byte("/heartbeat")) {
 			// 只有设置有超时的情况下才进行心跳检测进行长连接
-			if s.writeTimeout > 0 || s.readTimeout > 0 {
+			if s.timeout > 0 {
 				heartbeatPackets <- s.protocolPacket.New(pacLen, utils.BytesToUint32(bType), data)
 			}
 
@@ -108,17 +108,12 @@ func (s *Server) checkHeartbeat(conn net.Conn, heartbeatPackets <-chan Packet, q
 	for {
 		select {
 		case <-heartbeatPackets:
-			if s.writeTimeout != 0 {
-				conn.SetWriteDeadline(time.Now().Add(s.writeTimeout))
+			if s.timeout != 0 {
+				conn.SetDeadline(time.Now().Add(s.timeout))
 			}
 
-			if s.readTimeout != 0 {
-				conn.SetReadDeadline(time.Now().Add(s.readTimeout))
-			}
-		case <-time.After(s.writeTimeout):
+		case <-time.After(s.timeout):
 			// todo:添加心跳断开以后的处理逻辑
-			conn.Close()
-		case <-time.After(s.readTimeout):
 			conn.Close()
 		case <-quit:
 			return

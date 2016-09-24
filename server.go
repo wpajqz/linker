@@ -13,8 +13,7 @@ const (
 type Handler func(*Context)
 
 type Server struct {
-	readTimeout      time.Duration
-	writeTimeout     time.Duration
+	timeout          time.Duration
 	handlerContainer map[uint32]Handler
 	middleware       []Middleware
 	routeMiddleware  map[string]Middleware
@@ -34,18 +33,7 @@ func NewServer() *Server {
 
 // 设置默认超时时间
 func (s *Server) SetTimeout(timeout time.Duration) {
-	s.readTimeout = timeout
-	s.writeTimeout = timeout
-}
-
-// 设置读超时时间
-func (s *Server) SetReadTimeout(readTimeout time.Duration) {
-	s.readTimeout = readTimeout
-}
-
-// 设置写超时时间
-func (s *Server) SetWriteTimeout(writeTimeout time.Duration) {
-	s.writeTimeout = writeTimeout
+	s.timeout = timeout
 }
 
 // 设置可处理的数据包的最大长度

@@ -3,7 +3,6 @@ package client
 import (
 	"hash/crc32"
 	"net"
-	"sync"
 	"time"
 
 	"github.com/wpajqz/linker"
@@ -11,23 +10,17 @@ import (
 
 type Handler func(*Context)
 
-type packetContainer struct {
-	sync.RWMutex
-	m map[uint32]linker.Packet
-}
-
 type Client struct {
 	readTimeout, writeTimeout time.Duration
 	conn                      net.Conn
-	packet                    chan linker.Packet
-	receivePackets            packetContainer
+	packet, receivePackets    chan linker.Packet
 	protocolPacket            linker.Packet
 }
 
 func NewClient(network, address string) *Client {
 	client := &Client{
 		packet:         make(chan linker.Packet, 100),
-		receivePackets: packetContainer{m: make(map[uint32]linker.Packet)},
+		receivePackets: make(chan linker.Packet, 100),
 	}
 
 	conn, err := net.Dial(network, address)
@@ -74,14 +67,13 @@ func (c *Client) SyncCall(operator string, pb interface{}, response func(*Contex
 	c.packet <- p
 
 	for {
-		c.receivePackets.RLock()
-		if rp, ok := c.receivePackets.m[op]; ok {
-			response(&Context{op, rp})
-			return nil
+		select {
+		case rp := <-c.receivePackets:
+			if rp.OperateType() == op {
+				response(&Context{op, rp})
+				return nil
+			}
 		}
-		c.receivePackets.RUnlock()
-
-		continue
 	}
 
 	return nil
@@ -98,18 +90,15 @@ func (c *Client) AsyncCall(operator string, pb interface{}, response func(*Conte
 
 	c.packet <- p
 
-	go func() {
-		for {
-			c.receivePackets.RLock()
-			if rp, ok := c.receivePackets.m[op]; ok {
-				response(&Context{op, rp})
-				return
+	for {
+		select {
+		case rp := <-c.receivePackets:
+			if rp.OperateType() == op {
+				go response(&Context{op, rp})
+				return nil
 			}
-			c.receivePackets.RUnlock()
-
-			continue
 		}
-	}()
+	}
 
 	return nil
 }

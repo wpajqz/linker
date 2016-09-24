@@ -44,10 +44,7 @@ func (c *Client) handleConnection(conn net.Conn) {
 			return
 		}
 
-		c.receivePackets.Lock()
-		packet := c.protocolPacket.New(pacLen, utils.BytesToUint32(bType), data)
-		c.receivePackets.m[packet.OperateType()] = packet
-		c.receivePackets.Unlock()
+		c.receivePackets <- c.protocolPacket.New(pacLen, utils.BytesToUint32(bType), data)
 	}
 }
 

@@ -101,7 +101,7 @@ func (c *Client) AsyncCall(operator string, pb interface{}, response func(*Conte
 }
 
 func (c *Client) Heartbeat(interval time.Duration, pb interface{}) error {
-	data := []byte("/heartbeat")
+	data := []byte("heartbeat")
 	op := crc32.ChecksumIEEE(data)
 
 	p, err := c.protocolPacket.Pack(op, pb)
@@ -115,7 +115,7 @@ func (c *Client) Heartbeat(interval time.Duration, pb interface{}) error {
 		case <-timer.C:
 			c.packet <- p
 		case <-time.After(c.timeout):
-			return fmt.Errorf("can't handle %s", "/heartbeat")
+			return fmt.Errorf("can't send %s", "heartbeat")
 		}
 	}
 

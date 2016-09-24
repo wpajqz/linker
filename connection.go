@@ -58,7 +58,7 @@ func (s *Server) handleConnection(conn net.Conn) {
 
 		// 0号包预留为心跳包使用,其他handler不能够使用
 		operator := utils.BytesToUint32(bType)
-		if operator == crc32.ChecksumIEEE([]byte("/heartbeat")) {
+		if operator == crc32.ChecksumIEEE([]byte("heartbeat")) {
 			// 只有设置有超时的情况下才进行心跳检测进行长连接
 			if s.timeout > 0 {
 				heartbeatPackets <- s.protocolPacket.New(pacLen, utils.BytesToUint32(bType), data)

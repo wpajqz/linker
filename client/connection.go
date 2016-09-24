@@ -52,7 +52,10 @@ func (c *Client) handleSendPackets(conn net.Conn, quit <-chan bool) {
 	for {
 		select {
 		case p := <-c.packet:
-			conn.Write(p.Bytes())
+			_, err := conn.Write(p.Bytes())
+			if err != nil {
+				return
+			}
 		case <-quit:
 			return
 		}

@@ -1,6 +1,7 @@
 package client
 
 import (
+	"fmt"
 	"hash/crc32"
 	"net"
 	"time"
@@ -11,14 +12,15 @@ import (
 type Handler func(*Context)
 
 type Client struct {
-	readTimeout, writeTimeout time.Duration
-	conn                      net.Conn
-	packet, receivePackets    chan linker.Packet
-	protocolPacket            linker.Packet
+	timeout                time.Duration
+	conn                   net.Conn
+	packet, receivePackets chan linker.Packet
+	protocolPacket         linker.Packet
 }
 
 func NewClient(network, address string) *Client {
 	client := &Client{
+		timeout:        30 * time.Second,
 		packet:         make(chan linker.Packet, 100),
 		receivePackets: make(chan linker.Packet, 100),
 	}
@@ -43,16 +45,7 @@ func (c *Client) Close() error {
 }
 
 func (c *Client) SetTimeout(timeout time.Duration) {
-	c.readTimeout = timeout
-	c.writeTimeout = timeout
-}
-
-func (c *Client) SetReadTimeout(readTimeout time.Duration) {
-	c.readTimeout = readTimeout
-}
-
-func (c *Client) SetWriteTimeout(writeTimeout time.Duration) {
-	c.writeTimeout = writeTimeout
+	c.timeout = timeout
 }
 
 func (c *Client) SyncCall(operator string, pb interface{}, response func(*Context)) error {
@@ -73,6 +66,8 @@ func (c *Client) SyncCall(operator string, pb interface{}, response func(*Contex
 				response(&Context{op, rp})
 				return nil
 			}
+		case <-time.After(c.timeout):
+			return fmt.Errorf("can't handle %s", operator)
 		}
 	}
 
@@ -97,6 +92,8 @@ func (c *Client) AsyncCall(operator string, pb interface{}, response func(*Conte
 				go response(&Context{op, rp})
 				return nil
 			}
+		case <-time.After(c.timeout):
+			return fmt.Errorf("can't handle %s", operator)
 		}
 	}
 

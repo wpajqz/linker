@@ -16,6 +16,7 @@ type Client struct {
 	conn                   net.Conn
 	packet, receivePackets chan linker.Packet
 	protocolPacket         linker.Packet
+	quit                   chan bool
 }
 
 func NewClient(network, address string) *Client {
@@ -23,6 +24,7 @@ func NewClient(network, address string) *Client {
 		timeout:        30 * time.Second,
 		packet:         make(chan linker.Packet, 100),
 		receivePackets: make(chan linker.Packet, 100),
+		quit:           make(chan bool),
 	}
 
 	conn, err := net.Dial(network, address)
@@ -41,6 +43,7 @@ func (c *Client) SetProtocolPacket(packet linker.Packet) {
 }
 
 func (c *Client) Close() error {
+	c.quit <- true
 	return c.conn.Close()
 }
 
@@ -114,8 +117,8 @@ func (c *Client) Heartbeat(interval time.Duration, pb interface{}) error {
 		select {
 		case <-timer.C:
 			c.packet <- p
-		case <-time.After(c.timeout):
-			return fmt.Errorf("can't send %s", "heartbeat")
+		case <-c.quit:
+			return nil
 		}
 	}
 

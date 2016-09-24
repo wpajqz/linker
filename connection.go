@@ -2,6 +2,7 @@ package linker
 
 import (
 	"context"
+	"hash/crc32"
 	"io"
 	"log"
 	"net"
@@ -56,8 +57,8 @@ func (s *Server) handleConnection(conn net.Conn) {
 		}
 
 		// 0号包预留为心跳包使用,其他handler不能够使用
-		operator := utils.BytesToInt32(bType)
-		if operator == 0 {
+		operator := utils.BytesToUint32(bType)
+		if operator == crc32.ChecksumIEEE([]byte("/heartbeat")) {
 			// 只有设置有超时的情况下才进行心跳检测进行长连接
 			if s.writeTimeout > 0 || s.readTimeout > 0 {
 				heartbeatPackets <- s.protocolPacket.New(pacLen, utils.BytesToUint32(bType), data)

@@ -112,13 +112,13 @@ func (c *Client) Heartbeat(interval time.Duration, pb interface{}) error {
 		return err
 	}
 
-	timer := time.NewTimer(interval * time.Second)
+	ticker := time.NewTicker(interval * time.Second)
 	for {
 		select {
-		case <-timer.C:
+		case <-ticker.C:
 			c.packet <- p
-			timer.Reset(interval * time.Second)
 		case <-c.quit:
+			ticker.Stop()
 			return nil
 		}
 	}

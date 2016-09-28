@@ -12,6 +12,7 @@ import (
 type Handler func(*Context)
 
 type Client struct {
+	Running                bool
 	timeout                time.Duration
 	conn                   net.Conn
 	packet, receivePackets chan linker.Packet
@@ -27,13 +28,28 @@ func NewClient(network, address string) *Client {
 		quit:           make(chan bool),
 	}
 
-	conn, err := net.Dial(network, address)
-	if err != nil {
-		panic("start client:" + err.Error())
-	}
+	go func(string, string) {
+		for {
+			if client.Running {
+				err := client.handleConnection(client.conn)
+				if err != nil {
+					client.Running = false
+				}
+			} else {
+				for {
+					conn, err := net.Dial(network, address)
+					if err == nil {
+						client.Running = true
+						client.conn = conn
 
-	client.conn = conn
-	go client.handleConnection(client.conn)
+						break
+					}
+
+					time.Sleep(client.timeout)
+				}
+			}
+		}
+	}(network, address)
 
 	return client
 }

@@ -8,7 +8,7 @@ import (
 	"github.com/wpajqz/linker/utils"
 )
 
-func (c *Client) handleConnection(conn net.Conn) {
+func (c *Client) handleConnection(conn net.Conn) error {
 	quit := make(chan bool)
 	defer func() { quit <- true }()
 
@@ -23,25 +23,21 @@ func (c *Client) handleConnection(conn net.Conn) {
 	for {
 
 		if n, err := io.ReadFull(conn, bLen); err != nil && n != 4 {
-			fmt.Println(err.Error())
-			return
+			return err
 		}
 
 		if n, err := io.ReadFull(conn, bType); err != nil && n != 4 {
-			fmt.Println(err.Error())
-			return
+			return err
 		}
 
 		if pacLen = utils.BytesToUint32(bLen); pacLen > 2048 {
-			fmt.Println(pacLen)
-			return
+			return fmt.Errorf("%d", pacLen)
 		}
 
 		dataLength := pacLen - 8
 		data := make([]byte, dataLength)
 		if n, err := io.ReadFull(conn, data); err != nil && n != int(dataLength) {
-			fmt.Println(err.Error())
-			return
+			return err
 		}
 
 		c.receivePackets <- c.protocolPacket.New(pacLen, utils.BytesToUint32(bType), data)

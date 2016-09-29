@@ -41,9 +41,7 @@ func NewClient(network, address string) *Client {
 				}
 			} else {
 				for {
-					println(1)
 					conn, err := net.Dial(network, address)
-					println(2)
 					if err == nil {
 						client.setRunningStatus(true)
 						client.conn = conn

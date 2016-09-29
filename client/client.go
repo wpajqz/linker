@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"hash/crc32"
 	"net"
+	"sync"
 	"time"
 
 	"github.com/wpajqz/linker"
@@ -14,12 +15,13 @@ const MaxPayload = 2048
 type Handler func(*Context)
 
 type Client struct {
-	Running                bool
+	running                bool
 	timeout                time.Duration
 	conn                   net.Conn
 	packet, receivePackets chan linker.Packet
 	protocolPacket         linker.Packet
 	quit                   chan bool
+	mutex                  sync.RWMutex
 }
 
 func NewClient(network, address string) *Client {
@@ -32,16 +34,18 @@ func NewClient(network, address string) *Client {
 
 	go func(string, string) {
 		for {
-			if client.Running {
+			if client.running {
 				err := client.handleConnection(client.conn)
 				if err != nil {
-					client.Running = false
+					client.setRunningStatus(false)
 				}
 			} else {
 				for {
+					println(1)
 					conn, err := net.Dial(network, address)
+					println(2)
 					if err == nil {
-						client.Running = true
+						client.setRunningStatus(true)
 						client.conn = conn
 
 						break
@@ -70,7 +74,7 @@ func (c *Client) SetTimeout(timeout time.Duration) {
 }
 
 func (c *Client) SyncCall(operator string, pb interface{}, response func(*Context)) error {
-	if c.Running {
+	if c.RunningStatus() {
 		data := []byte(operator)
 		op := crc32.ChecksumIEEE(data)
 
@@ -97,7 +101,7 @@ func (c *Client) SyncCall(operator string, pb interface{}, response func(*Contex
 }
 
 func (c *Client) AsyncCall(operator string, pb interface{}, response func(*Context)) error {
-	if c.Running {
+	if c.RunningStatus() {
 		data := []byte(operator)
 		op := crc32.ChecksumIEEE(data)
 
@@ -125,7 +129,7 @@ func (c *Client) AsyncCall(operator string, pb interface{}, response func(*Conte
 }
 
 func (c *Client) Heartbeat(interval time.Duration, pb interface{}) error {
-	if c.Running {
+	if c.RunningStatus() {
 		data := []byte("heartbeat")
 		op := crc32.ChecksumIEEE(data)
 
@@ -146,4 +150,17 @@ func (c *Client) Heartbeat(interval time.Duration, pb interface{}) error {
 	}
 
 	return ErrClosed
+}
+
+func (c *Client) RunningStatus() bool {
+	c.mutex.RLock()
+	r := c.running
+	c.mutex.RUnlock()
+	return r
+}
+
+func (c *Client) setRunningStatus(status bool) {
+	c.mutex.Lock()
+	c.running = status
+	c.mutex.Unlock()
 }

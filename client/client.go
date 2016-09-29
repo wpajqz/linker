@@ -68,76 +68,85 @@ func (c *Client) SetTimeout(timeout time.Duration) {
 }
 
 func (c *Client) SyncCall(operator string, pb interface{}, response func(*Context)) error {
-	data := []byte(operator)
-	op := crc32.ChecksumIEEE(data)
+	if c.Running {
+		data := []byte(operator)
+		op := crc32.ChecksumIEEE(data)
 
-	p, err := c.protocolPacket.Pack(op, pb)
-	if err != nil {
-		return err
-	}
+		p, err := c.protocolPacket.Pack(op, pb)
+		if err != nil {
+			return err
+		}
+		c.packet <- p
 
-	c.packet <- p
-
-	for {
-		select {
-		case rp := <-c.receivePackets:
-			if rp.OperateType() == op {
-				response(&Context{op, rp})
-				return nil
+		for {
+			select {
+			case rp := <-c.receivePackets:
+				if rp.OperateType() == op {
+					response(&Context{op, rp})
+					return nil
+				}
+			case <-time.After(c.timeout):
+				return fmt.Errorf("can't handle %s", operator)
 			}
-		case <-time.After(c.timeout):
-			return fmt.Errorf("can't handle %s", operator)
 		}
 	}
 
-	return nil
+	return ErrClosed
 }
 
 func (c *Client) AsyncCall(operator string, pb interface{}, response func(*Context)) error {
-	data := []byte(operator)
-	op := crc32.ChecksumIEEE(data)
+	if c.Running {
+		data := []byte(operator)
+		op := crc32.ChecksumIEEE(data)
 
-	p, err := c.protocolPacket.Pack(op, pb)
-	if err != nil {
-		return err
-	}
-
-	c.packet <- p
-
-	for {
-		select {
-		case rp := <-c.receivePackets:
-			if rp.OperateType() == op {
-				go response(&Context{op, rp})
-				return nil
-			}
-		case <-time.After(c.timeout):
-			return fmt.Errorf("can't handle %s", operator)
+		p, err := c.protocolPacket.Pack(op, pb)
+		if err != nil {
+			return err
 		}
+
+		c.packet <- p
+
+		for {
+			select {
+			case rp := <-c.receivePackets:
+				if rp.OperateType() == op {
+					go response(&Context{op, rp})
+					return nil
+				}
+			case <-time.After(c.timeout):
+				return fmt.Errorf("can't handle %s", operator)
+			}
+		}
+
+		return nil
 	}
 
-	return nil
+	return ErrClosed
 }
 
 func (c *Client) Heartbeat(interval time.Duration, pb interface{}) error {
-	data := []byte("heartbeat")
-	op := crc32.ChecksumIEEE(data)
+	if c.Running {
+		data := []byte("heartbeat")
+		op := crc32.ChecksumIEEE(data)
 
-	p, err := c.protocolPacket.Pack(op, pb)
-	if err != nil {
-		return err
-	}
+		p, err := c.protocolPacket.Pack(op, pb)
+		if err != nil {
+			return err
+		}
 
-	ticker := time.NewTicker(interval * time.Second)
-	for {
-		select {
-		case <-ticker.C:
-			c.packet <- p
-		case <-c.quit:
-			ticker.Stop()
+		ticker := time.NewTicker(interval * time.Second)
+		for {
+			select {
+			case <-ticker.C:
+				c.packet <- p
+			case <-c.quit:
+				ticker.Stop()
+				return nil
+			}
+
 			return nil
 		}
 	}
 
-	return nil
+	return ErrClosed
 }

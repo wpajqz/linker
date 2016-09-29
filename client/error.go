@@ -1,8 +1,11 @@
 package client
 
-import "errors"
+import (
+	"errors"
+	"strconv"
+)
 
 var (
 	ErrClosed       = errors.New("connection is closed.")
-	ErrPacketLength = errors.New("the packet is big than " + MaxPayload)
+	ErrPacketLength = errors.New("the packet is big than " + strconv.Itoa(MaxPayload))
 )

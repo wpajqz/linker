@@ -9,6 +9,8 @@ import (
 	"github.com/wpajqz/linker"
 )
 
+const MaxPayload = 2048
+
 type Handler func(*Context)
 
 type Client struct {

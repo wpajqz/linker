@@ -1,7 +1,6 @@
 package client
 
 import (
-	"fmt"
 	"io"
 	"net"
 
@@ -31,7 +30,7 @@ func (c *Client) handleConnection(conn net.Conn) error {
 		}
 
 		if pacLen = utils.BytesToUint32(bLen); pacLen > 2048 {
-			return fmt.Errorf("%d", pacLen)
+			return ErrPacketLength
 		}
 
 		dataLength := pacLen - 8

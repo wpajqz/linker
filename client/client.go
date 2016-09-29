@@ -142,7 +142,6 @@ func (c *Client) Heartbeat(interval time.Duration, pb interface{}) error {
 			case <-ticker.C:
 				c.packet <- p
 			case <-c.quit:
-				ticker.Stop()
 				return nil
 			}
 

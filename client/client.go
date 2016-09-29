@@ -119,8 +119,6 @@ func (c *Client) AsyncCall(operator string, pb interface{}, response func(*Conte
 				return fmt.Errorf("can't handle %s", operator)
 			}
 		}
-
-		return nil
 	}
 
 	return ErrClosed
@@ -144,8 +142,6 @@ func (c *Client) Heartbeat(interval time.Duration, pb interface{}) error {
 			case <-c.quit:
 				return nil
 			}
-
-			return nil
 		}
 	}
 

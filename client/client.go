@@ -15,21 +15,26 @@ const MaxPayload = 2048
 type Handler func(*Context)
 
 type Client struct {
-	running                bool
+	mutex                  sync.RWMutex
 	timeout                time.Duration
 	conn                   net.Conn
-	packet, receivePackets chan linker.Packet
 	protocolPacket         linker.Packet
-	quit                   chan bool
-	mutex                  sync.RWMutex
+	packet, receivePackets chan linker.Packet
+	cancelHeartbeat        chan bool
+	closeClient            chan bool
+	running                chan bool
+	removeMessageListener  chan bool
 }
 
 func NewClient(network, address string) *Client {
 	client := &Client{
-		timeout:        30 * time.Second,
-		packet:         make(chan linker.Packet, 100),
-		receivePackets: make(chan linker.Packet, 100),
-		quit:           make(chan bool),
+		timeout:               30 * time.Second,
+		packet:                make(chan linker.Packet, 100),
+		receivePackets:        make(chan linker.Packet, 100),
+		removeMessageListener: make(chan bool, 1),
+		cancelHeartbeat:       make(chan bool, 1),
+		closeClient:           make(chan bool, 1),
+		running:               make(chan bool, 1),
 	}
 
 	conn, err := net.Dial(network, address)
@@ -37,32 +42,54 @@ func NewClient(network, address string) *Client {
 		panic(err.Error())
 	}
 
-	client.setRunningStatus(true)
 	client.conn = conn
 
 	go func(string, string, net.Conn) {
 		for {
-			if client.running {
-				err := client.handleConnection(client.conn)
-				if err != nil {
-					client.setRunningStatus(false)
-				}
-			} else {
-				for {
-					//服务端timeout设置影响链接延时时间
-					conn, err := net.Dial(network, address)
-					if err == nil {
-						client.setRunningStatus(true)
-						client.conn = conn
+			err := client.handleConnection(client.conn)
+			if err != nil {
+				client.running <- false
+			}
 
-						break
+			select {
+			case r := <-client.running:
+				if !r {
+					for {
+						//服务端timeout设置影响链接延时时间
+						conn, err := net.Dial(network, address)
+						if err == nil {
+							client.conn = conn
+							break
+						}
 					}
 				}
+			case <-client.closeClient:
+				return
 			}
 		}
 	}(network, address, client.conn)
 
 	return client
+}
+
+func (c *Client) Heartbeat(interval time.Duration, pb interface{}) error {
+	data := []byte("heartbeat")
+	op := crc32.ChecksumIEEE(data)
+
+	p, err := c.protocolPacket.Pack(op, pb)
+	if err != nil {
+		return err
+	}
+
+	ticker := time.NewTicker(interval * time.Second)
+	for {
+		select {
+		case <-ticker.C:
+			c.packet <- p
+		case <-c.cancelHeartbeat:
+			return nil
+		}
+	}
 }
 
 func (c *Client) SetProtocolPacket(packet linker.Packet) {
@@ -73,112 +100,74 @@ func (c *Client) SetTimeout(timeout time.Duration) {
 	c.timeout = timeout
 }
 
+func (c *Client) Close() {
+	c.cancelHeartbeat <- true
+	c.closeClient <- true
+	c.removeMessageListener <- true
+	close(c.cancelHeartbeat)
+	close(c.closeClient)
+	close(c.cancelHeartbeat)
+}
+
 func (c *Client) SyncCall(operator string, pb interface{}, response func(*Context)) error {
-	if c.RunningStatus() {
-		data := []byte(operator)
-		op := crc32.ChecksumIEEE(data)
+	data := []byte(operator)
+	op := crc32.ChecksumIEEE(data)
 
-		p, err := c.protocolPacket.Pack(op, pb)
-		if err != nil {
-			return err
-		}
-		c.packet <- p
+	p, err := c.protocolPacket.Pack(op, pb)
+	if err != nil {
+		return err
+	}
+	c.packet <- p
 
-		for {
-			select {
-			case rp := <-c.receivePackets:
-				if rp.OperateType() == op {
-					response(&Context{op, rp})
-					return nil
-				}
-			case <-time.After(c.timeout):
-				return fmt.Errorf("can't handle %s", operator)
+	for {
+		select {
+		case rp := <-c.receivePackets:
+			if rp.OperateType() == op {
+				response(&Context{op, rp})
+				return nil
 			}
+		case <-time.After(c.timeout):
+			return fmt.Errorf("can't handle %s", operator)
 		}
 	}
-
-	return ErrClosed
 }
 
 func (c *Client) AsyncCall(operator string, pb interface{}, response func(*Context)) error {
-	if c.RunningStatus() {
-		data := []byte(operator)
-		op := crc32.ChecksumIEEE(data)
+	data := []byte(operator)
+	op := crc32.ChecksumIEEE(data)
 
-		p, err := c.protocolPacket.Pack(op, pb)
-		if err != nil {
-			return err
-		}
-
-		c.packet <- p
-
-		for {
-			select {
-			case rp := <-c.receivePackets:
-				if rp.OperateType() == op {
-					go response(&Context{op, rp})
-					return nil
-				}
-			case <-time.After(c.timeout):
-				return fmt.Errorf("can't handle %s", operator)
-			}
-		}
+	p, err := c.protocolPacket.Pack(op, pb)
+	if err != nil {
+		return err
 	}
 
-	return ErrClosed
-}
+	c.packet <- p
 
-func (c *Client) MessageListener(operator string, response func(*Context)) error {
-	if c.RunningStatus() {
-		data := []byte(operator)
-		op := crc32.ChecksumIEEE(data)
-
-		for {
-			select {
-			case rp := <-c.receivePackets:
-				if rp.OperateType() == op {
-					response(&Context{op, rp})
-				}
-			}
-		}
-	}
-
-	return ErrClosed
-}
-
-func (c *Client) Heartbeat(interval time.Duration, pb interface{}) error {
-	if c.RunningStatus() {
-		data := []byte("heartbeat")
-		op := crc32.ChecksumIEEE(data)
-
-		p, err := c.protocolPacket.Pack(op, pb)
-		if err != nil {
-			return err
-		}
-
-		ticker := time.NewTicker(interval * time.Second)
-		for {
-			select {
-			case <-ticker.C:
-				c.packet <- p
-			case <-c.quit:
+	for {
+		select {
+		case rp := <-c.receivePackets:
+			if rp.OperateType() == op {
+				go response(&Context{op, rp})
 				return nil
 			}
+		case <-time.After(c.timeout):
+			return fmt.Errorf("can't handle %s", operator)
 		}
 	}
-
-	return ErrClosed
 }
 
-func (c *Client) RunningStatus() bool {
-	c.mutex.RLock()
-	r := c.running
-	c.mutex.RUnlock()
-	return r
-}
+func (c *Client) AddMessageListener(operator string, response func(*Context)) error {
+	data := []byte(operator)
+	op := crc32.ChecksumIEEE(data)
 
-func (c *Client) setRunningStatus(status bool) {
-	c.mutex.Lock()
-	c.running = status
-	c.mutex.Unlock()
+	for {
+		select {
+		case rp := <-c.receivePackets:
+			if rp.OperateType() == op {
+				response(&Context{op, rp})
+			}
+		case <-c.removeMessageListener:
+			return nil
+		}
+	}
 }

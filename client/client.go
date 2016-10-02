@@ -41,6 +41,7 @@ func NewClient(network, address string) *Client {
 				}
 			} else {
 				for {
+					//服务端timeout设置影响链接延时时间
 					conn, err := net.Dial(network, address)
 					if err == nil {
 						client.setRunningStatus(true)
@@ -48,8 +49,6 @@ func NewClient(network, address string) *Client {
 
 						break
 					}
-
-					time.Sleep(client.timeout)
 				}
 			}
 		}
@@ -60,11 +59,6 @@ func NewClient(network, address string) *Client {
 
 func (c *Client) SetProtocolPacket(packet linker.Packet) {
 	c.protocolPacket = packet
-}
-
-func (c *Client) Close() error {
-	c.quit <- true
-	return c.conn.Close()
 }
 
 func (c *Client) SetTimeout(timeout time.Duration) {

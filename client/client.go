@@ -128,6 +128,24 @@ func (c *Client) AsyncCall(operator string, pb interface{}, response func(*Conte
 	return ErrClosed
 }
 
+func (c *Client) MessageListener(operator string, response func(*Context)) error {
+	if c.RunningStatus() {
+		data := []byte(operator)
+		op := crc32.ChecksumIEEE(data)
+
+		for {
+			select {
+			case rp := <-c.receivePackets:
+				if rp.OperateType() == op {
+					response(&Context{op, rp})
+				}
+			}
+		}
+	}
+
+	return ErrClosed
+}
+
 func (c *Client) Heartbeat(interval time.Duration, pb interface{}) error {
 	if c.RunningStatus() {
 		data := []byte("heartbeat")

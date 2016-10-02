@@ -32,7 +32,15 @@ func NewClient(network, address string) *Client {
 		quit:           make(chan bool),
 	}
 
-	go func(string, string) {
+	conn, err := net.Dial(network, address)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	client.setRunningStatus(true)
+	client.conn = conn
+
+	go func(string, string, net.Conn) {
 		for {
 			if client.running {
 				err := client.handleConnection(client.conn)
@@ -52,7 +60,7 @@ func NewClient(network, address string) *Client {
 				}
 			}
 		}
-	}(network, address)
+	}(network, address, client.conn)
 
 	return client
 }

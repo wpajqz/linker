@@ -109,7 +109,7 @@ func (c *Client) Close() {
 	close(c.cancelHeartbeat)
 }
 
-func (c *Client) SyncCall(operator string, pb interface{}, response func(*Context)) error {
+func (c *Client) SyncCall(operator string, pb interface{}, success func(*Context), error func(*Context)) error {
 	data := []byte(operator)
 	op := crc32.ChecksumIEEE(data)
 
@@ -122,17 +122,24 @@ func (c *Client) SyncCall(operator string, pb interface{}, response func(*Contex
 	for {
 		select {
 		case rp := <-c.receivePackets:
+			ctx := &Context{rp.OperateType(), rp}
 			if rp.OperateType() == op {
-				response(&Context{op, rp})
+				success(ctx)
 				return nil
 			}
+
+			if rp.OperateType() == uint32(0) {
+				error(ctx)
+				return nil
+			}
+
 		case <-time.After(c.timeout):
 			return fmt.Errorf("can't handle %s", operator)
 		}
 	}
 }
 
-func (c *Client) AsyncCall(operator string, pb interface{}, response func(*Context)) error {
+func (c *Client) AsyncCall(operator string, pb interface{}, success func(*Context), error func(*Context)) error {
 	data := []byte(operator)
 	op := crc32.ChecksumIEEE(data)
 
@@ -146,8 +153,14 @@ func (c *Client) AsyncCall(operator string, pb interface{}, response func(*Conte
 	for {
 		select {
 		case rp := <-c.receivePackets:
+			ctx := &Context{rp.OperateType(), rp}
 			if rp.OperateType() == op {
-				go response(&Context{op, rp})
+				go success(ctx)
+				return nil
+			}
+
+			if rp.OperateType() == uint32(0) {
+				go error(ctx)
 				return nil
 			}
 		case <-time.After(c.timeout):
@@ -156,15 +169,17 @@ func (c *Client) AsyncCall(operator string, pb interface{}, response func(*Conte
 	}
 }
 
-func (c *Client) AddMessageListener(operator string, response func(*Context)) error {
+func (c *Client) AddMessageListener(operator string, callback func(*Context)) error {
 	data := []byte(operator)
 	op := crc32.ChecksumIEEE(data)
 
 	for {
 		select {
 		case rp := <-c.receivePackets:
+			ctx := &Context{rp.OperateType(), rp}
 			if rp.OperateType() == op {
-				response(&Context{op, rp})
+				callback(ctx)
+				return nil
 			}
 		case <-c.removeMessageListener:
 			return nil

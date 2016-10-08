@@ -169,18 +169,12 @@ func (c *Client) AsyncCall(operator string, pb interface{}, success func(*Contex
 	}
 }
 
-func (c *Client) AddMessageListener(operator string, callback func(*Context)) error {
-	data := []byte(operator)
-	op := crc32.ChecksumIEEE(data)
-
+func (c *Client) AddMessageListener(callback func(*Context)) error {
 	for {
 		select {
 		case rp := <-c.receivePackets:
-			ctx := &Context{rp.OperateType(), rp}
-			if rp.OperateType() == op {
-				callback(ctx)
-				return nil
-			}
+			callback(&Context{rp.OperateType(), rp})
+			return nil
 		case <-c.removeMessageListener:
 			return nil
 		}

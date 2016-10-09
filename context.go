@@ -3,13 +3,28 @@ package linker
 import (
 	"context"
 	"hash/crc32"
+	"net"
 )
 
-type Context struct {
-	context.Context
-	request  *Request
-	response Response
-}
+type (
+	Request struct {
+		net.Conn
+		Method uint32
+		Params Packet
+	}
+
+	Response struct {
+		net.Conn
+		Method uint32
+		Params Packet
+	}
+
+	Context struct {
+		context.Context
+		request  *Request
+		response Response
+	}
+)
 
 func NewContext(ctx context.Context, req *Request, res Response) *Context {
 	return &Context{

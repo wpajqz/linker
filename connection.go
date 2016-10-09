@@ -66,7 +66,7 @@ func (s *Server) handlePacket(conn net.Conn, receivePackets <-chan Packet, quit 
 
 			go func(handler Handler) {
 				req := &Request{conn, p.OperateType(), p}
-				res := Response{conn, p.OperateType(), ""}
+				res := Response{conn, p.OperateType(), p}
 				ctx := NewContext(context.Background(), req, res)
 
 				for _, v := range s.middleware {

@@ -6,6 +6,6 @@ import (
 
 type Response struct {
 	net.Conn
-	Code    int
-	Message string
+	Method uint32
+	Params Packet
 }

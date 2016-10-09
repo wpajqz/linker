@@ -2,6 +2,7 @@ package linker
 
 import (
 	"context"
+	"errors"
 	"hash/crc32"
 	"net"
 )
@@ -38,16 +39,22 @@ func (c *Context) ParseParam(data interface{}) error {
 	return c.request.Params.UnPack(data)
 }
 
-func (ctx *Context) Success(data interface{}) error {
+func (ctx *Context) Success(data interface{}) {
 	_, err := ctx.write(ctx.request.Method, data)
+	if err != nil {
+		panic(err)
+	}
 
-	return err
+	panic(errors.New("user stop run"))
 }
 
-func (ctx *Context) Error(data interface{}) error {
+func (ctx *Context) Error(data interface{}) {
 	_, err := ctx.write(uint32(0), data)
+	if err != nil {
+		panic(err)
+	}
 
-	return err
+	panic(errors.New("user stop run"))
 }
 
 func (c *Context) Write(operator string, data interface{}) (int, error) {

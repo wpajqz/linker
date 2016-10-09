@@ -2,6 +2,7 @@ package linker
 
 import (
 	"hash/crc32"
+	"log"
 	"net"
 	"time"
 )
@@ -10,17 +11,20 @@ const (
 	MaxPayload = 2048
 )
 
-type Handler func(*Context)
-
-type Server struct {
-	timeout          time.Duration
-	handlerContainer map[uint32]Handler
-	middleware       []Middleware
-	routeMiddleware  map[string]Middleware
-	int32Middleware  map[uint32][]Middleware
-	MaxPayload       uint32
-	protocolPacket   Packet
-}
+type (
+	Handler      func(*Context)
+	ErrorHandler func(error)
+	Server       struct {
+		timeout          time.Duration
+		handlerContainer map[uint32]Handler
+		middleware       []Middleware
+		routeMiddleware  map[string]Middleware
+		int32Middleware  map[uint32][]Middleware
+		MaxPayload       uint32
+		protocolPacket   Packet
+		errorHandler     ErrorHandler
+	}
+)
 
 func NewServer() *Server {
 	return &Server{
@@ -28,6 +32,9 @@ func NewServer() *Server {
 		handlerContainer: make(map[uint32]Handler),
 		routeMiddleware:  make(map[string]Middleware),
 		int32Middleware:  make(map[uint32][]Middleware),
+		errorHandler: func(err error) {
+			log.Println(err)
+		},
 	}
 }
 
@@ -99,4 +106,9 @@ func (s *Server) Use(middleware ...Middleware) {
 // 添加请求需要进行处理的中间件
 func (s *Server) RouteMiddleware(routerMiddleware map[string]Middleware) {
 	s.routeMiddleware = routerMiddleware
+}
+
+// 设置默认错误处理方法
+func (s *Server) SetErrorHandler(errorHandler ErrorHandler) {
+	s.errorHandler = errorHandler
 }

@@ -2,8 +2,9 @@ package linker
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"io"
-	"log"
 	"net"
 	"time"
 
@@ -14,6 +15,10 @@ func (s *Server) handleConnection(conn net.Conn) {
 	quit := make(chan bool)
 
 	defer func() {
+		if err := recover(); err != nil {
+			s.errorHandler(err.(error))
+		}
+
 		conn.Close()
 		quit <- true
 	}()
@@ -31,24 +36,21 @@ func (s *Server) handleConnection(conn net.Conn) {
 		conn.SetDeadline(time.Now().Add(s.timeout))
 
 		if n, err := io.ReadFull(conn, bLen); err != nil && n != 4 {
-			log.Printf("Read packetLength failed: %v", err)
-			return
+			panic(fmt.Errorf("Read packetLength failed: %v", err))
 		}
 
 		if n, err := io.ReadFull(conn, bType); err != nil && n != 4 {
-			log.Printf("Read packetType failed: %v", err)
-			return
+			panic(fmt.Errorf("Read packetLength failed: %v", err))
 		}
 
 		if pacLen = utils.BytesToUint32(bLen); pacLen > s.MaxPayload {
-			log.Printf("packet larger than MaxPayload")
-			return
+			panic(errors.New("packet larger than MaxPayload"))
 		}
 
 		dataLength := pacLen - 8
 		data := make([]byte, dataLength)
 		if n, err := io.ReadFull(conn, data); err != nil && n != int(dataLength) {
-			log.Printf("Read packetData failed: %v", err)
+			panic(fmt.Errorf("Read packetLength failed: %v", err))
 		}
 
 		receivePackets <- s.protocolPacket.New(pacLen, utils.BytesToUint32(bType), data)
@@ -56,6 +58,12 @@ func (s *Server) handleConnection(conn net.Conn) {
 }
 
 func (s *Server) handlePacket(conn net.Conn, receivePackets <-chan Packet, quit <-chan bool) {
+	defer func() {
+		if err := recover(); err != nil {
+			s.errorHandler(err.(error))
+		}
+	}()
+
 	for {
 		select {
 		case p := <-receivePackets:
@@ -65,6 +73,12 @@ func (s *Server) handlePacket(conn net.Conn, receivePackets <-chan Packet, quit 
 			}
 
 			go func(handler Handler) {
+				defer func() {
+					if err := recover(); err != nil {
+						s.errorHandler(err.(error))
+					}
+				}()
+
 				req := &Request{conn, p.OperateType(), p}
 				res := Response{conn, p.OperateType(), p}
 				ctx := NewContext(context.Background(), req, res)
@@ -83,8 +97,7 @@ func (s *Server) handlePacket(conn net.Conn, receivePackets <-chan Packet, quit 
 			}(handler)
 
 		case <-quit:
-			log.Println("Stop handle receivePackets.")
-			return
+			panic(errors.New("Stop handle receivePackets."))
 		}
 	}
 }

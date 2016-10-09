@@ -36,21 +36,21 @@ func (s *Server) handleConnection(conn net.Conn) {
 		conn.SetDeadline(time.Now().Add(s.timeout))
 
 		if n, err := io.ReadFull(conn, bLen); err != nil && n != 4 {
-			panic(&SystemError{"error", fmt.Errorf("Read packetLength failed: %v", err)})
+			panic(SystemError{"error", fmt.Errorf("Read packetLength failed: %v", err)})
 		}
 
 		if n, err := io.ReadFull(conn, bType); err != nil && n != 4 {
-			panic(&SystemError{"error", fmt.Errorf("Read packetLength failed: %v", err)})
+			panic(SystemError{"error", fmt.Errorf("Read packetLength failed: %v", err)})
 		}
 
 		if pacLen = utils.BytesToUint32(bLen); pacLen > s.MaxPayload {
-			panic(&SystemError{"error", errors.New("packet larger than MaxPayload")})
+			panic(SystemError{"error", errors.New("packet larger than MaxPayload")})
 		}
 
 		dataLength := pacLen - 8
 		data := make([]byte, dataLength)
 		if n, err := io.ReadFull(conn, data); err != nil && n != int(dataLength) {
-			panic(&SystemError{"error", fmt.Errorf("Read packetLength failed: %v", err)})
+			panic(SystemError{"error", fmt.Errorf("Read packetLength failed: %v", err)})
 		}
 
 		receivePackets <- s.protocolPacket.New(pacLen, utils.BytesToUint32(bType), data)

@@ -47,19 +47,19 @@ func (c *Context) ParseParam(data interface{}) error {
 func (ctx *Context) Success(data interface{}) {
 	_, err := ctx.write(ctx.request.Method, data)
 	if err != nil {
-		panic(&SystemError{"error", err})
+		panic(SystemError{"error", err})
 	}
 
-	panic(&SystemError{"info", errors.New("user stop run")})
+	panic(SystemError{"info", errors.New("user stop run")})
 }
 
 func (ctx *Context) Error(data interface{}) {
 	_, err := ctx.write(uint32(0), data)
 	if err != nil {
-		panic(&SystemError{"error", err})
+		panic(SystemError{"error", err})
 	}
 
-	panic(&SystemError{"info", errors.New("user stop run")})
+	panic(SystemError{"info", errors.New("user stop run")})
 }
 
 func (c *Context) Write(operator string, data interface{}) (int, error) {

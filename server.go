@@ -35,7 +35,7 @@ func NewServer() *Server {
 		int32Middleware:  make(map[uint32][]Middleware),
 		errorHandler: func(err SystemError) {
 			if err.level == "error" {
-				log.Println(err)
+				log.Println("[" + err.level + "] " + err.err.Error())
 			}
 		},
 	}
@@ -65,7 +65,7 @@ func (s *Server) Run(name, address string) {
 
 	defer listener.Close()
 
-	fmt.Printf("%s server running on %s", name, address)
+	fmt.Printf("%s server running on %s\n", name, address)
 	for {
 		conn, err := listener.Accept()
 		if err != nil {

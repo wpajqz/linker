@@ -23,12 +23,16 @@ func (c *Context) ParseParam(data interface{}) error {
 	return c.request.Params.UnPack(data)
 }
 
-func (ctx *Context) Success(data interface{}) {
-	ctx.write(ctx.request.Method, data)
+func (ctx *Context) Success(data interface{}) error {
+	_, err := ctx.write(ctx.request.Method, data)
+
+	return err
 }
 
-func (ctx *Context) Error(data interface{}) {
-	ctx.write(uint32(0), data)
+func (ctx *Context) Error(data interface{}) error {
+	_, err := ctx.write(uint32(0), data)
+
+	return err
 }
 
 func (c *Context) Write(operator string, data interface{}) (int, error) {

@@ -1,6 +1,7 @@
 package linker
 
 import (
+	"fmt"
 	"hash/crc32"
 	"log"
 	"net"
@@ -13,7 +14,7 @@ const (
 
 type (
 	Handler      func(*Context)
-	ErrorHandler func(error)
+	ErrorHandler func(SystemError)
 	Server       struct {
 		timeout          time.Duration
 		handlerContainer map[uint32]Handler
@@ -32,8 +33,10 @@ func NewServer() *Server {
 		handlerContainer: make(map[uint32]Handler),
 		routeMiddleware:  make(map[string]Middleware),
 		int32Middleware:  make(map[uint32][]Middleware),
-		errorHandler: func(err error) {
-			log.Println(err)
+		errorHandler: func(err SystemError) {
+			if err.level == "error" {
+				log.Println(err)
+			}
 		},
 	}
 }
@@ -62,6 +65,7 @@ func (s *Server) Run(name, address string) {
 
 	defer listener.Close()
 
+	fmt.Printf("%s server running on %s", name, address)
 	for {
 		conn, err := listener.Accept()
 		if err != nil {

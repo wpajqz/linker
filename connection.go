@@ -16,7 +16,7 @@ func (s *Server) handleConnection(conn net.Conn) {
 
 	defer func() {
 		if err := recover(); err != nil {
-			s.errorHandler(err.(error))
+			s.errorHandler(err.(SystemError))
 		}
 
 		conn.Close()
@@ -36,21 +36,21 @@ func (s *Server) handleConnection(conn net.Conn) {
 		conn.SetDeadline(time.Now().Add(s.timeout))
 
 		if n, err := io.ReadFull(conn, bLen); err != nil && n != 4 {
-			panic(fmt.Errorf("Read packetLength failed: %v", err))
+			panic(&SystemError{"error", fmt.Errorf("Read packetLength failed: %v", err)})
 		}
 
 		if n, err := io.ReadFull(conn, bType); err != nil && n != 4 {
-			panic(fmt.Errorf("Read packetLength failed: %v", err))
+			panic(&SystemError{"error", fmt.Errorf("Read packetLength failed: %v", err)})
 		}
 
 		if pacLen = utils.BytesToUint32(bLen); pacLen > s.MaxPayload {
-			panic(errors.New("packet larger than MaxPayload"))
+			panic(&SystemError{"error", errors.New("packet larger than MaxPayload")})
 		}
 
 		dataLength := pacLen - 8
 		data := make([]byte, dataLength)
 		if n, err := io.ReadFull(conn, data); err != nil && n != int(dataLength) {
-			panic(fmt.Errorf("Read packetLength failed: %v", err))
+			panic(&SystemError{"error", fmt.Errorf("Read packetLength failed: %v", err)})
 		}
 
 		receivePackets <- s.protocolPacket.New(pacLen, utils.BytesToUint32(bType), data)
@@ -60,7 +60,7 @@ func (s *Server) handleConnection(conn net.Conn) {
 func (s *Server) handlePacket(conn net.Conn, receivePackets <-chan Packet, quit <-chan bool) {
 	defer func() {
 		if err := recover(); err != nil {
-			s.errorHandler(err.(error))
+			s.errorHandler(err.(SystemError))
 		}
 	}()
 
@@ -75,7 +75,7 @@ func (s *Server) handlePacket(conn net.Conn, receivePackets <-chan Packet, quit 
 			go func(handler Handler) {
 				defer func() {
 					if err := recover(); err != nil {
-						s.errorHandler(err.(error))
+						s.errorHandler(err.(SystemError))
 					}
 				}()
 
@@ -97,7 +97,7 @@ func (s *Server) handlePacket(conn net.Conn, receivePackets <-chan Packet, quit 
 			}(handler)
 
 		case <-quit:
-			panic(errors.New("Stop handle receivePackets."))
+			fmt.Println("stop server running.")
 		}
 	}
 }

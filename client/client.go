@@ -7,6 +7,8 @@ import (
 	"sync"
 	"time"
 
+	"runtime"
+
 	"github.com/wpajqz/linker"
 )
 
@@ -24,6 +26,7 @@ type Client struct {
 	closeClient            chan bool
 	running                chan bool
 	removeMessageListener  chan bool
+	goSchedule             chan bool
 }
 
 func NewClient(network, address string) *Client {
@@ -35,6 +38,7 @@ func NewClient(network, address string) *Client {
 		cancelHeartbeat:       make(chan bool, 1),
 		closeClient:           make(chan bool, 1),
 		running:               make(chan bool, 1),
+		goSchedule:            make(chan bool),
 	}
 
 	conn, err := net.Dial(network, address)
@@ -119,6 +123,7 @@ func (c *Client) SyncCall(operator string, pb interface{}, success func(*Context
 	}
 	c.packet <- p
 
+	c.goSchedule <- true
 	for {
 		select {
 		case rp := <-c.receivePackets:
@@ -150,6 +155,7 @@ func (c *Client) AsyncCall(operator string, pb interface{}, success func(*Contex
 
 	c.packet <- p
 
+	c.goSchedule <- true
 	for {
 		select {
 		case rp := <-c.receivePackets:
@@ -175,6 +181,10 @@ func (c *Client) AddMessageListener(callback func(*Context)) error {
 		case rp := <-c.receivePackets:
 			callback(&Context{rp.OperateType(), rp})
 			return nil
+		case s := <-c.goSchedule:
+			if s {
+				runtime.Gosched()
+			}
 		case <-c.removeMessageListener:
 			return nil
 		}

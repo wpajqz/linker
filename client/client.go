@@ -4,10 +4,9 @@ import (
 	"fmt"
 	"hash/crc32"
 	"net"
+	"runtime"
 	"sync"
 	"time"
-
-	"runtime"
 
 	"github.com/wpajqz/linker"
 )

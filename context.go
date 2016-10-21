@@ -44,6 +44,10 @@ func (c *Context) ParseParam(data interface{}) error {
 	return c.request.Params.UnPack(data)
 }
 
+func (c *Context) RawParam() []byte {
+	return c.request.Params.Bytes()
+}
+
 func (ctx *Context) Success(data interface{}) {
 	_, err := ctx.write(ctx.request.Method, data)
 	if err != nil {

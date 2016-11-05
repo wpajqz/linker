@@ -14,7 +14,7 @@ const (
 
 type (
 	Handler      func(*Context)
-	ErrorHandler func(SystemError)
+	ErrorHandler func(error)
 	Server       struct {
 		timeout          time.Duration
 		handlerContainer map[uint32]Handler
@@ -33,10 +33,8 @@ func NewServer() *Server {
 		handlerContainer: make(map[uint32]Handler),
 		routeMiddleware:  make(map[string]Middleware),
 		int32Middleware:  make(map[uint32][]Middleware),
-		errorHandler: func(err SystemError) {
-			if err.level == "error" {
-				log.Println("[" + err.level + "] " + err.err.Error())
-			}
+		errorHandler: func(err error) {
+				log.Println(err.Error())
 		},
 	}
 }

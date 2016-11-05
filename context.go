@@ -2,9 +2,10 @@ package linker
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"hash/crc32"
 	"net"
+	"time"
 )
 
 type (
@@ -27,8 +28,8 @@ type (
 	}
 
 	SystemError struct {
-		level string
-		err   error
+		when time.Time
+		what string
 	}
 )
 
@@ -51,19 +52,19 @@ func (c *Context) RawParam() []byte {
 func (ctx *Context) Success(data interface{}) {
 	_, err := ctx.write(ctx.request.Method, data)
 	if err != nil {
-		panic(SystemError{"error", err})
+		panic(SystemError{time.Now(), err.Error()})
 	}
 
-	panic(SystemError{"info", errors.New("user stop run")})
+	panic(SystemError{time.Now(), "user stop run"})
 }
 
 func (ctx *Context) Error(data interface{}) {
 	_, err := ctx.write(uint32(0), data)
 	if err != nil {
-		panic(SystemError{"error", err})
+		panic(SystemError{time.Now(), err.Error()})
 	}
 
-	panic(SystemError{"info", errors.New("user stop run")})
+	panic(SystemError{time.Now(), "user stop run"})
 }
 
 func (c *Context) Write(operator string, data interface{}) (int, error) {
@@ -77,4 +78,8 @@ func (c *Context) write(operator uint32, data interface{}) (int, error) {
 	}
 
 	return c.response.Write(p.Bytes())
+}
+
+func (e SystemError) Error() string {
+	return fmt.Sprintf("%v: %v", e.when, e.what)
 }

@@ -55,7 +55,7 @@ func (ctx *Context) Success(data interface{}) {
 		panic(SystemError{time.Now(), err.Error()})
 	}
 
-	panic(SystemError{time.Now(), "user stop run"})
+	panic(nil)
 }
 
 func (ctx *Context) Error(data interface{}) {
@@ -64,7 +64,7 @@ func (ctx *Context) Error(data interface{}) {
 		panic(SystemError{time.Now(), err.Error()})
 	}
 
-	panic(SystemError{time.Now(), "user stop run"})
+	panic(nil)
 }
 
 func (c *Context) Write(operator string, data interface{}) (int, error) {

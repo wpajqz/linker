@@ -23,8 +23,8 @@ type (
 
 	Context struct {
 		context.Context
-		request  *Request
-		response Response
+		Request  *Request
+		Response Response
 	}
 
 	SystemError struct {
@@ -42,15 +42,15 @@ func NewContext(ctx context.Context, req *Request, res Response) *Context {
 }
 
 func (c *Context) ParseParam(data interface{}) error {
-	return c.request.Params.UnPack(data)
+	return c.Request.Params.UnPack(data)
 }
 
 func (c *Context) RawParam() []byte {
-	return c.request.Params.Bytes()
+	return c.Request.Params.Bytes()
 }
 
 func (ctx *Context) Success(data interface{}) {
-	_, err := ctx.write(ctx.request.Method, data)
+	_, err := ctx.write(ctx.Request.Method, data)
 	if err != nil {
 		panic(SystemError{time.Now(), err.Error()})
 	}
@@ -72,12 +72,12 @@ func (c *Context) Write(operator string, data interface{}) (int, error) {
 }
 
 func (c *Context) write(operator uint32, data interface{}) (int, error) {
-	p, err := c.request.Params.Pack(operator, data)
+	p, err := c.Request.Params.Pack(operator, data)
 	if err != nil {
 		return 0, err
 	}
 
-	return c.response.Write(p.Bytes())
+	return c.Response.Write(p.Bytes())
 }
 
 func (e SystemError) Error() string {

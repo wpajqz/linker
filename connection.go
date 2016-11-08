@@ -82,14 +82,14 @@ func (s *Server) handlePacket(conn net.Conn, receivePackets <-chan Packet, quit 
 				res := Response{conn, p.OperateType(), p}
 				ctx := NewContext(context.Background(), req, res)
 
-				for _, v := range s.middleware {
-					ctx = v.Handle(ctx)
-				}
-
 				if rm, ok := s.int32Middleware[p.OperateType()]; ok {
 					for _, v := range rm {
 						ctx = v.Handle(ctx)
 					}
+				}
+
+				for _, v := range s.middleware {
+					ctx = v.Handle(ctx)
 				}
 
 				handler(ctx)

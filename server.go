@@ -34,7 +34,7 @@ func NewServer() *Server {
 		routeMiddleware:  make(map[string]Middleware),
 		int32Middleware:  make(map[uint32][]Middleware),
 		errorHandler: func(err error) {
-				log.Println(err.Error())
+			log.Println(err.Error())
 		},
 	}
 }

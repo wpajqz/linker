@@ -20,7 +20,6 @@ type Client struct {
 	conn                   net.Conn
 	protocolPacket         linker.Packet
 	packet, receivePackets chan linker.Packet
-	listenerPackets        chan linker.Packet
 	cancelHeartbeat        chan bool
 	closeClient            chan bool
 	running                chan bool
@@ -32,7 +31,6 @@ func NewClient(network, address string) *Client {
 		timeout:               30 * time.Second,
 		packet:                make(chan linker.Packet, 100),
 		receivePackets:        make(chan linker.Packet, 100),
-		listenerPackets:       make(chan linker.Packet, 100),
 		removeMessageListener: make(chan bool, 1),
 		cancelHeartbeat:       make(chan bool, 1),
 		closeClient:           make(chan bool, 1),
@@ -135,7 +133,6 @@ func (c *Client) SyncCall(operator string, pb interface{}, success func(*Context
 				return nil
 			}
 
-			c.listenerPackets <- rp
 		case <-time.After(c.timeout):
 			return fmt.Errorf("can't handle %s", operator)
 		}
@@ -167,7 +164,6 @@ func (c *Client) AsyncCall(operator string, pb interface{}, success func(*Contex
 				return nil
 			}
 
-			c.listenerPackets <- rp
 		case <-time.After(c.timeout):
 			return fmt.Errorf("can't handle %s", operator)
 		}
@@ -177,9 +173,8 @@ func (c *Client) AsyncCall(operator string, pb interface{}, success func(*Contex
 func (c *Client) AddMessageListener(callback func(*Context)) error {
 	for {
 		select {
-		case rp := <-c.listenerPackets:
+		case rp := <-c.receivePackets:
 			callback(&Context{rp.OperateType(), rp})
-			return nil
 		case <-c.removeMessageListener:
 			return nil
 		}

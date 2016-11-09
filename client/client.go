@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"hash/crc32"
 	"net"
-	"runtime"
 	"sync"
 	"time"
 
@@ -21,11 +20,11 @@ type Client struct {
 	conn                   net.Conn
 	protocolPacket         linker.Packet
 	packet, receivePackets chan linker.Packet
+	listenerPackets        chan linker.Packet
 	cancelHeartbeat        chan bool
 	closeClient            chan bool
 	running                chan bool
 	removeMessageListener  chan bool
-	goSchedule             chan bool
 }
 
 func NewClient(network, address string) *Client {
@@ -33,11 +32,11 @@ func NewClient(network, address string) *Client {
 		timeout:               30 * time.Second,
 		packet:                make(chan linker.Packet, 100),
 		receivePackets:        make(chan linker.Packet, 100),
+		listenerPackets:       make(chan linker.Packet, 100),
 		removeMessageListener: make(chan bool, 1),
 		cancelHeartbeat:       make(chan bool, 1),
 		closeClient:           make(chan bool, 1),
 		running:               make(chan bool, 1),
-		goSchedule:            make(chan bool),
 	}
 
 	conn, err := net.Dial(network, address)
@@ -122,7 +121,6 @@ func (c *Client) SyncCall(operator string, pb interface{}, success func(*Context
 	}
 	c.packet <- p
 
-	c.goSchedule <- true
 	for {
 		select {
 		case rp := <-c.receivePackets:
@@ -137,6 +135,7 @@ func (c *Client) SyncCall(operator string, pb interface{}, success func(*Context
 				return nil
 			}
 
+			c.listenerPackets <- rp
 		case <-time.After(c.timeout):
 			return fmt.Errorf("can't handle %s", operator)
 		}
@@ -154,7 +153,6 @@ func (c *Client) AsyncCall(operator string, pb interface{}, success func(*Contex
 
 	c.packet <- p
 
-	c.goSchedule <- true
 	for {
 		select {
 		case rp := <-c.receivePackets:
@@ -168,6 +166,8 @@ func (c *Client) AsyncCall(operator string, pb interface{}, success func(*Contex
 				go error(ctx)
 				return nil
 			}
+
+			c.listenerPackets <- rp
 		case <-time.After(c.timeout):
 			return fmt.Errorf("can't handle %s", operator)
 		}
@@ -177,13 +177,9 @@ func (c *Client) AsyncCall(operator string, pb interface{}, success func(*Contex
 func (c *Client) AddMessageListener(callback func(*Context)) error {
 	for {
 		select {
-		case rp := <-c.receivePackets:
+		case rp := <-c.listenerPackets:
 			callback(&Context{rp.OperateType(), rp})
 			return nil
-		case s := <-c.goSchedule:
-			if s {
-				runtime.Gosched()
-			}
 		case <-c.removeMessageListener:
 			return nil
 		}

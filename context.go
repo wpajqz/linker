@@ -3,7 +3,6 @@ package linker
 import (
 	"context"
 	"fmt"
-	"hash/crc32"
 	"net"
 	"time"
 )
@@ -50,7 +49,7 @@ func (c *Context) RawParam() []byte {
 }
 
 func (ctx *Context) Success(data interface{}) {
-	_, err := ctx.write(ctx.Request.Method, data)
+	_, err := ctx.Write(ctx.Request.Method, data)
 	if err != nil {
 		panic(SystemError{time.Now(), err.Error()})
 	}
@@ -59,7 +58,7 @@ func (ctx *Context) Success(data interface{}) {
 }
 
 func (ctx *Context) Error(data interface{}) {
-	_, err := ctx.write(uint32(0), data)
+	_, err := ctx.Write(uint32(0), data)
 	if err != nil {
 		panic(SystemError{time.Now(), err.Error()})
 	}
@@ -67,11 +66,7 @@ func (ctx *Context) Error(data interface{}) {
 	panic(nil)
 }
 
-func (c *Context) Write(operator string, data interface{}) (int, error) {
-	return c.write(crc32.ChecksumIEEE([]byte(operator)), data)
-}
-
-func (c *Context) write(operator uint32, data interface{}) (int, error) {
+func (c *Context) Write(operator uint32, data interface{}) (int, error) {
 	p, err := c.Request.Params.Pack(operator, data)
 	if err != nil {
 		return 0, err

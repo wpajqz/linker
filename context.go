@@ -9,13 +9,13 @@ import (
 )
 
 type (
-	Request struct {
+	request struct {
 		net.Conn
 		Method uint32
 		Params Packet
 	}
 
-	Response struct {
+	response struct {
 		net.Conn
 		Method uint32
 		Params Packet
@@ -23,8 +23,8 @@ type (
 
 	Context struct {
 		context.Context
-		Request  *Request
-		Response Response
+		Request  *request
+		Response response
 	}
 
 	SystemError struct {
@@ -33,7 +33,7 @@ type (
 	}
 )
 
-func NewContext(ctx context.Context, req *Request, res Response) *Context {
+func NewContext(ctx context.Context, req *request, res response) *Context {
 	return &Context{
 		ctx,
 		req,
@@ -49,8 +49,8 @@ func (c *Context) RawParam() []byte {
 	return c.Request.Params.Bytes()
 }
 
-func (ctx *Context) Success(data interface{}) {
-	_, err := ctx.write(ctx.Request.Method, data)
+func (c *Context) Success(data interface{}) {
+	_, err := c.write(c.Request.Method, data)
 	if err != nil {
 		panic(SystemError{time.Now(), err.Error()})
 	}
@@ -58,8 +58,8 @@ func (ctx *Context) Success(data interface{}) {
 	panic(nil)
 }
 
-func (ctx *Context) Error(data interface{}) {
-	_, err := ctx.write(uint32(0), data)
+func (c *Context) Error(data interface{}) {
+	_, err := c.write(c.Request.Method, data)
 	if err != nil {
 		panic(SystemError{time.Now(), err.Error()})
 	}

@@ -1,10 +1,8 @@
 package client
 
 import (
-	"fmt"
 	"hash/crc32"
 	"net"
-	"sync"
 	"time"
 
 	"github.com/wpajqz/linker"
@@ -15,26 +13,24 @@ const MaxPayload = 2048
 type Handler func(*Context)
 
 type Client struct {
-	mutex                  sync.RWMutex
-	timeout                time.Duration
-	conn                   net.Conn
-	protocolPacket         linker.Packet
-	packet, receivePackets chan linker.Packet
-	cancelHeartbeat        chan bool
-	closeClient            chan bool
-	running                chan bool
-	removeMessageListener  chan bool
+	timeout          time.Duration
+	conn             net.Conn
+	protocolPacket   linker.Packet
+	handlerContainer map[uint32]Handler
+	packet           chan linker.Packet
+	cancelHeartbeat  chan bool
+	closeClient      chan bool
+	running          chan bool
 }
 
 func NewClient(network, address string) *Client {
 	client := &Client{
-		timeout:               30 * time.Second,
-		packet:                make(chan linker.Packet, 100),
-		receivePackets:        make(chan linker.Packet, 100),
-		removeMessageListener: make(chan bool, 1),
-		cancelHeartbeat:       make(chan bool, 1),
-		closeClient:           make(chan bool, 1),
-		running:               make(chan bool, 1),
+		timeout:          30 * time.Second,
+		packet:           make(chan linker.Packet, 1025),
+		handlerContainer: make(map[uint32]Handler),
+		cancelHeartbeat:  make(chan bool, 1),
+		closeClient:      make(chan bool, 1),
+		running:          make(chan bool, 1),
 	}
 
 	conn, err := net.Dial(network, address)
@@ -103,13 +99,12 @@ func (c *Client) SetTimeout(timeout time.Duration) {
 func (c *Client) Close() {
 	c.cancelHeartbeat <- true
 	c.closeClient <- true
-	c.removeMessageListener <- true
 	close(c.cancelHeartbeat)
 	close(c.closeClient)
-	close(c.cancelHeartbeat)
 }
 
-func (c *Client) SyncCall(operator string, pb interface{}, success func(*Context), error func(*Context)) error {
+// 向服务端发送请求，同步处理服务端返回结果
+func (c *Client) SyncCall(operator string, pb interface{}, callback func(*Context)) error {
 	data := []byte(operator)
 	op := crc32.ChecksumIEEE(data)
 
@@ -119,27 +114,19 @@ func (c *Client) SyncCall(operator string, pb interface{}, success func(*Context
 	}
 	c.packet <- p
 
-	for {
-		select {
-		case rp := <-c.receivePackets:
-			ctx := &Context{rp.OperateType(), rp}
-			if rp.OperateType() == op {
-				success(ctx)
-				return nil
-			}
+	// 对数据请求的返回状态进行处理,同步阻塞处理机制
+	ch := make(chan bool)
+	c.AddMessageListener(operator, func(ctx *Context) {
+		callback(ctx)
+		ch <- true
+	})
 
-			if rp.OperateType() == uint32(0) {
-				error(ctx)
-				return nil
-			}
-
-		case <-time.After(c.timeout):
-			return fmt.Errorf("can't handle %s", operator)
-		}
-	}
+	<-ch
+	return nil
 }
 
-func (c *Client) AsyncCall(operator string, pb interface{}, success func(*Context), error func(*Context)) error {
+// 向服务端发送请求，异步处理服务端返回结果
+func (c *Client) AsyncCall(operator string, pb interface{}, callback func(*Context)) error {
 	data := []byte(operator)
 	op := crc32.ChecksumIEEE(data)
 
@@ -147,36 +134,23 @@ func (c *Client) AsyncCall(operator string, pb interface{}, success func(*Contex
 	if err != nil {
 		return err
 	}
-
 	c.packet <- p
 
-	for {
-		select {
-		case rp := <-c.receivePackets:
-			ctx := &Context{rp.OperateType(), rp}
-			if rp.OperateType() == op {
-				go success(ctx)
-				return nil
-			}
+	c.AddMessageListener(operator, func(ctx *Context) {
+		callback(ctx)
+	})
 
-			if rp.OperateType() == uint32(0) {
-				go error(ctx)
-				return nil
-			}
-
-		case <-time.After(c.timeout):
-			return fmt.Errorf("can't handle %s", operator)
-		}
-	}
+	return nil
 }
 
-func (c *Client) AddMessageListener(callback func(*Context)) error {
-	for {
-		select {
-		case rp := <-c.receivePackets:
-			callback(&Context{rp.OperateType(), rp})
-		case <-c.removeMessageListener:
-			return nil
-		}
-	}
+// 添加事件监听器
+func (c *Client) AddMessageListener(listener string, callback func(*Context)) {
+	operator := crc32.ChecksumIEEE([]byte(listener))
+	c.handlerContainer[operator] = callback
+}
+
+// 移除事件监听器
+func (c *Client) RemoveMessageListener(listener string) {
+	operator := crc32.ChecksumIEEE([]byte(listener))
+	delete(c.handlerContainer, operator)
 }

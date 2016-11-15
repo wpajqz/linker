@@ -118,10 +118,12 @@ func (c *Client) SyncCall(operator string, pb interface{}, callback func(*Contex
 	ch := make(chan bool)
 	c.AddMessageListener(operator, func(ctx *Context) {
 		callback(ctx)
+		c.RemoveMessageListener(operator)
 		ch <- true
 	})
 
 	<-ch
+
 	return nil
 }
 
@@ -138,6 +140,7 @@ func (c *Client) AsyncCall(operator string, pb interface{}, callback func(*Conte
 
 	c.AddMessageListener(operator, func(ctx *Context) {
 		callback(ctx)
+		c.RemoveMessageListener(operator)
 	})
 
 	return nil

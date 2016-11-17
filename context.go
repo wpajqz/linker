@@ -47,6 +47,7 @@ func (c *Context) Success(body interface{}) {
 }
 
 func (c *Context) Error(body interface{}) {
+	c.Response.SetResponseProperty("status", "0")
 	_, err := c.write(c.Request.Method, body)
 	if err != nil {
 		panic(SystemError{time.Now(), err.Error()})

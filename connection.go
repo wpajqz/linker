@@ -122,7 +122,7 @@ func (s *Server) handlePacket(conn net.Conn, receivePackets <-chan Packet, quit 
 				}
 
 				req := &request{conn, p.OperateType(), p, header}
-				res := response{conn, p.OperateType(), p, nil}
+				res := response{conn, p.OperateType(), p, make(map[string]string)}
 				ctx := NewContext(context.Background(), req, res)
 
 				if rm, ok := s.int32Middleware[p.OperateType()]; ok {

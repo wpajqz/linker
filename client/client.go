@@ -14,7 +14,7 @@ const MaxPayload = uint32(2048)
 type Handler func(*Context)
 
 type Client struct {
-	Context          Context
+	Context          *Context
 	timeout          time.Duration
 	conn             net.Conn
 	protocolPacket   linker.Packet
@@ -27,6 +27,7 @@ type Client struct {
 
 func NewClient(network, address string) *Client {
 	client := &Client{
+		Context:          &Context{Request: &request{Header: make(map[string]string)}, Response: response{Header: make(map[string]string)}},
 		timeout:          30 * time.Second,
 		packet:           make(chan linker.Packet, 1024),
 		handlerContainer: make(map[uint32]Handler),

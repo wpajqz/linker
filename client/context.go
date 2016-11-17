@@ -1,16 +1,12 @@
 package client
 
-import (
-	"github.com/wpajqz/linker"
-	"net"
-)
+import "github.com/wpajqz/linker"
 
 type (
 	request struct {
-		net.Conn
 		Method uint32
-		Header map[string]string
 		Params linker.Packet
+		Header map[string]string
 	}
 
 	response struct {
@@ -20,7 +16,7 @@ type (
 	}
 
 	Context struct {
-		Request  request
+		Request  *request
 		Response response
 	}
 )

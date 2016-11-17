@@ -1,10 +1,9 @@
 package client
 
 import (
+	"encoding/json"
 	"io"
 	"net"
-
-	"encoding/json"
 
 	"github.com/wpajqz/linker/utils"
 )
@@ -84,7 +83,14 @@ func (c *Client) handleReceivedPackets(conn net.Conn) error {
 				err.Error()
 			}
 
-			ctx := &Context{request{}, response{p.OperateType(), p, header}}
+			c.Context.Request.Method = p.OperateType()
+			c.Context.Request.Params = p
+
+			c.Context.Response.Method = p.OperateType()
+			c.Context.Response.Params = p
+			c.Context.Response.Header = header
+
+			ctx := &Context{c.Context.Request, c.Context.Response}
 			handler(ctx)
 		}
 	}

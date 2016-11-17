@@ -2,12 +2,11 @@ package linker
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net"
 	"time"
-
-	"encoding/json"
 
 	"github.com/wpajqz/linker/utils"
 )

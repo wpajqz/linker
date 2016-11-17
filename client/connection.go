@@ -4,6 +4,8 @@ import (
 	"io"
 	"net"
 
+	"encoding/json"
+
 	"github.com/wpajqz/linker/utils"
 )
 
@@ -60,7 +62,7 @@ func (c *Client) handleReceivedPackets(conn net.Conn) error {
 		bodyLength = utils.BytesToUint32(bBodyLength)
 
 		pacLen = headerLength + bodyLength + 12
-		if int(pacLen) > 2048 {
+		if pacLen > MaxPayload {
 			return ErrPacketLength
 		}
 
@@ -76,7 +78,13 @@ func (c *Client) handleReceivedPackets(conn net.Conn) error {
 
 		p := c.protocolPacket.New(utils.BytesToUint32(bType), header, body)
 		if handler, ok := c.handlerContainer[p.OperateType()]; ok {
-			ctx := &Context{p.OperateType(), p}
+			var header map[string]string
+			err := json.Unmarshal(p.Header(), &header)
+			if err != nil {
+				err.Error()
+			}
+
+			ctx := &Context{request{}, response{p.OperateType(), p, header}}
 			handler(ctx)
 		}
 	}

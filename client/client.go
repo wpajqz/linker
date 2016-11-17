@@ -5,14 +5,17 @@ import (
 	"net"
 	"time"
 
+	"encoding/json"
+
 	"github.com/wpajqz/linker"
 )
 
-const MaxPayload = 2048
+const MaxPayload = uint32(2048)
 
 type Handler func(*Context)
 
 type Client struct {
+	request          request
 	timeout          time.Duration
 	conn             net.Conn
 	protocolPacket   linker.Packet
@@ -108,7 +111,12 @@ func (c *Client) SyncCall(operator string, pb interface{}, callback func(*Contex
 	data := []byte(operator)
 	op := crc32.ChecksumIEEE(data)
 
-	p, err := c.protocolPacket.Pack(op, []byte(`{"auth":"paul"}`), pb)
+	header, err := json.Marshal(c.request.Header)
+	if err != nil {
+		return err
+	}
+
+	p, err := c.protocolPacket.Pack(op, header, pb)
 	if err != nil {
 		return err
 	}
@@ -133,7 +141,12 @@ func (c *Client) AsyncCall(operator string, pb interface{}, callback func(*Conte
 	data := []byte(operator)
 	op := crc32.ChecksumIEEE(data)
 
-	p, err := c.protocolPacket.Pack(op, []byte("true"), pb)
+	header, err := json.Marshal(c.request.Header)
+	if err != nil {
+		return err
+	}
+
+	p, err := c.protocolPacket.Pack(op, header, pb)
 	if err != nil {
 		return err
 	}

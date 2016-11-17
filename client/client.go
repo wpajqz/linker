@@ -26,7 +26,7 @@ type Client struct {
 func NewClient(network, address string) *Client {
 	client := &Client{
 		timeout:          30 * time.Second,
-		packet:           make(chan linker.Packet, 1025),
+		packet:           make(chan linker.Packet, 1024),
 		handlerContainer: make(map[uint32]Handler),
 		cancelHeartbeat:  make(chan bool, 1),
 		closeClient:      make(chan bool, 1),
@@ -72,7 +72,7 @@ func (c *Client) Heartbeat(interval time.Duration, pb interface{}) error {
 	data := []byte("heartbeat")
 	op := crc32.ChecksumIEEE(data)
 
-	p, err := c.protocolPacket.Pack(op, pb)
+	p, err := c.protocolPacket.Pack(op, []byte(""), pb)
 	if err != nil {
 		return err
 	}
@@ -108,10 +108,11 @@ func (c *Client) SyncCall(operator string, pb interface{}, callback func(*Contex
 	data := []byte(operator)
 	op := crc32.ChecksumIEEE(data)
 
-	p, err := c.protocolPacket.Pack(op, pb)
+	p, err := c.protocolPacket.Pack(op, []byte("true"), pb)
 	if err != nil {
 		return err
 	}
+
 	c.packet <- p
 
 	// 对数据请求的返回状态进行处理,同步阻塞处理机制
@@ -132,7 +133,7 @@ func (c *Client) AsyncCall(operator string, pb interface{}, callback func(*Conte
 	data := []byte(operator)
 	op := crc32.ChecksumIEEE(data)
 
-	p, err := c.protocolPacket.Pack(op, pb)
+	p, err := c.protocolPacket.Pack(op, []byte("true"), pb)
 	if err != nil {
 		return err
 	}

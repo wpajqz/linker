@@ -49,8 +49,8 @@ func (c *Context) RawParam() []byte {
 	return c.Request.Params.Bytes()
 }
 
-func (c *Context) Success(data interface{}) {
-	_, err := c.write(c.Request.Method, data)
+func (c *Context) Success(body interface{}) {
+	_, err := c.write(c.Request.Method, []byte("true"), body)
 	if err != nil {
 		panic(SystemError{time.Now(), err.Error()})
 	}
@@ -58,8 +58,8 @@ func (c *Context) Success(data interface{}) {
 	panic(nil)
 }
 
-func (c *Context) Error(data interface{}) {
-	_, err := c.write(c.Request.Method, data)
+func (c *Context) Error(body interface{}) {
+	_, err := c.write(c.Request.Method, []byte("false"), body)
 	if err != nil {
 		panic(SystemError{time.Now(), err.Error()})
 	}
@@ -67,12 +67,12 @@ func (c *Context) Error(data interface{}) {
 	panic(nil)
 }
 
-func (c *Context) Write(operator string, data interface{}) (int, error) {
-	return c.write(crc32.ChecksumIEEE([]byte(operator)), data)
+func (c *Context) Write(operator string, body interface{}) (int, error) {
+	return c.write(crc32.ChecksumIEEE([]byte(operator)), []byte("true"), body)
 }
 
-func (c *Context) write(operator uint32, data interface{}) (int, error) {
-	p, err := c.Request.Params.Pack(operator, data)
+func (c *Context) write(operator uint32, header []byte, body interface{}) (int, error) {
+	p, err := c.Request.Params.Pack(operator, header, body)
 	if err != nil {
 		return 0, err
 	}

@@ -10,42 +10,48 @@ import (
 )
 
 type ProtoPacket struct {
-	Length uint32
-	Type   uint32
-	Data   []byte
+	Type         uint32
+	HeaderLength uint32
+	BodyLength   uint32
+	Header       []byte
+	Body         []byte
 }
 
 // 得到序列化后的Packet
 func (p ProtoPacket) Bytes() (buf []byte) {
-	buf = append(buf, utils.Uint32ToBytes(p.Length)...)
 	buf = append(buf, utils.Uint32ToBytes(p.Type)...)
-	buf = append(buf, p.Data...)
+	buf = append(buf, utils.Uint32ToBytes(p.HeaderLength)...)
+	buf = append(buf, utils.Uint32ToBytes(p.BodyLength)...)
+	buf = append(buf, p.Header...)
+	buf = append(buf, p.Body...)
 
 	return buf
 }
 
 // 将数据包类型和pb数据结构一起打包成Packet，并加密Packet.Data
-func (p ProtoPacket) Pack(operator uint32, pb interface{}) (linker.Packet, error) {
-	pbData, err := proto.Marshal(pb.(proto.Message))
+func (p ProtoPacket) Pack(operator uint32, header []byte, body interface{}) (linker.Packet, error) {
+	p.Type = operator
+	pbData, err := proto.Marshal(body.(proto.Message))
 	if err != nil {
 		return ProtoPacket{}, fmt.Errorf("Pack error: %v", err.Error())
 	}
 
-	p.Type = operator
+	p.HeaderLength = uint32(len(header))
+	p.Header = header
 
 	// 对Data进行AES加密
-	p.Data, err = utils.Encrypt(pbData)
+	p.Body, err = utils.Encrypt(pbData)
 	if err != nil {
 		return ProtoPacket{}, fmt.Errorf("Pack error: %v", err.Error())
 	}
 
-	p.Length = uint32(8 + len(p.Data))
+	p.BodyLength = uint32(len(p.Body))
 
 	return p, nil
 }
 
 func (p ProtoPacket) UnPack(pb interface{}) error {
-	decryptData, err := utils.Decrypt(p.Data)
+	decryptData, err := utils.Decrypt(p.Body)
 	if err != nil {
 		return fmt.Errorf("Unpack error: %v", err.Error())
 	}
@@ -58,11 +64,13 @@ func (p ProtoPacket) UnPack(pb interface{}) error {
 	return nil
 }
 
-func (p ProtoPacket) New(length, operator uint32, data []byte) linker.Packet {
+func (p ProtoPacket) New(operator uint32, header, body []byte) linker.Packet {
 	return ProtoPacket{
-		Length: length,
-		Type:   operator,
-		Data:   data,
+		Type:         operator,
+		HeaderLength: uint32(len(header)),
+		BodyLength:   uint32(len(body)),
+		Header:       header,
+		Body:         body,
 	}
 }
 

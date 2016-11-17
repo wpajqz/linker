@@ -1,9 +1,9 @@
 package linker
 
 type Packet interface {
-	New(length, operator uint32, data []byte) Packet
+	New(operator uint32, header, body []byte) Packet
 	OperateType() uint32
-	Pack(operator uint32, data interface{}) (Packet, error)
-	UnPack(data interface{}) error
+	Pack(operator uint32, header []byte, body interface{}) (Packet, error)
+	UnPack(body interface{}) error
 	Bytes() []byte
 }

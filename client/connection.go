@@ -35,32 +35,46 @@ func (c *Client) handleSendPackets(conn net.Conn, quit <-chan bool) {
 // 对接收到的数据包进行处理
 func (c *Client) handleReceivedPackets(conn net.Conn) error {
 	var (
-		bLen   []byte = make([]byte, 4)
-		bType  []byte = make([]byte, 4)
-		pacLen uint32
+		bType         []byte = make([]byte, 4)
+		bHeaderLength []byte = make([]byte, 4)
+		bBodyLength   []byte = make([]byte, 4)
+		headerLength  uint32
+		bodyLength    uint32
+		pacLen        uint32
 	)
 
 	for {
-
-		if n, err := io.ReadFull(conn, bLen); err != nil && n != 4 {
-			return err
-		}
-
 		if n, err := io.ReadFull(conn, bType); err != nil && n != 4 {
 			return err
 		}
 
-		if pacLen = utils.BytesToUint32(bLen); pacLen > 2048 {
-			return ErrPacketLength
-		}
-
-		dataLength := pacLen - 8
-		data := make([]byte, dataLength)
-		if n, err := io.ReadFull(conn, data); err != nil && n != int(dataLength) {
+		if n, err := io.ReadFull(conn, bHeaderLength); err != nil && n != 4 {
 			return err
 		}
 
-		p := c.protocolPacket.New(pacLen, utils.BytesToUint32(bType), data)
+		if n, err := io.ReadFull(conn, bBodyLength); err != nil && n != 4 {
+			return err
+		}
+
+		headerLength = utils.BytesToUint32(bHeaderLength)
+		bodyLength = utils.BytesToUint32(bBodyLength)
+
+		pacLen = headerLength + bodyLength + 12
+		if int(pacLen) > 2048 {
+			return ErrPacketLength
+		}
+
+		header := make([]byte, headerLength)
+		if n, err := io.ReadFull(conn, header); err != nil && n != int(headerLength) {
+			return err
+		}
+
+		body := make([]byte, bodyLength)
+		if n, err := io.ReadFull(conn, body); err != nil && n != int(bodyLength) {
+			return err
+		}
+
+		p := c.protocolPacket.New(utils.BytesToUint32(bType), header, body)
 		if handler, ok := c.handlerContainer[p.OperateType()]; ok {
 			ctx := &Context{p.OperateType(), p}
 			handler(ctx)

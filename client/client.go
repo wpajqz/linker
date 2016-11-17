@@ -14,7 +14,7 @@ const MaxPayload = uint32(2048)
 type Handler func(*Context)
 
 type Client struct {
-	request          request
+	Context          Context
 	timeout          time.Duration
 	conn             net.Conn
 	protocolPacket   linker.Packet
@@ -110,7 +110,7 @@ func (c *Client) SyncCall(operator string, pb interface{}, callback func(*Contex
 	data := []byte(operator)
 	op := crc32.ChecksumIEEE(data)
 
-	header, err := json.Marshal(c.request.Header)
+	header, err := json.Marshal(c.Context.Request.Header)
 	if err != nil {
 		return err
 	}
@@ -140,7 +140,7 @@ func (c *Client) AsyncCall(operator string, pb interface{}, callback func(*Conte
 	data := []byte(operator)
 	op := crc32.ChecksumIEEE(data)
 
-	header, err := json.Marshal(c.request.Header)
+	header, err := json.Marshal(c.Context.Request.Header)
 	if err != nil {
 		return err
 	}

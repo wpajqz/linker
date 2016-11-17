@@ -7,6 +7,8 @@ import (
 	"net"
 	"time"
 
+	"encoding/json"
+
 	"github.com/wpajqz/linker/utils"
 )
 
@@ -113,8 +115,14 @@ func (s *Server) handlePacket(conn net.Conn, receivePackets <-chan Packet, quit 
 					}
 				}()
 
-				req := &request{conn, p.OperateType(), p}
-				res := response{conn, p.OperateType(), p}
+				var header map[string]string
+				err := json.Unmarshal(p.Header(), &header)
+				if err != nil {
+					panic(SystemError{time.Now(), err.Error()})
+				}
+
+				req := &request{conn, p.OperateType(), p, header}
+				res := response{conn, p.OperateType(), p, nil}
 				ctx := NewContext(context.Background(), req, res)
 
 				if rm, ok := s.int32Middleware[p.OperateType()]; ok {

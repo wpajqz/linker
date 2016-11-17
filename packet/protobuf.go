@@ -13,8 +13,8 @@ type ProtoPacket struct {
 	Type         uint32
 	HeaderLength uint32
 	BodyLength   uint32
-	Header       []byte
-	Body         []byte
+	bHeader      []byte
+	bBody        []byte
 }
 
 // 得到序列化后的Packet
@@ -22,8 +22,8 @@ func (p ProtoPacket) Bytes() (buf []byte) {
 	buf = append(buf, utils.Uint32ToBytes(p.Type)...)
 	buf = append(buf, utils.Uint32ToBytes(p.HeaderLength)...)
 	buf = append(buf, utils.Uint32ToBytes(p.BodyLength)...)
-	buf = append(buf, p.Header...)
-	buf = append(buf, p.Body...)
+	buf = append(buf, p.bHeader...)
+	buf = append(buf, p.bBody...)
 
 	return buf
 }
@@ -37,21 +37,21 @@ func (p ProtoPacket) Pack(operator uint32, header []byte, body interface{}) (lin
 	}
 
 	p.HeaderLength = uint32(len(header))
-	p.Header = header
+	p.bHeader = header
 
 	// 对Data进行AES加密
-	p.Body, err = utils.Encrypt(pbData)
+	p.bBody, err = utils.Encrypt(pbData)
 	if err != nil {
 		return ProtoPacket{}, fmt.Errorf("Pack error: %v", err.Error())
 	}
 
-	p.BodyLength = uint32(len(p.Body))
+	p.BodyLength = uint32(len(p.bBody))
 
 	return p, nil
 }
 
 func (p ProtoPacket) UnPack(pb interface{}) error {
-	decryptData, err := utils.Decrypt(p.Body)
+	decryptData, err := utils.Decrypt(p.bBody)
 	if err != nil {
 		return fmt.Errorf("Unpack error: %v", err.Error())
 	}
@@ -69,11 +69,15 @@ func (p ProtoPacket) New(operator uint32, header, body []byte) linker.Packet {
 		Type:         operator,
 		HeaderLength: uint32(len(header)),
 		BodyLength:   uint32(len(body)),
-		Header:       header,
-		Body:         body,
+		bHeader:      header,
+		bBody:        body,
 	}
 }
 
 func (p ProtoPacket) OperateType() uint32 {
 	return p.Type
+}
+
+func (p ProtoPacket) Header() []byte {
+	return p.bHeader
 }

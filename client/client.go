@@ -108,7 +108,7 @@ func (c *Client) SyncCall(operator string, pb interface{}, callback func(*Contex
 	data := []byte(operator)
 	op := crc32.ChecksumIEEE(data)
 
-	p, err := c.protocolPacket.Pack(op, []byte("true"), pb)
+	p, err := c.protocolPacket.Pack(op, []byte(`{"auth":"paul"}`), pb)
 	if err != nil {
 		return err
 	}

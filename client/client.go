@@ -1,11 +1,10 @@
 package client
 
 import (
+	"encoding/json"
 	"hash/crc32"
 	"net"
 	"time"
-
-	"encoding/json"
 
 	"github.com/wpajqz/linker"
 )

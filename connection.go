@@ -39,27 +39,16 @@ func (s *Server) handleConnection(conn net.Conn) {
 		conn.SetDeadline(time.Now().Add(s.timeout))
 
 		if n, err := io.ReadFull(conn, bType); err != nil && n != 4 {
-			if err != io.EOF {
-				panic(SystemError{time.Now(), fmt.Sprintf("Read packetLength failed: %v", err)})
-			}
-
-			return
+			panic(SystemError{time.Now(), fmt.Sprintf("Read packetLength failed: %v", err)})
 		}
 
 		if n, err := io.ReadFull(conn, bHeaderLength); err != nil && n != 4 {
-			if err != io.EOF {
-				panic(SystemError{time.Now(), fmt.Sprintf("Read packetLength failed: %v", err)})
-			}
-
+			panic(SystemError{time.Now(), fmt.Sprintf("Read packetLength failed: %v", err)})
 			return
 		}
 
 		if n, err := io.ReadFull(conn, bBodyLength); err != nil && n != 4 {
-			if err != io.EOF {
-				panic(SystemError{time.Now(), fmt.Sprintf("Read packetLength failed: %v", err)})
-			}
-
-			return
+			panic(SystemError{time.Now(), fmt.Sprintf("Read packetLength failed: %v", err)})
 		}
 
 		headerLength = utils.BytesToUint32(bHeaderLength)
@@ -72,20 +61,13 @@ func (s *Server) handleConnection(conn net.Conn) {
 
 		header := make([]byte, headerLength)
 		if n, err := io.ReadFull(conn, header); err != nil && n != int(headerLength) {
-			if err != io.EOF {
-				panic(SystemError{time.Now(), fmt.Sprintf("Read packetLength failed: %v", err)})
-			}
+			panic(SystemError{time.Now(), fmt.Sprintf("Read packetLength failed: %v", err)})
 
-			return
 		}
 
 		body := make([]byte, bodyLength)
 		if n, err := io.ReadFull(conn, body); err != nil && n != int(bodyLength) {
-			if err != io.EOF {
-				panic(SystemError{time.Now(), fmt.Sprintf("Read packetLength failed: %v", err)})
-			}
-
-			return
+			panic(SystemError{time.Now(), fmt.Sprintf("Read packetLength failed: %v", err)})
 		}
 
 		receivePackets <- s.protocolPacket.New(utils.BytesToUint32(bType), header, body)

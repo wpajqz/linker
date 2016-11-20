@@ -44,7 +44,6 @@ func (s *Server) handleConnection(conn net.Conn) {
 
 		if n, err := io.ReadFull(conn, bHeaderLength); err != nil && n != 4 {
 			panic(SystemError{time.Now(), fmt.Sprintf("Read packetLength failed: %v", err)})
-			return
 		}
 
 		if n, err := io.ReadFull(conn, bBodyLength); err != nil && n != 4 {

@@ -24,6 +24,7 @@ type (
 		MaxPayload       uint32
 		protocolPacket   Packet
 		errorHandler     ErrorHandler
+		destructHandler  Handler
 	}
 )
 
@@ -113,4 +114,9 @@ func (s *Server) RouteMiddleware(routerMiddleware map[string]Middleware) {
 // 设置默认错误处理方法
 func (s *Server) SetErrorHandler(errorHandler ErrorHandler) {
 	s.errorHandler = errorHandler
+}
+
+// 客户端链接断开以后执行回收操作
+func (s *Server) SetDestructHandler(handler Handler) {
+	s.destructHandler = handler
 }

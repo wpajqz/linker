@@ -100,6 +100,7 @@ func (s *Server) handlePacket(conn net.Conn, receivePackets <-chan Packet, quit 
 		}
 	}()
 
+	ctx := &Context{}
 	for {
 		select {
 		case p := <-receivePackets:
@@ -123,7 +124,7 @@ func (s *Server) handlePacket(conn net.Conn, receivePackets <-chan Packet, quit 
 
 				req := &request{conn, p.OperateType(), p, header}
 				res := response{conn, p.OperateType(), p, make(map[string]string)}
-				ctx := NewContext(context.Background(), req, res)
+				ctx = NewContext(context.Background(), req, res)
 
 				if rm, ok := s.int32Middleware[p.OperateType()]; ok {
 					for _, v := range rm {
@@ -140,7 +141,7 @@ func (s *Server) handlePacket(conn net.Conn, receivePackets <-chan Packet, quit 
 
 		case <-quit:
 			// 执行链接退出以后回收操作
-
+			s.destructHandler(ctx)
 			return
 		}
 	}

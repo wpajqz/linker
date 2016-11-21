@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"hash/crc32"
+	"runtime"
 	"time"
 )
 
@@ -17,6 +18,8 @@ type (
 
 	SystemError struct {
 		when time.Time
+		file string
+		line int
 		what string
 	}
 )
@@ -40,7 +43,8 @@ func (c *Context) RawParam() []byte {
 func (c *Context) Success(body interface{}) {
 	_, err := c.write(c.Request.Method, body)
 	if err != nil {
-		panic(SystemError{time.Now(), err.Error()})
+		_, file, line, _ := runtime.Caller(1)
+		panic(SystemError{time.Now(), file, line, err.Error()})
 	}
 
 	panic(nil)
@@ -50,7 +54,8 @@ func (c *Context) Error(body interface{}) {
 	c.Response.SetResponseProperty("status", "0")
 	_, err := c.write(c.Request.Method, body)
 	if err != nil {
-		panic(SystemError{time.Now(), err.Error()})
+		_, file, line, _ := runtime.Caller(1)
+		panic(SystemError{time.Now(), file, line, err.Error()})
 	}
 
 	panic(nil)
@@ -75,5 +80,5 @@ func (c *Context) write(operator uint32, body interface{}) (int, error) {
 }
 
 func (e SystemError) Error() string {
-	return fmt.Sprintf("%v: %v", e.when, e.what)
+	return fmt.Sprintf("[datetime]:%v [file]:%v [line]:%v [message]:%v", e.when, e.file, e.line, e.what)
 }

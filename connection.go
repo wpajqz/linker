@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"runtime"
 	"time"
 
 	"github.com/wpajqz/linker/utils"
@@ -43,7 +44,8 @@ func (s *Server) handleConnection(conn net.Conn) {
 				return
 			}
 
-			panic(SystemError{time.Now(), fmt.Sprintf("Read packetLength failed: %v", err)})
+			_, file, line, _ := runtime.Caller(1)
+			panic(SystemError{time.Now(), file, line, fmt.Sprintf("Read packetLength failed: %v", err)})
 		}
 
 		if n, err := io.ReadFull(conn, bHeaderLength); err != nil && n != 4 {
@@ -51,7 +53,8 @@ func (s *Server) handleConnection(conn net.Conn) {
 				return
 			}
 
-			panic(SystemError{time.Now(), fmt.Sprintf("Read packetLength failed: %v", err)})
+			_, file, line, _ := runtime.Caller(1)
+			panic(SystemError{time.Now(), file, line, fmt.Sprintf("Read packetLength failed: %v", err)})
 		}
 
 		if n, err := io.ReadFull(conn, bBodyLength); err != nil && n != 4 {
@@ -59,7 +62,8 @@ func (s *Server) handleConnection(conn net.Conn) {
 				return
 			}
 
-			panic(SystemError{time.Now(), fmt.Sprintf("Read packetLength failed: %v", err)})
+			_, file, line, _ := runtime.Caller(1)
+			panic(SystemError{time.Now(), file, line, fmt.Sprintf("Read packetLength failed: %v", err)})
 		}
 
 		headerLength = utils.BytesToUint32(bHeaderLength)
@@ -67,7 +71,8 @@ func (s *Server) handleConnection(conn net.Conn) {
 		pacLen := headerLength + bodyLength + uint32(12)
 
 		if pacLen > s.MaxPayload {
-			panic(SystemError{time.Now(), "packet larger than MaxPayload"})
+			_, file, line, _ := runtime.Caller(1)
+			panic(SystemError{time.Now(), file, line, "packet larger than MaxPayload"})
 		}
 
 		header := make([]byte, headerLength)
@@ -76,7 +81,8 @@ func (s *Server) handleConnection(conn net.Conn) {
 				return
 			}
 
-			panic(SystemError{time.Now(), fmt.Sprintf("Read packetLength failed: %v", err)})
+			_, file, line, _ := runtime.Caller(1)
+			panic(SystemError{time.Now(), file, line, fmt.Sprintf("Read packetLength failed: %v", err)})
 
 		}
 
@@ -86,7 +92,8 @@ func (s *Server) handleConnection(conn net.Conn) {
 				return
 			}
 
-			panic(SystemError{time.Now(), fmt.Sprintf("Read packetLength failed: %v", err)})
+			_, file, line, _ := runtime.Caller(1)
+			panic(SystemError{time.Now(), file, line, fmt.Sprintf("Read packetLength failed: %v", err)})
 		}
 
 		receivePackets <- s.protocolPacket.New(utils.BytesToUint32(bType), header, body)
@@ -119,7 +126,8 @@ func (s *Server) handlePacket(conn net.Conn, receivePackets <-chan Packet, quit 
 				var header map[string]string
 				err := json.Unmarshal(p.Header(), &header)
 				if err != nil {
-					panic(SystemError{time.Now(), err.Error()})
+					_, file, line, _ := runtime.Caller(1)
+					panic(SystemError{time.Now(), file, line, err.Error()})
 				}
 
 				req := &request{conn, p.OperateType(), p, header}

@@ -107,7 +107,7 @@ func (s *Server) handlePacket(conn net.Conn, receivePackets <-chan Packet, quit 
 		}
 	}()
 
-	ctx := &Context{}
+	ctx := NewContext(context.Background(), &request{Conn:conn}, response{})
 	for {
 		select {
 		case p := <-receivePackets:

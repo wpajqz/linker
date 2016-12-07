@@ -39,24 +39,14 @@ func (p ProtoPacket) Pack(operator uint32, header []byte, body interface{}) (lin
 	p.HeaderLength = uint32(len(header))
 	p.bHeader = header
 
-	// 对Data进行AES加密
-	p.bBody, err = utils.Encrypt(pbData)
-	if err != nil {
-		return ProtoPacket{}, fmt.Errorf("Pack error: %v", err.Error())
-	}
-
+	p.bBody = pbData
 	p.BodyLength = uint32(len(p.bBody))
 
 	return p, nil
 }
 
 func (p ProtoPacket) UnPack(pb interface{}) error {
-	decryptData, err := utils.Decrypt(p.bBody)
-	if err != nil {
-		return fmt.Errorf("Unpack error: %v", err.Error())
-	}
-
-	err = proto.Unmarshal(decryptData, pb.(proto.Message))
+	err := proto.Unmarshal(p.bBody, pb.(proto.Message))
 	if err != nil {
 		return fmt.Errorf("Unpack error: %v", err.Error())
 	}

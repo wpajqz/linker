@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/wpajqz/linker"
-	"github.com/wpajqz/linker/utils"
 
 	"github.com/golang/protobuf/proto"
 )
@@ -19,9 +18,9 @@ type ProtoPacket struct {
 
 // 得到序列化后的Packet
 func (p ProtoPacket) Bytes() (buf []byte) {
-	buf = append(buf, utils.Uint32ToBytes(p.Type)...)
-	buf = append(buf, utils.Uint32ToBytes(p.HeaderLength)...)
-	buf = append(buf, utils.Uint32ToBytes(p.BodyLength)...)
+	buf = append(buf, linker.Uint32ToBytes(p.Type)...)
+	buf = append(buf, linker.Uint32ToBytes(p.HeaderLength)...)
+	buf = append(buf, linker.Uint32ToBytes(p.BodyLength)...)
 	buf = append(buf, p.bHeader...)
 	buf = append(buf, p.bBody...)
 

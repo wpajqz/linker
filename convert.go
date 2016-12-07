@@ -1,6 +1,6 @@
 // 均采用大端字节序，事实上这个字节序没有任何用处，
 // 只要服务器和客户端约定采用相同的字节序就行
-package utils
+package linker
 
 func Uint32ToBytes(v uint32) []byte {
 	buf := make([]byte, 4)

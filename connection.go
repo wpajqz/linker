@@ -8,8 +8,6 @@ import (
 	"net"
 	"runtime"
 	"time"
-
-	"github.com/wpajqz/linker/utils"
 )
 
 func (s *Server) handleConnection(conn net.Conn) {
@@ -66,8 +64,8 @@ func (s *Server) handleConnection(conn net.Conn) {
 			panic(SystemError{time.Now(), file, line, fmt.Sprintf("Read packetLength failed: %v", err)})
 		}
 
-		headerLength = utils.BytesToUint32(bHeaderLength)
-		bodyLength = utils.BytesToUint32(bBodyLength)
+		headerLength = BytesToUint32(bHeaderLength)
+		bodyLength = BytesToUint32(bBodyLength)
 		pacLen := headerLength + bodyLength + uint32(12)
 
 		if pacLen > s.MaxPayload {
@@ -96,7 +94,7 @@ func (s *Server) handleConnection(conn net.Conn) {
 			panic(SystemError{time.Now(), file, line, fmt.Sprintf("Read packetLength failed: %v", err)})
 		}
 
-		receivePackets <- s.protocolPacket.New(utils.BytesToUint32(bType), header, body)
+		receivePackets <- s.protocolPacket.New(BytesToUint32(bType), header, body)
 	}
 }
 
@@ -107,7 +105,7 @@ func (s *Server) handlePacket(conn net.Conn, receivePackets <-chan Packet, quit 
 		}
 	}()
 
-	ctx := NewContext(context.Background(), &request{Conn:conn}, response{})
+	ctx := NewContext(context.Background(), &request{Conn: conn}, response{})
 	for {
 		select {
 		case p := <-receivePackets:

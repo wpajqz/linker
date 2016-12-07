@@ -5,7 +5,7 @@ import (
 	"io"
 	"net"
 
-	"github.com/wpajqz/linker/utils"
+	"github.com/wpajqz/linker"
 )
 
 // 处理客户端连接
@@ -57,8 +57,8 @@ func (c *Client) handleReceivedPackets(conn net.Conn) error {
 			return err
 		}
 
-		headerLength = utils.BytesToUint32(bHeaderLength)
-		bodyLength = utils.BytesToUint32(bBodyLength)
+		headerLength = linker.BytesToUint32(bHeaderLength)
+		bodyLength = linker.BytesToUint32(bBodyLength)
 
 		pacLen = headerLength + bodyLength + 12
 		if pacLen > MaxPayload {
@@ -75,7 +75,7 @@ func (c *Client) handleReceivedPackets(conn net.Conn) error {
 			return err
 		}
 
-		p := c.protocolPacket.New(utils.BytesToUint32(bType), header, body)
+		p := c.protocolPacket.New(linker.BytesToUint32(bType), header, body)
 		if handler, ok := c.handlerContainer[p.OperateType()]; ok {
 			var header map[string]string
 			err := json.Unmarshal(p.Header(), &header)

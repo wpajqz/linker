@@ -26,7 +26,7 @@ type Client struct {
 }
 
 func NewClient(network, address string) *Client {
-	client := &Client{
+	c := &Client{
 		Context:          &Context{Request: &request{Header: make(map[string]string)}, Response: response{Header: make(map[string]string)}},
 		timeout:          30 * time.Second,
 		packet:           make(chan linker.Packet, 1024),
@@ -41,34 +41,34 @@ func NewClient(network, address string) *Client {
 		panic(err.Error())
 	}
 
-	client.conn = conn
+	c.conn = conn
 
 	go func(string, string, net.Conn) {
 		for {
-			err := client.handleConnection(client.conn)
+			err := c.handleConnection(c.conn)
 			if err != nil {
-				client.running <- false
+				c.running <- false
 			}
 
 			select {
-			case r := <-client.running:
+			case r := <-c.running:
 				if !r {
 					for {
 						//服务端timeout设置影响链接延时时间
 						conn, err := net.Dial(network, address)
 						if err == nil {
-							client.conn = conn
+							c.conn = conn
 							break
 						}
 					}
 				}
-			case <-client.closeClient:
+			case <-c.closeClient:
 				return
 			}
 		}
-	}(network, address, client.conn)
+	}(network, address, c.conn)
 
-	return client
+	return c
 }
 
 func (c *Client) Heartbeat(interval time.Duration, pb interface{}) error {

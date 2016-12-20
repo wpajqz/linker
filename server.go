@@ -24,6 +24,7 @@ type (
 		MaxPayload       uint32
 		protocolPacket   Packet
 		errorHandler     ErrorHandler
+		constructHandler Handler
 		destructHandler  Handler
 	}
 )
@@ -119,4 +120,9 @@ func (s *Server) SetErrorHandler(errorHandler ErrorHandler) {
 // 客户端链接断开以后执行回收操作
 func (s *Server) SetDestructHandler(handler Handler) {
 	s.destructHandler = handler
+}
+
+// 客户端建立连接以后初始化操作
+func (s *Server) SetConstructHandler(handler Handler) {
+	s.constructHandler = handler
 }

@@ -106,6 +106,10 @@ func (s *Server) handlePacket(conn net.Conn, receivePackets <-chan Packet, quit 
 	}()
 
 	ctx := NewContext(context.Background(), &request{Conn: conn}, response{})
+	if s.constructHandler != nil {
+		s.constructHandler(ctx)
+	}
+
 	for {
 		select {
 		case p := <-receivePackets:
@@ -147,7 +151,10 @@ func (s *Server) handlePacket(conn net.Conn, receivePackets <-chan Packet, quit 
 
 		case <-quit:
 			// 执行链接退出以后回收操作
-			s.destructHandler(ctx)
+			if s.destructHandler != nil {
+				s.destructHandler(ctx)
+			}
+
 			return
 		}
 	}

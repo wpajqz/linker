@@ -3,9 +3,8 @@ package packet
 import (
 	"fmt"
 
-	"github.com/wpajqz/linker"
-
 	"github.com/golang/protobuf/proto"
+	"github.com/wpajqz/linker"
 )
 
 type ProtoPacket struct {

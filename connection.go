@@ -105,7 +105,7 @@ func (s *Server) handlePacket(conn net.Conn, receivePackets <-chan Packet, quit 
 		}
 	}()
 
-	ctx := NewContext(context.Background(), &request{Conn: conn}, response{})
+	ctx := NewContext(context.Background(), &request{Conn: conn, Header: make(map[string]string), Params: s.protocolPacket}, response{Conn: conn, Header: make(map[string]string), Params: s.protocolPacket})
 	if s.constructHandler != nil {
 		s.constructHandler(ctx)
 	}

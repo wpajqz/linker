@@ -75,7 +75,12 @@ func (c *Client) Heartbeat(interval time.Duration, pb interface{}) error {
 	data := []byte("heartbeat")
 	op := crc32.ChecksumIEEE(data)
 
-	p, err := c.protocolPacket.Pack(op, []byte(""), pb)
+	header, err := json.Marshal(c.Context.Request.Header)
+	if err != nil {
+		return err
+	}
+
+	p, err := c.protocolPacket.Pack(op, header, pb)
 	if err != nil {
 		return err
 	}

@@ -24,6 +24,7 @@ type (
 		MaxPayload       uint32
 		protocolPacket   Packet
 		errorHandler     ErrorHandler
+		heartbeatHandler Handler
 		constructHandler Handler
 		destructHandler  Handler
 	}
@@ -125,4 +126,12 @@ func (s *Server) SetDestructHandler(handler Handler) {
 // 客户端建立连接以后初始化操作
 func (s *Server) SetConstructHandler(handler Handler) {
 	s.constructHandler = handler
+}
+
+// 设置心跳包的handler,需要客户端发送心跳包才能够触发
+func (s *Server) SetHeartbeatHandler(handler Handler) {
+	data := []byte("heartbeat")
+	op := crc32.ChecksumIEEE(data)
+
+	s.handlerContainer[op] = handler
 }

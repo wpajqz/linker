@@ -85,6 +85,8 @@ func (c *Client) Heartbeat(interval time.Duration, pb interface{}) error {
 		return err
 	}
 
+	// 建立连接以后就发送心跳包建立会话信息，后面的定期发送
+	c.packet <- p
 	ticker := time.NewTicker(interval * time.Second)
 	for {
 		select {

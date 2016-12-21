@@ -129,6 +129,7 @@ func (s *Server) SetConstructHandler(handler Handler) {
 }
 
 // 设置心跳包的handler,需要客户端发送心跳包才能够触发
+// 客户端发送心跳包，服务端未调用此方法时只起到建立长连接的作用
 func (s *Server) SetHeartbeatHandler(handler Handler) {
 	data := []byte("heartbeat")
 	op := crc32.ChecksumIEEE(data)

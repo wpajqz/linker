@@ -80,7 +80,7 @@ func (c *Client) handleReceivedPackets(conn net.Conn) error {
 			var header map[string]string
 			err := json.Unmarshal(p.Header(), &header)
 			if err != nil {
-				err.Error()
+				return err
 			}
 
 			c.Context.Request.Method = p.OperateType()

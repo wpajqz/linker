@@ -5,11 +5,8 @@ import (
 	"hash/crc32"
 	"log"
 	"net"
+	"strconv"
 	"time"
-)
-
-const (
-	MaxPayload = 2048
 )
 
 type (
@@ -90,8 +87,10 @@ func (s *Server) Handle(pattern string, handler Handler) {
 // 绑定Server需要处理的router
 func (s *Server) BindRouter(routers []Router) {
 	for _, router := range routers {
-		data := []byte(router.Operator)
-		operator := crc32.ChecksumIEEE(data)
+		operator := crc32.ChecksumIEEE([]byte(router.Operator))
+		if operator <= MAX_OPERATOR {
+			panic("Unavailable operator, the value of crc32 need less than " + strconv.Itoa(MAX_OPERATOR))
+		}
 
 		for _, m := range router.Middleware {
 			if rm, ok := s.routeMiddleware[m]; ok {
@@ -131,8 +130,5 @@ func (s *Server) SetConstructHandler(handler Handler) {
 // 设置心跳包的handler,需要客户端发送心跳包才能够触发
 // 客户端发送心跳包，服务端未调用此方法时只起到建立长连接的作用
 func (s *Server) SetHeartbeatHandler(handler Handler) {
-	data := []byte("heartbeat")
-	op := crc32.ChecksumIEEE(data)
-
-	s.handlerContainer[op] = handler
+	s.handlerContainer[OPERATOR_HEARTBEAT] = handler
 }

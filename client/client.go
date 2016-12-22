@@ -72,15 +72,12 @@ func NewClient(network, address string) *Client {
 }
 
 func (c *Client) Heartbeat(interval time.Duration, pb interface{}) error {
-	data := []byte("heartbeat")
-	op := crc32.ChecksumIEEE(data)
-
 	header, err := json.Marshal(c.Context.Request.Header)
 	if err != nil {
 		return err
 	}
 
-	p, err := c.protocolPacket.Pack(op, header, pb)
+	p, err := c.protocolPacket.Pack(linker.OPERATOR_HEARTBEAT, header, pb)
 	if err != nil {
 		return err
 	}

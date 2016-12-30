@@ -3,7 +3,6 @@ package linker
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"hash/crc32"
 	"runtime"
 	"time"
@@ -14,13 +13,6 @@ type (
 		context.Context
 		Request  *request
 		Response response
-	}
-
-	SystemError struct {
-		when time.Time
-		file string
-		line int
-		what string
 	}
 )
 
@@ -77,8 +69,4 @@ func (c *Context) write(operator uint32, body interface{}) (int, error) {
 	}
 
 	return c.Response.Write(p.Bytes())
-}
-
-func (e SystemError) Error() string {
-	return fmt.Sprintf("[datetime]:%v [file]:%v [line]:%v [message]:%v", e.when, e.file, e.line, e.what)
 }

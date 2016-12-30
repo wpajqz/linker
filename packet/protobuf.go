@@ -43,8 +43,8 @@ func (p ProtoPacket) Pack(operator uint32, header []byte, body interface{}) (lin
 	return p, nil
 }
 
-func (p ProtoPacket) UnPack(pb interface{}) error {
-	err := proto.Unmarshal(p.bBody, pb.(proto.Message))
+func (p ProtoPacket) UnPack(body interface{}) error {
+	err := proto.Unmarshal(p.bBody, body.(proto.Message))
 	if err != nil {
 		return fmt.Errorf("Unpack error: %v", err.Error())
 	}

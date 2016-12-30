@@ -71,13 +71,13 @@ func NewClient(network, address string) *Client {
 	return c
 }
 
-func (c *Client) Heartbeat(interval time.Duration, pb interface{}) error {
+func (c *Client) Heartbeat(interval time.Duration, param interface{}) error {
 	header, err := json.Marshal(c.Context.Request.Header)
 	if err != nil {
 		return err
 	}
 
-	p, err := c.protocolPacket.Pack(linker.OPERATOR_HEARTBEAT, header, pb)
+	p, err := c.protocolPacket.Pack(linker.OPERATOR_HEARTBEAT, header, param)
 	if err != nil {
 		return err
 	}
@@ -111,7 +111,7 @@ func (c *Client) Close() {
 }
 
 // 向服务端发送请求，同步处理服务端返回结果
-func (c *Client) SyncCall(operator string, pb interface{}, callback func(*Context)) error {
+func (c *Client) SyncCall(operator string, param interface{}, callback func(*Context)) error {
 	data := []byte(operator)
 	op := crc32.ChecksumIEEE(data)
 
@@ -120,7 +120,7 @@ func (c *Client) SyncCall(operator string, pb interface{}, callback func(*Contex
 		return err
 	}
 
-	p, err := c.protocolPacket.Pack(op, header, pb)
+	p, err := c.protocolPacket.Pack(op, header, param)
 	if err != nil {
 		return err
 	}
@@ -141,7 +141,7 @@ func (c *Client) SyncCall(operator string, pb interface{}, callback func(*Contex
 }
 
 // 向服务端发送请求，异步处理服务端返回结果
-func (c *Client) AsyncCall(operator string, pb interface{}, callback func(*Context)) error {
+func (c *Client) AsyncCall(operator string, param interface{}, callback func(*Context)) error {
 	data := []byte(operator)
 	op := crc32.ChecksumIEEE(data)
 
@@ -150,7 +150,7 @@ func (c *Client) AsyncCall(operator string, pb interface{}, callback func(*Conte
 		return err
 	}
 
-	p, err := c.protocolPacket.Pack(op, header, pb)
+	p, err := c.protocolPacket.Pack(op, header, param)
 	if err != nil {
 		return err
 	}

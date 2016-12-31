@@ -1,18 +1,21 @@
 package client
 
-import "github.com/wpajqz/linker"
+import (
+	"net"
+	"strings"
+
+	"github.com/wpajqz/linker"
+)
 
 type (
 	request struct {
-		Method uint32
-		Params linker.Packet
-		Header map[string]string
+		net.Conn
+		linker.Packet
 	}
 
 	response struct {
-		Method uint32
-		Params linker.Packet
-		Header map[string]string
+		net.Conn
+		linker.Packet
 	}
 
 	Context struct {
@@ -26,13 +29,21 @@ func (c *Context) ParseParam(data interface{}) error {
 }
 
 func (r *request) SetRequestProperty(key, value string) {
-	r.Header[key] = value
+	r.Packet = r.New(r.OperateType(), append(r.Header(), []byte(key+"="+value+";")...), r.Body())
 }
 
 func (r response) GetResponseProperty(key string) string {
-	return r.Header[key]
+	values := strings.Split(string(r.Header()), ";")
+	for _, value := range values {
+		kv := strings.Split(value, "=")
+		if kv[0] == key {
+			return kv[1]
+		}
+	}
+
+	return ""
 }
 
 func (r response) UnPack(data interface{}) error {
-	return r.Params.UnPack(data)
+	return r.Packet.UnPack(data)
 }

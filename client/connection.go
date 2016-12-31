@@ -1,7 +1,6 @@
 package client
 
 import (
-	"encoding/json"
 	"io"
 	"net"
 
@@ -77,20 +76,10 @@ func (c *Client) handleReceivedPackets(conn net.Conn) error {
 
 		p := c.protocolPacket.New(linker.BytesToUint32(bType), header, body)
 		if handler, ok := c.handlerContainer[p.OperateType()]; ok {
-			var header map[string]string
-			err := json.Unmarshal(p.Header(), &header)
-			if err != nil {
-				return err
-			}
+			req := &request{Conn: conn, Packet: c.protocolPacket}
+			res := response{Conn: conn, Packet: p}
 
-			c.Context.Request.Method = p.OperateType()
-			c.Context.Request.Params = p
-
-			c.Context.Response.Method = p.OperateType()
-			c.Context.Response.Params = p
-			c.Context.Response.Header = header
-
-			ctx := &Context{c.Context.Request, c.Context.Response}
+			ctx := &Context{req, res}
 			handler(ctx)
 		}
 	}

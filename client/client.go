@@ -1,7 +1,6 @@
 package client
 
 import (
-	"encoding/json"
 	"hash/crc32"
 	"net"
 	"time"
@@ -25,9 +24,10 @@ type Client struct {
 	running          chan bool
 }
 
-func NewClient(network, address string) *Client {
+func NewClient(network, address string, protocol linker.Packet) *Client {
 	c := &Client{
-		Context:          &Context{Request: &request{Header: make(map[string]string)}, Response: response{Header: make(map[string]string)}},
+		protocolPacket:   protocol,
+		Context:          &Context{Request: &request{Packet: protocol}, Response: response{Packet: protocol}},
 		timeout:          30 * time.Second,
 		packet:           make(chan linker.Packet, 1024),
 		handlerContainer: make(map[uint32]Handler),
@@ -72,12 +72,7 @@ func NewClient(network, address string) *Client {
 }
 
 func (c *Client) Heartbeat(interval time.Duration, param interface{}) error {
-	header, err := json.Marshal(c.Context.Request.Header)
-	if err != nil {
-		return err
-	}
-
-	p, err := c.protocolPacket.Pack(linker.OPERATOR_HEARTBEAT, header, param)
+	p, err := c.protocolPacket.Pack(linker.OPERATOR_HEARTBEAT, c.Context.Request.Header(), param)
 	if err != nil {
 		return err
 	}
@@ -115,12 +110,7 @@ func (c *Client) SyncCall(operator string, param interface{}, callback func(*Con
 	data := []byte(operator)
 	op := crc32.ChecksumIEEE(data)
 
-	header, err := json.Marshal(c.Context.Request.Header)
-	if err != nil {
-		return err
-	}
-
-	p, err := c.protocolPacket.Pack(op, header, param)
+	p, err := c.protocolPacket.Pack(op, c.Context.Request.Header(), param)
 	if err != nil {
 		return err
 	}
@@ -145,12 +135,7 @@ func (c *Client) AsyncCall(operator string, param interface{}, callback func(*Co
 	data := []byte(operator)
 	op := crc32.ChecksumIEEE(data)
 
-	header, err := json.Marshal(c.Context.Request.Header)
-	if err != nil {
-		return err
-	}
-
-	p, err := c.protocolPacket.Pack(op, header, param)
+	p, err := c.protocolPacket.Pack(op, c.Context.Request.Header(), param)
 	if err != nil {
 		return err
 	}

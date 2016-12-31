@@ -69,3 +69,7 @@ func (p ProtoPacket) OperateType() uint32 {
 func (p ProtoPacket) Header() []byte {
 	return p.bHeader
 }
+
+func (p ProtoPacket) Body() []byte {
+	return p.bBody
+}

@@ -2,7 +2,6 @@ package linker
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"io"
 	"net"
@@ -105,7 +104,7 @@ func (s *Server) handlePacket(conn net.Conn, receivePackets <-chan Packet, quit 
 		}
 	}()
 
-	ctx := NewContext(context.Background(), &request{Conn: conn, Header: make(map[string]string), Params: s.protocolPacket}, response{Conn: conn, Header: make(map[string]string), Params: s.protocolPacket})
+	ctx := NewContext(context.Background(), &request{Conn: conn, Packet: s.protocolPacket}, response{Conn: conn, Packet: s.protocolPacket})
 	if s.constructHandler != nil {
 		s.constructHandler(ctx)
 	}
@@ -125,15 +124,8 @@ func (s *Server) handlePacket(conn net.Conn, receivePackets <-chan Packet, quit 
 					}
 				}()
 
-				var header map[string]string
-				err := json.Unmarshal(p.Header(), &header)
-				if err != nil {
-					_, file, line, _ := runtime.Caller(1)
-					panic(SystemError{time.Now(), file, line, err.Error()})
-				}
-
-				req := &request{conn, p.OperateType(), p, header}
-				res := response{conn, p.OperateType(), p, make(map[string]string)}
+				req := &request{Conn: conn, Packet: p}
+				res := response{Conn: conn, Packet: s.protocolPacket}
 				ctx = NewContext(context.Background(), req, res)
 
 				if rm, ok := s.int32Middleware[p.OperateType()]; ok {

@@ -1,22 +1,27 @@
 package linker
 
-import "net"
+import (
+	"net"
+	"strings"
+)
 
 type request struct {
 	net.Conn
-	Method uint32
-	Params Packet
-	Header map[string]string
+	Packet
 }
 
 func (r *request) SetRequestProperty(key, value string) {
-	r.Header[key] = value
+	r.Packet = r.New(r.OperateType(), append(r.Header(), []byte(key+"="+value+";")...), r.Body())
 }
 
 func (r *request) GetRequestProperty(key string) string {
-	return r.Header[key]
-}
+	values := strings.Split(string(r.Header()), ";")
+	for _, value := range values {
+		kv := strings.Split(value, "=")
+		if kv[0] == key {
+			return kv[1]
+		}
+	}
 
-func (r *request) DeleteRequestProperty(key string) {
-	delete(r.Header, key)
+	return ""
 }

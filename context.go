@@ -35,11 +35,6 @@ func (c *Context) ParseParam(data interface{}) error {
 	return nil
 }
 
-func (c *Context) RawParam() []byte {
-	p := NewPack(c.Request.OperateType, c.Request.Header, c.Request.Body)
-	return p.Bytes()
-}
-
 func (c *Context) Success(body interface{}) {
 	_, err := c.write(c.Request.OperateType, body)
 	if err != nil {

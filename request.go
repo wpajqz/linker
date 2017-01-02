@@ -11,7 +11,7 @@ type request struct {
 }
 
 func (r *request) SetRequestProperty(key, value string) {
-	r.Packet = r.New(r.OperateType(), append(r.Header(), []byte(key+"="+value+";")...), r.Body())
+	r.Packet = r.Pack(r.OperateType(), append(r.Header(), []byte(key+"="+value+";")...), r.Body())
 }
 
 func (r *request) GetRequestProperty(key string) string {

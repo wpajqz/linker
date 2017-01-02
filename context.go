@@ -2,9 +2,12 @@ package linker
 
 import (
 	"context"
+	"fmt"
 	"hash/crc32"
 	"runtime"
 	"time"
+
+	"github.com/golang/protobuf/proto"
 )
 
 type (
@@ -24,11 +27,16 @@ func NewContext(ctx context.Context, req *request, res response) *Context {
 }
 
 func (c *Context) ParseParam(data interface{}) error {
-	return c.Request.UnPack(data)
+	err := proto.Unmarshal(c.Request.Body(), data.(proto.Message))
+	if err != nil {
+		return fmt.Errorf("Unpack error: %v", err.Error())
+	}
+
+	return nil
 }
 
 func (c *Context) RawParam() []byte {
-	return c.Request.Bytes()
+	return c.Request.UnPack()
 }
 
 func (c *Context) Success(body interface{}) {
@@ -57,10 +65,12 @@ func (c *Context) Write(operator string, body interface{}) (int, error) {
 }
 
 func (c *Context) write(operator uint32, body interface{}) (int, error) {
-	p, err := c.Request.Pack(operator, c.Response.Header(), body)
+	pbData, err := proto.Marshal(body.(proto.Message))
 	if err != nil {
 		return 0, err
 	}
 
-	return c.Response.Write(p.Bytes())
+	p := c.Request.Pack(operator, c.Response.Header(), pbData)
+
+	return c.Response.Write(p.UnPack())
 }

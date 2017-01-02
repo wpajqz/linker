@@ -93,7 +93,7 @@ func (s *Server) handleConnection(conn net.Conn) {
 			panic(SystemError{time.Now(), file, line, fmt.Sprintf("Read packetLength failed: %v", err)})
 		}
 
-		receivePackets <- s.protocolPacket.New(BytesToUint32(bType), header, body)
+		receivePackets <- s.protocolPacket.Pack(BytesToUint32(bType), header, body)
 	}
 }
 

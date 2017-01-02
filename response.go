@@ -11,7 +11,7 @@ type response struct {
 }
 
 func (r *response) SetResponseProperty(key, value string) {
-	r.Packet = r.New(r.OperateType(), append(r.Header(), []byte(key+"="+value+";")...), r.Body())
+	r.Packet = r.Pack(r.OperateType(), append(r.Header(), []byte(key+"="+value+";")...), r.Body())
 }
 
 func (r *response) GetResponseProperty(key string) string {

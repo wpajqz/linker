@@ -5,6 +5,7 @@ import (
 	"net"
 	"time"
 
+	"github.com/golang/protobuf/proto"
 	"github.com/wpajqz/linker"
 )
 
@@ -24,10 +25,9 @@ type Client struct {
 	running          chan bool
 }
 
-func NewClient(network, address string, protocol linker.Packet) *Client {
+func NewClient(network, address string) *Client {
 	c := &Client{
-		protocolPacket:   protocol,
-		Context:          &Context{Request: &request{Packet: protocol}, Response: response{Packet: protocol}},
+		Context:          &Context{Request: &request{}, Response: response{}},
 		timeout:          30 * time.Second,
 		packet:           make(chan linker.Packet, 1024),
 		handlerContainer: make(map[uint32]Handler),
@@ -72,10 +72,12 @@ func NewClient(network, address string, protocol linker.Packet) *Client {
 }
 
 func (c *Client) Heartbeat(interval time.Duration, param interface{}) error {
-	p, err := c.protocolPacket.Pack(linker.OPERATOR_HEARTBEAT, c.Context.Request.Header(), param)
+	pbData, err := proto.Marshal(param.(proto.Message))
 	if err != nil {
 		return err
 	}
+
+	p := linker.NewPack(linker.OPERATOR_HEARTBEAT, c.Context.Request.Header, pbData)
 
 	// 建立连接以后就发送心跳包建立会话信息，后面的定期发送
 	c.packet <- p
@@ -110,10 +112,11 @@ func (c *Client) SyncCall(operator string, param interface{}, callback func(*Con
 	data := []byte(operator)
 	op := crc32.ChecksumIEEE(data)
 
-	p, err := c.protocolPacket.Pack(op, c.Context.Request.Header(), param)
+	pbData, err := proto.Marshal(param.(proto.Message))
 	if err != nil {
 		return err
 	}
+	p := linker.NewPack(op, c.Context.Request.Header, pbData)
 
 	c.packet <- p
 
@@ -135,10 +138,12 @@ func (c *Client) AsyncCall(operator string, param interface{}, callback func(*Co
 	data := []byte(operator)
 	op := crc32.ChecksumIEEE(data)
 
-	p, err := c.protocolPacket.Pack(op, c.Context.Request.Header(), param)
+	pbData, err := proto.Marshal(param.(proto.Message))
 	if err != nil {
 		return err
 	}
+	p := linker.NewPack(op, c.Context.Request.Header, pbData)
+
 	c.packet <- p
 
 	c.AddMessageListener(operator, func(ctx *Context) {

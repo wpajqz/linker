@@ -1,21 +1,24 @@
 package client
 
 import (
+	"fmt"
 	"net"
 	"strings"
 
-	"github.com/wpajqz/linker"
+	"github.com/golang/protobuf/proto"
 )
 
 type (
 	request struct {
 		net.Conn
-		linker.Packet
+		OperateType  uint32
+		Header, Body []byte
 	}
 
 	response struct {
 		net.Conn
-		linker.Packet
+		OperateType  uint32
+		Header, Body []byte
 	}
 
 	Context struct {
@@ -29,11 +32,11 @@ func (c *Context) ParseParam(data interface{}) error {
 }
 
 func (r *request) SetRequestProperty(key, value string) {
-	r.Packet = r.New(r.OperateType(), append(r.Header(), []byte(key+"="+value+";")...), r.Body())
+	r.Header = append(r.Header, []byte(key+"="+value+";")...)
 }
 
 func (r response) GetResponseProperty(key string) string {
-	values := strings.Split(string(r.Header()), ";")
+	values := strings.Split(string(r.Header), ";")
 	for _, value := range values {
 		kv := strings.Split(value, "=")
 		if kv[0] == key {
@@ -45,5 +48,9 @@ func (r response) GetResponseProperty(key string) string {
 }
 
 func (r response) UnPack(data interface{}) error {
-	return r.Packet.UnPack(data)
+	err := proto.Unmarshal(r.Body, data.(proto.Message))
+	if err != nil {
+		return fmt.Errorf("Unpack error: %v", err.Error())
+	}
+	return nil
 }

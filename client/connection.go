@@ -74,10 +74,10 @@ func (c *Client) handleReceivedPackets(conn net.Conn) error {
 			return err
 		}
 
-		p := c.protocolPacket.New(linker.BytesToUint32(bType), header, body)
+		p := linker.NewPack(linker.BytesToUint32(bType), header, body)
 		if handler, ok := c.handlerContainer[p.OperateType()]; ok {
-			req := &request{Conn: conn, Packet: c.protocolPacket}
-			res := response{Conn: conn, Packet: p}
+			req := &request{Conn: conn, OperateType: p.OperateType()}
+			res := response{Conn: conn, OperateType: p.OperateType(), Header: p.Header(), Body: p.Body()}
 
 			ctx := &Context{req, res}
 			handler(ctx)

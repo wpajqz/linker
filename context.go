@@ -36,7 +36,7 @@ func (c *Context) ParseParam(data interface{}) error {
 }
 
 func (c *Context) RawParam() []byte {
-	return c.Request.UnPack()
+	return c.Request.Bytes()
 }
 
 func (c *Context) Success(body interface{}) {
@@ -70,7 +70,7 @@ func (c *Context) write(operator uint32, body interface{}) (int, error) {
 		return 0, err
 	}
 
-	p := c.Request.Pack(operator, c.Response.Header(), pbData)
+	p := NewPack(operator, c.Response.Header(), pbData)
 
-	return c.Response.Write(p.UnPack())
+	return c.Response.Write(p.Bytes())
 }

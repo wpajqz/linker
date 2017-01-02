@@ -19,7 +19,6 @@ type (
 		routeMiddleware  map[string]Middleware
 		int32Middleware  map[uint32][]Middleware
 		MaxPayload       uint32
-		protocolPacket   Packet
 		errorHandler     ErrorHandler
 		heartbeatHandler Handler
 		constructHandler Handler
@@ -47,11 +46,6 @@ func (s *Server) SetTimeout(timeout time.Duration) {
 // 设置可处理的数据包的最大长度
 func (s *Server) SetMaxPayload(maxPayload uint32) {
 	s.MaxPayload = maxPayload
-}
-
-// 设置服务端解析协议所使用的协议包规则
-func (s *Server) SetProtocolPacket(packet Packet) {
-	s.protocolPacket = packet
 }
 
 // 开始运行服务

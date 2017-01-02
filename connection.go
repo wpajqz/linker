@@ -93,7 +93,7 @@ func (s *Server) handleConnection(conn net.Conn) {
 			panic(SystemError{time.Now(), file, line, fmt.Sprintf("Read packetLength failed: %v", err)})
 		}
 
-		receivePackets <- s.protocolPacket.Pack(BytesToUint32(bType), header, body)
+		receivePackets <- NewPack(BytesToUint32(bType), header, body)
 	}
 }
 
@@ -104,7 +104,7 @@ func (s *Server) handlePacket(conn net.Conn, receivePackets <-chan Packet, quit 
 		}
 	}()
 
-	ctx := NewContext(context.Background(), &request{Conn: conn, Packet: s.protocolPacket}, response{Conn: conn, Packet: s.protocolPacket})
+	ctx := NewContext(context.Background(), &request{Conn: conn, Packet: Packet{}}, response{Conn: conn, Packet: Packet{}})
 	if s.constructHandler != nil {
 		s.constructHandler(ctx)
 	}
@@ -125,7 +125,7 @@ func (s *Server) handlePacket(conn net.Conn, receivePackets <-chan Packet, quit 
 				}()
 
 				req := &request{Conn: conn, Packet: p}
-				res := response{Conn: conn, Packet: s.protocolPacket}
+				res := response{Conn: conn, Packet: Packet{}}
 				ctx = NewContext(context.Background(), req, res)
 
 				if rm, ok := s.int32Middleware[p.OperateType()]; ok {

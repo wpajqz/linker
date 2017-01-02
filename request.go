@@ -7,15 +7,16 @@ import (
 
 type request struct {
 	net.Conn
-	Packet
+	OperateType  uint32
+	Header, Body []byte
 }
 
 func (r *request) SetRequestProperty(key, value string) {
-	r.Packet = NewPack(r.OperateType(), append(r.Header(), []byte(key+"="+value+";")...), r.Body())
+	r.Header = append(r.Header, []byte(key+"="+value+";")...)
 }
 
 func (r *request) GetRequestProperty(key string) string {
-	values := strings.Split(string(r.Header()), ";")
+	values := strings.Split(string(r.Header), ";")
 	for _, value := range values {
 		kv := strings.Split(value, "=")
 		if kv[0] == key {

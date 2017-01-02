@@ -104,7 +104,7 @@ func (s *Server) handlePacket(conn net.Conn, receivePackets <-chan Packet, quit 
 		}
 	}()
 
-	ctx := NewContext(context.Background(), &request{Conn: conn, Packet: Packet{}}, response{Conn: conn, Packet: Packet{}})
+	ctx := NewContext(context.Background(), &request{Conn: conn}, response{Conn: conn})
 	if s.constructHandler != nil {
 		s.constructHandler(ctx)
 	}
@@ -124,8 +124,8 @@ func (s *Server) handlePacket(conn net.Conn, receivePackets <-chan Packet, quit 
 					}
 				}()
 
-				req := &request{Conn: conn, Packet: p}
-				res := response{Conn: conn, Packet: Packet{}}
+				req := &request{Conn: conn, OperateType: p.OperateType(), Header: p.Header(), Body: p.Body()}
+				res := response{Conn: conn, OperateType: p.OperateType()}
 				ctx = NewContext(context.Background(), req, res)
 
 				if rm, ok := s.int32Middleware[p.OperateType()]; ok {

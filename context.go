@@ -27,7 +27,7 @@ func NewContext(ctx context.Context, req *request, res response) *Context {
 }
 
 func (c *Context) ParseParam(data interface{}) error {
-	err := proto.Unmarshal(c.Request.Body(), data.(proto.Message))
+	err := proto.Unmarshal(c.Request.Body, data.(proto.Message))
 	if err != nil {
 		return fmt.Errorf("Unpack error: %v", err.Error())
 	}
@@ -36,11 +36,12 @@ func (c *Context) ParseParam(data interface{}) error {
 }
 
 func (c *Context) RawParam() []byte {
-	return c.Request.Bytes()
+	p := NewPack(c.Request.OperateType, c.Request.Header, c.Request.Body)
+	return p.Bytes()
 }
 
 func (c *Context) Success(body interface{}) {
-	_, err := c.write(c.Request.OperateType(), body)
+	_, err := c.write(c.Request.OperateType, body)
 	if err != nil {
 		_, file, line, _ := runtime.Caller(1)
 		panic(SystemError{time.Now(), file, line, err.Error()})
@@ -51,7 +52,7 @@ func (c *Context) Success(body interface{}) {
 
 func (c *Context) Error(body interface{}) {
 	c.Response.SetResponseProperty("status", "0")
-	_, err := c.write(c.Request.OperateType(), body)
+	_, err := c.write(c.Request.OperateType, body)
 	if err != nil {
 		_, file, line, _ := runtime.Caller(1)
 		panic(SystemError{time.Now(), file, line, err.Error()})
@@ -70,7 +71,7 @@ func (c *Context) write(operator uint32, body interface{}) (int, error) {
 		return 0, err
 	}
 
-	p := NewPack(operator, c.Response.Header(), pbData)
+	p := NewPack(operator, c.Response.Header, pbData)
 
 	return c.Response.Write(p.Bytes())
 }

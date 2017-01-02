@@ -28,7 +28,12 @@ type (
 )
 
 func (c *Context) ParseParam(data interface{}) error {
-	return c.Response.UnPack(data)
+	err := proto.Unmarshal(c.Response.Body, data.(proto.Message))
+	if err != nil {
+		return fmt.Errorf("Unpack error: %v", err.Error())
+	}
+
+	return nil
 }
 
 func (r *request) SetRequestProperty(key, value string) {
@@ -45,12 +50,4 @@ func (r response) GetResponseProperty(key string) string {
 	}
 
 	return ""
-}
-
-func (r response) UnPack(data interface{}) error {
-	err := proto.Unmarshal(r.Body, data.(proto.Message))
-	if err != nil {
-		return fmt.Errorf("Unpack error: %v", err.Error())
-	}
-	return nil
 }

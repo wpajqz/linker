@@ -92,10 +92,6 @@ func (c *Client) Heartbeat(interval time.Duration, param interface{}) error {
 	}
 }
 
-func (c *Client) SetProtocolPacket(packet linker.Packet) {
-	c.protocolPacket = packet
-}
-
 func (c *Client) SetTimeout(timeout time.Duration) {
 	c.timeout = timeout
 }

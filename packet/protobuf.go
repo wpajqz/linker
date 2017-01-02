@@ -15,15 +15,14 @@ type ProtoPacket struct {
 	bBody        []byte
 }
 
-// 得到序列化后的Packet
-func (p ProtoPacket) Bytes() (buf []byte) {
-	buf = append(buf, linker.Uint32ToBytes(p.Type)...)
-	buf = append(buf, linker.Uint32ToBytes(p.HeaderLength)...)
-	buf = append(buf, linker.Uint32ToBytes(p.BodyLength)...)
-	buf = append(buf, p.bHeader...)
-	buf = append(buf, p.bBody...)
-
-	return buf
+func (p ProtoPacket) New(operator uint32, header, body []byte) linker.Packet {
+	return ProtoPacket{
+		Type:         operator,
+		HeaderLength: uint32(len(header)),
+		BodyLength:   uint32(len(body)),
+		bHeader:      header,
+		bBody:        body,
+	}
 }
 
 // 将数据包类型和pb数据结构一起打包成Packet，并加密Packet.Data
@@ -52,14 +51,15 @@ func (p ProtoPacket) UnPack(body interface{}) error {
 	return nil
 }
 
-func (p ProtoPacket) New(operator uint32, header, body []byte) linker.Packet {
-	return ProtoPacket{
-		Type:         operator,
-		HeaderLength: uint32(len(header)),
-		BodyLength:   uint32(len(body)),
-		bHeader:      header,
-		bBody:        body,
-	}
+// 得到序列化后的Packet
+func (p ProtoPacket) Bytes() (buf []byte) {
+	buf = append(buf, linker.Uint32ToBytes(p.Type)...)
+	buf = append(buf, linker.Uint32ToBytes(p.HeaderLength)...)
+	buf = append(buf, linker.Uint32ToBytes(p.BodyLength)...)
+	buf = append(buf, p.bHeader...)
+	buf = append(buf, p.bBody...)
+
+	return buf
 }
 
 func (p ProtoPacket) OperateType() uint32 {

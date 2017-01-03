@@ -117,29 +117,29 @@ func (s *Server) handlePacket(conn net.Conn, receivePackets <-chan Packet, quit 
 				continue
 			}
 
-			go func(handler Handler) {
+			req := &request{Conn: conn, OperateType: p.OperateType(), Header: p.Header(), Body: p.Body()}
+			res := response{Conn: conn, OperateType: p.OperateType()}
+			ctx = NewContext(ctx, req, res)
+
+			if rm, ok := s.int32Middleware[p.OperateType()]; ok {
+				for _, v := range rm {
+					ctx = v.Handle(ctx)
+				}
+			}
+
+			for _, v := range s.middleware {
+				ctx = v.Handle(ctx)
+			}
+
+			go func(handler Handler, ctx *Context) {
 				defer func() {
 					if err := recover(); err != nil {
 						s.errorHandler(err.(error))
 					}
 				}()
 
-				req := &request{Conn: conn, OperateType: p.OperateType(), Header: p.Header(), Body: p.Body()}
-				res := response{Conn: conn, OperateType: p.OperateType()}
-				ctx = NewContext(context.Background(), req, res)
-
-				if rm, ok := s.int32Middleware[p.OperateType()]; ok {
-					for _, v := range rm {
-						ctx = v.Handle(ctx)
-					}
-				}
-
-				for _, v := range s.middleware {
-					ctx = v.Handle(ctx)
-				}
-
 				handler(ctx)
-			}(handler)
+			}(handler, ctx)
 
 		case <-quit:
 			// 执行链接退出以后回收操作

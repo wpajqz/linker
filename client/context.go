@@ -8,24 +8,10 @@ import (
 	"github.com/golang/protobuf/proto"
 )
 
-type (
-	request struct {
-		net.Conn
-		OperateType  uint32
-		Header, Body []byte
-	}
-
-	response struct {
-		net.Conn
-		OperateType  uint32
-		Header, Body []byte
-	}
-
-	Context struct {
-		Request  *request
-		Response response
-	}
-)
+type Context struct {
+	Request  *request
+	Response response
+}
 
 func (c *Context) ParseParam(data interface{}) error {
 	err := proto.Unmarshal(c.Response.Body, data.(proto.Message))
@@ -36,8 +22,20 @@ func (c *Context) ParseParam(data interface{}) error {
 	return nil
 }
 
+type request struct {
+	net.Conn
+	OperateType  uint32
+	Header, Body []byte
+}
+
 func (r *request) SetRequestProperty(key, value string) {
 	r.Header = append(r.Header, []byte(key+"="+value+";")...)
+}
+
+type response struct {
+	net.Conn
+	OperateType  uint32
+	Header, Body []byte
 }
 
 func (r response) GetResponseProperty(key string) string {

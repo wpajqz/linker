@@ -1,8 +1,10 @@
 package client
 
 import (
+	"errors"
 	"hash/crc32"
 	"net"
+	"strconv"
 	"time"
 
 	"github.com/golang/protobuf/proto"
@@ -10,6 +12,11 @@ import (
 )
 
 const MaxPayload = uint32(2048)
+
+var (
+	ErrClosed       = errors.New("connection is closed.")
+	ErrPacketLength = errors.New("the packet is big than " + strconv.Itoa(int(MaxPayload)))
+)
 
 type Handler func(*Context)
 

@@ -1,5 +1,0 @@
-package: github.com/wpajqz/linker
-import:
-- package: github.com/golang/protobuf
-  subpackages:
-  - proto

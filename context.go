@@ -26,8 +26,8 @@ func NewContext(ctx context.Context, req *request, res response) *Context {
 	}
 }
 
-func (c *Context) ParseParam(data interface{}) error {
-	err := proto.Unmarshal(c.Request.Body, data.(proto.Message))
+func (c *Context) ParseParam(data proto.Message) error {
+	err := proto.Unmarshal(c.Request.Body, data)
 	if err != nil {
 		return fmt.Errorf("Unpack error: %v", err.Error())
 	}
@@ -35,7 +35,7 @@ func (c *Context) ParseParam(data interface{}) error {
 	return nil
 }
 
-func (c *Context) Success(body interface{}) {
+func (c *Context) Success(body proto.Message) {
 	_, err := c.write(c.Request.OperateType, body)
 	if err != nil {
 		_, file, line, _ := runtime.Caller(1)
@@ -45,7 +45,7 @@ func (c *Context) Success(body interface{}) {
 	panic(nil)
 }
 
-func (c *Context) Error(body interface{}) {
+func (c *Context) Error(body proto.Message) {
 	c.Response.SetResponseProperty("status", "0")
 	_, err := c.write(c.Request.OperateType, body)
 	if err != nil {
@@ -56,12 +56,12 @@ func (c *Context) Error(body interface{}) {
 	panic(nil)
 }
 
-func (c *Context) Write(operator string, body interface{}) (int, error) {
+func (c *Context) Write(operator string, body proto.Message) (int, error) {
 	return c.write(crc32.ChecksumIEEE([]byte(operator)), body)
 }
 
-func (c *Context) write(operator uint32, body interface{}) (int, error) {
-	pbData, err := proto.Marshal(body.(proto.Message))
+func (c *Context) write(operator uint32, body proto.Message) (int, error) {
+	pbData, err := proto.Marshal(body)
 	if err != nil {
 		return 0, err
 	}

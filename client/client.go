@@ -81,6 +81,8 @@ func (c *Client) Connect(network, address string) error {
 			}
 		}
 	}(network, address, c.conn)
+
+	return nil
 }
 
 func (c *Client) StartHeartbeat(interval time.Duration, param Message) error {

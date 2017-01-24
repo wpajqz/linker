@@ -35,8 +35,9 @@ func (c *Context) ParseParam(data proto.Message) error {
 	return nil
 }
 
+// 响应请求成功的数据包
 func (c *Context) Success(body proto.Message) {
-	_, err := c.write(c.Request.OperateType, body)
+	_, err := c.write(body)
 	if err != nil {
 		_, file, line, _ := runtime.Caller(1)
 		panic(SystemError{time.Now(), file, line, err.Error()})
@@ -45,9 +46,10 @@ func (c *Context) Success(body proto.Message) {
 	panic(nil)
 }
 
+// 响应请求失败的数据包
 func (c *Context) Error(body proto.Message) {
 	c.Response.SetResponseProperty("status", "0")
-	_, err := c.write(c.Request.OperateType, body)
+	_, err := c.write(body)
 	if err != nil {
 		_, file, line, _ := runtime.Caller(1)
 		panic(SystemError{time.Now(), file, line, err.Error()})
@@ -56,17 +58,25 @@ func (c *Context) Error(body proto.Message) {
 	panic(nil)
 }
 
+// 向客户端发送数据
 func (c *Context) Write(operator string, body proto.Message) (int, error) {
-	return c.write(crc32.ChecksumIEEE([]byte(operator)), body)
-}
-
-func (c *Context) write(operator uint32, body proto.Message) (int, error) {
 	pbData, err := proto.Marshal(body)
 	if err != nil {
 		return 0, err
 	}
 
-	p := NewPack(operator, c.Request.Sequence, c.Response.Header, pbData)
+	p := NewPack(crc32.ChecksumIEEE([]byte(operator)), c.Request.Sequence, c.Response.Header, pbData)
+	return c.Response.Write(p.Bytes())
+}
+
+// 对客户端请求进行响应
+func (c *Context) write(body proto.Message) (int, error) {
+	pbData, err := proto.Marshal(body)
+	if err != nil {
+		return 0, err
+	}
+
+	p := NewPack(c.Request.OperateType, c.Request.Sequence, c.Response.Header, pbData)
 
 	return c.Response.Write(p.Bytes())
 }

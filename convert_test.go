@@ -2,6 +2,7 @@ package linker_test
 
 import (
 	"testing"
+	"time"
 
 	"github.com/wpajqz/linker"
 )
@@ -50,6 +51,13 @@ func TestConvert(t *testing.T) {
 	var i int16 = 32767
 	j := linker.BytesToInt16(linker.Int16ToBytes(i))
 	if i != j {
+		t.Error("convert error")
+	}
+
+	var m int64 = time.Now().UnixNano()
+	bytes5 := linker.Int64ToBytes(m)
+	var n int64 = linker.BytesToInt64(bytes5)
+	if m != n {
 		t.Error("convert error")
 	}
 }

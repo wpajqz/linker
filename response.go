@@ -8,6 +8,7 @@ import (
 type response struct {
 	net.Conn
 	OperateType  uint32
+	Sequence     int64
 	Header, Body []byte
 }
 

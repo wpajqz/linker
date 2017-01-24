@@ -66,7 +66,7 @@ func (c *Context) write(operator uint32, body proto.Message) (int, error) {
 		return 0, err
 	}
 
-	p := NewPack(operator, c.Response.Header, pbData)
+	p := NewPack(operator, c.Request.Sequence, c.Response.Header, pbData)
 
 	return c.Response.Write(p.Bytes())
 }

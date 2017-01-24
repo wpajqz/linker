@@ -26,8 +26,10 @@ func (s *Server) handleConnection(conn net.Conn) {
 
 	var (
 		bType         []byte = make([]byte, 4)
+		bSequence     []byte = make([]byte, 8)
 		bHeaderLength []byte = make([]byte, 4)
 		bBodyLength   []byte = make([]byte, 4)
+		sequence      int64
 		headerLength  uint32
 		bodyLength    uint32
 	)
@@ -37,6 +39,15 @@ func (s *Server) handleConnection(conn net.Conn) {
 		conn.SetDeadline(time.Now().Add(s.timeout))
 
 		if n, err := io.ReadFull(conn, bType); err != nil && n != 4 {
+			if err == io.EOF {
+				return
+			}
+
+			_, file, line, _ := runtime.Caller(1)
+			panic(SystemError{time.Now(), file, line, fmt.Sprintf("Read packetLength failed: %v", err)})
+		}
+
+		if n, err := io.ReadFull(conn, bSequence); err != nil && n != 8 {
 			if err == io.EOF {
 				return
 			}
@@ -63,9 +74,10 @@ func (s *Server) handleConnection(conn net.Conn) {
 			panic(SystemError{time.Now(), file, line, fmt.Sprintf("Read packetLength failed: %v", err)})
 		}
 
+		sequence = BytesToInt64(bSequence)
 		headerLength = BytesToUint32(bHeaderLength)
 		bodyLength = BytesToUint32(bBodyLength)
-		pacLen := headerLength + bodyLength + uint32(12)
+		pacLen := headerLength + bodyLength + uint32(20)
 
 		if pacLen > s.MaxPayload {
 			_, file, line, _ := runtime.Caller(1)
@@ -93,7 +105,7 @@ func (s *Server) handleConnection(conn net.Conn) {
 			panic(SystemError{time.Now(), file, line, fmt.Sprintf("Read packetLength failed: %v", err)})
 		}
 
-		receivePackets <- NewPack(BytesToUint32(bType), header, body)
+		receivePackets <- NewPack(BytesToUint32(bType), sequence, header, body)
 	}
 }
 
@@ -117,8 +129,8 @@ func (s *Server) handlePacket(conn net.Conn, receivePackets <-chan Packet, quit 
 				continue
 			}
 
-			req := &request{Conn: conn, OperateType: p.OperateType(), Header: p.Header(), Body: p.Body()}
-			res := response{Conn: conn, OperateType: p.OperateType()}
+			req := &request{Conn: conn, OperateType: p.OperateType(), Sequence: p.Sequence(), Header: p.Header(), Body: p.Body()}
+			res := response{Conn: conn, OperateType: p.OperateType(), Sequence: p.Sequence()}
 			ctx = NewContext(ctx, req, res)
 
 			if rm, ok := s.int32Middleware[p.OperateType()]; ok {

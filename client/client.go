@@ -33,7 +33,7 @@ type Client struct {
 	running          chan bool
 }
 
-func NewClient(network, address string) *Client {
+func NewClient() *Client {
 	c := &Client{
 		mutex:            new(sync.Mutex),
 		rwMutex:          new(sync.RWMutex),
@@ -46,9 +46,13 @@ func NewClient(network, address string) *Client {
 		running:          make(chan bool, 1),
 	}
 
+	return c
+}
+
+func (c *Client) Connect(network, address string) error {
 	conn, err := net.Dial(network, address)
 	if err != nil {
-		panic(err.Error())
+		return err
 	}
 
 	c.conn = conn
@@ -77,8 +81,6 @@ func NewClient(network, address string) *Client {
 			}
 		}
 	}(network, address, c.conn)
-
-	return c
 }
 
 func (c *Client) StartHeartbeat(interval time.Duration, param Message) error {

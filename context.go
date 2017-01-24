@@ -65,7 +65,8 @@ func (c *Context) Write(operator string, body proto.Message) (int, error) {
 		return 0, err
 	}
 
-	p := NewPack(crc32.ChecksumIEEE([]byte(operator)), c.Request.Sequence, c.Response.Header, pbData)
+	p := NewPack(crc32.ChecksumIEEE([]byte(operator)), 0, c.Response.Header, pbData)
+
 	return c.Response.Write(p.Bytes())
 }
 

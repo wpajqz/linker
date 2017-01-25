@@ -5,6 +5,7 @@ import (
 	"hash/crc32"
 	"net"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -50,15 +51,16 @@ func NewClient() *Client {
 	return c
 }
 
-func (c *Client) Connect(network, address string) {
-	conn, err := net.Dial(network, address)
+func (c *Client) Connect(server string, port int) {
+	address := strings.Join([]string{server, strconv.Itoa(port)}, ":")
+	conn, err := net.Dial("tcp", address)
 	if err != nil {
 		panic(err)
 	}
 
 	c.conn = conn
 
-	go func(string, string, net.Conn) {
+	go func(string, net.Conn) {
 		for {
 			err := c.handleConnection(c.conn)
 			if err != nil {
@@ -75,7 +77,7 @@ func (c *Client) Connect(network, address string) {
 
 					for {
 						//服务端timeout设置影响链接延时时间
-						conn, err := net.Dial(network, address)
+						conn, err := net.Dial("tcp", address)
 						if err == nil {
 							c.conn = conn
 							if c.OnConnectionStateChange != nil {
@@ -90,7 +92,7 @@ func (c *Client) Connect(network, address string) {
 				return
 			}
 		}
-	}(network, address, c.conn)
+	}(address, c.conn)
 }
 
 func (c *Client) StartHeartbeat(interval time.Duration, param Message) error {

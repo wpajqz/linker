@@ -50,10 +50,10 @@ func NewClient() *Client {
 	return c
 }
 
-func (c *Client) Connect(network, address string) error {
+func (c *Client) Connect(network, address string) {
 	conn, err := net.Dial(network, address)
 	if err != nil {
-		return err
+		panic(err)
 	}
 
 	c.conn = conn
@@ -91,8 +91,6 @@ func (c *Client) Connect(network, address string) error {
 			}
 		}
 	}(network, address, c.conn)
-
-	return nil
 }
 
 func (c *Client) StartHeartbeat(interval time.Duration, param Message) error {

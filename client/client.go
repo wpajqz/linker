@@ -21,16 +21,17 @@ var (
 type Handler func(*Context)
 
 type Client struct {
-	mutex            *sync.Mutex
-	rwMutex          *sync.RWMutex
-	Context          *Context
-	timeout          time.Duration
-	conn             net.Conn
-	handlerContainer map[int64]Handler
-	packet           chan linker.Packet
-	cancelHeartbeat  chan bool
-	closeClient      chan bool
-	running          chan bool
+	mutex                   *sync.Mutex
+	rwMutex                 *sync.RWMutex
+	Context                 *Context
+	timeout                 time.Duration
+	conn                    net.Conn
+	handlerContainer        map[int64]Handler
+	packet                  chan linker.Packet
+	cancelHeartbeat         chan bool
+	closeClient             chan bool
+	running                 chan bool
+	OnConnectionStateChange func(status bool)
 }
 
 func NewClient() *Client {
@@ -67,11 +68,20 @@ func (c *Client) Connect(network, address string) error {
 			select {
 			case r := <-c.running:
 				if !r {
+					// 把在线状态传递出去,方便调用方给用户提示信息
+					if c.OnConnectionStateChange != nil {
+						c.OnConnectionStateChange(r)
+					}
+
 					for {
 						//服务端timeout设置影响链接延时时间
 						conn, err := net.Dial(network, address)
 						if err == nil {
 							c.conn = conn
+							if c.OnConnectionStateChange != nil {
+								c.OnConnectionStateChange(true)
+							}
+
 							break
 						}
 					}

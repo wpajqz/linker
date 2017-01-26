@@ -227,6 +227,14 @@ func (c *Client) addMessageListener(operator int64, callback func(*Context)) {
 	c.rwMutex.Unlock()
 }
 
+func (c *Client) getMessageListener(operator int64) (func(*Context), bool) {
+	c.rwMutex.RLock()
+	listener, ok := c.handlerContainer[operator]
+	c.rwMutex.RUnlock()
+
+	return listener, ok
+}
+
 func (c *Client) removeMessageListener(operator int64) {
 	c.rwMutex.Lock()
 	delete(c.handlerContainer, operator)

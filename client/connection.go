@@ -83,7 +83,7 @@ func (c *Client) handleReceivedPackets(conn net.Conn) error {
 		}
 
 		operator := int64(nType) + sequence
-		if handler, ok := c.handlerContainer[operator]; ok {
+		if handler, ok := c.getMessageListener(operator); ok {
 			req := &request{Conn: conn, OperateType: nType, Sequence: sequence}
 			res := response{Conn: conn, OperateType: nType, Sequence: sequence, Header: header, Body: body}
 

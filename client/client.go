@@ -21,13 +21,19 @@ var (
 
 type Handler func(*Context)
 
+type RequestStatusCallback struct {
+	OnSuccess  func(ctx *Context)
+	OnProgress func(progress int, status string)
+	OnError    func(code int, message string)
+}
+
 type Client struct {
 	mutex                   *sync.Mutex
 	rwMutex                 *sync.RWMutex
 	Context                 *Context
 	timeout                 time.Duration
 	conn                    net.Conn
-	handlerContainer        map[int64]Handler
+	handlerContainer        handlerContainer
 	packet                  chan linker.Packet
 	cancelHeartbeat         chan bool
 	closeClient             chan bool
@@ -42,7 +48,7 @@ func NewClient() *Client {
 		Context:          &Context{Request: &request{}, Response: response{}},
 		timeout:          30 * time.Second,
 		packet:           make(chan linker.Packet, 1024),
-		handlerContainer: make(map[int64]Handler),
+		handlerContainer: handlerContainer{lock: sync.RWMutex{}, data: make(map[int64]Handler)},
 		cancelHeartbeat:  make(chan bool, 1),
 		closeClient:      make(chan bool, 1),
 		running:          make(chan bool, 1),
@@ -147,7 +153,7 @@ func (c *Client) SyncCall(operator string, param Message, callback RequestStatus
 		callback.OnProgress(0, "proecssing...")
 	}
 
-	c.addMessageListener(listener, func(ctx *Context) {
+	c.handlerContainer.add(listener, func(ctx *Context) {
 		code := ctx.Response.GetResponseProperty("code")
 		if code != "" {
 			message := ctx.Response.GetResponseProperty("message")
@@ -165,7 +171,7 @@ func (c *Client) SyncCall(operator string, param Message, callback RequestStatus
 			}
 		}
 
-		c.removeMessageListener(listener)
+		c.handlerContainer.delete(listener)
 		quit <- true
 	})
 
@@ -186,7 +192,7 @@ func (c *Client) AsyncCall(operator string, param Message, callback RequestStatu
 		callback.OnProgress(0, "proecssing...")
 	}
 
-	c.addMessageListener(listener, func(ctx *Context) {
+	c.handlerContainer.add(listener, func(ctx *Context) {
 		code := ctx.Response.GetResponseProperty("code")
 		if code != "" {
 			message := ctx.Response.GetResponseProperty("message")
@@ -204,7 +210,7 @@ func (c *Client) AsyncCall(operator string, param Message, callback RequestStatu
 			}
 		}
 
-		c.removeMessageListener(listener)
+		c.handlerContainer.delete(listener)
 	})
 
 	p := linker.NewPack(nType, sequence, c.Context.Request.Header, pbData)
@@ -213,30 +219,35 @@ func (c *Client) AsyncCall(operator string, param Message, callback RequestStatu
 
 // 添加事件监听器
 func (c *Client) AddMessageListener(operator string, callback func(*Context)) {
-	c.addMessageListener(int64(crc32.ChecksumIEEE([]byte(operator))), callback)
+	c.handlerContainer.add(int64(crc32.ChecksumIEEE([]byte(operator))), callback)
 }
 
 // 移除事件监听器
 func (c *Client) RemoveMessageListener(operator string) {
-	c.removeMessageListener(int64(crc32.ChecksumIEEE([]byte(operator))))
+	c.handlerContainer.delete(int64(crc32.ChecksumIEEE([]byte(operator))))
 }
 
-func (c *Client) addMessageListener(operator int64, callback func(*Context)) {
-	c.rwMutex.Lock()
-	c.handlerContainer[operator] = callback
-	c.rwMutex.Unlock()
+type handlerContainer struct {
+	lock sync.RWMutex
+	data map[int64]Handler
 }
 
-func (c *Client) getMessageListener(operator int64) (func(*Context), bool) {
-	c.rwMutex.RLock()
-	listener, ok := c.handlerContainer[operator]
-	c.rwMutex.RUnlock()
+func (h *handlerContainer) add(operator int64, callback func(*Context)) {
+	h.lock.Lock()
+	h.data[operator] = callback
+	h.lock.Unlock()
+}
+
+func (h *handlerContainer) get(operator int64) (func(*Context), bool) {
+	h.lock.RLock()
+	listener, ok := h.data[operator]
+	h.lock.RUnlock()
 
 	return listener, ok
 }
 
-func (c *Client) removeMessageListener(operator int64) {
-	c.rwMutex.Lock()
-	delete(c.handlerContainer, operator)
-	c.rwMutex.Unlock()
+func (h *handlerContainer) delete(operator int64) {
+	h.lock.Lock()
+	delete(h.data, operator)
+	h.lock.Unlock()
 }

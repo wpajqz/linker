@@ -33,7 +33,6 @@ type Client struct {
 	closeClient             chan bool
 	running                 chan bool
 	OnConnectionStateChange func(status bool)
-	RequestStatusCallback   RequestStatusCallback
 }
 
 func NewClient() *Client {
@@ -134,7 +133,7 @@ func (c *Client) Close() {
 }
 
 // 向服务端发送请求，同步处理服务端返回结果
-func (c *Client) SyncCall(operator string, param Message) {
+func (c *Client) SyncCall(operator string, param Message, callback RequestStatusCallback) {
 	pbData, _ := Marshal(param)
 	nType := crc32.ChecksumIEEE([]byte(operator))
 	sequence := time.Now().UnixNano()
@@ -144,7 +143,6 @@ func (c *Client) SyncCall(operator string, param Message) {
 	c.mutex.Lock()
 	quit := make(chan bool)
 
-	callback := c.RequestStatusCallback
 	if callback.OnProgress != nil {
 		callback.OnProgress(0, "proecssing...")
 	}
@@ -178,13 +176,12 @@ func (c *Client) SyncCall(operator string, param Message) {
 }
 
 // 向服务端发送请求，异步处理服务端返回结果
-func (c *Client) AsyncCall(operator string, param Message) {
+func (c *Client) AsyncCall(operator string, param Message, callback RequestStatusCallback) {
 	pbData, _ := Marshal(param)
 	nType := crc32.ChecksumIEEE([]byte(operator))
 	sequence := time.Now().UnixNano()
 
 	listener := int64(nType) + sequence
-	callback := c.RequestStatusCallback
 	if callback.OnProgress != nil {
 		callback.OnProgress(0, "proecssing...")
 	}

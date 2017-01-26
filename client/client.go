@@ -134,12 +134,8 @@ func (c *Client) Close() {
 }
 
 // 向服务端发送请求，同步处理服务端返回结果
-func (c *Client) SyncCall(operator string, param Message) error {
-	pbData, err := Marshal(param)
-	if err != nil {
-		return err
-	}
-
+func (c *Client) SyncCall(operator string, param Message) {
+	pbData, _ := Marshal(param)
 	nType := crc32.ChecksumIEEE([]byte(operator))
 	sequence := time.Now().UnixNano()
 	listener := int64(nType) + sequence
@@ -179,17 +175,11 @@ func (c *Client) SyncCall(operator string, param Message) error {
 	c.packet <- p
 	<-quit
 	c.mutex.Unlock()
-
-	return nil
 }
 
 // 向服务端发送请求，异步处理服务端返回结果
-func (c *Client) AsyncCall(operator string, param Message) error {
-	pbData, err := Marshal(param)
-	if err != nil {
-		return err
-	}
-
+func (c *Client) AsyncCall(operator string, param Message) {
+	pbData, _ := Marshal(param)
 	nType := crc32.ChecksumIEEE([]byte(operator))
 	sequence := time.Now().UnixNano()
 
@@ -222,8 +212,6 @@ func (c *Client) AsyncCall(operator string, param Message) error {
 
 	p := linker.NewPack(nType, sequence, c.Context.Request.Header, pbData)
 	c.packet <- p
-
-	return nil
 }
 
 // 添加事件监听器

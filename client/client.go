@@ -33,6 +33,7 @@ type Client struct {
 	closeClient             chan bool
 	running                 chan bool
 	OnConnectionStateChange func(status bool)
+	RequestStatusCallback   RequestStatusCallback
 }
 
 func NewClient() *Client {
@@ -133,7 +134,7 @@ func (c *Client) Close() {
 }
 
 // 向服务端发送请求，同步处理服务端返回结果
-func (c *Client) SyncCall(operator string, param Message, onSuccess func(*Context), onError func(*Context)) error {
+func (c *Client) SyncCall(operator string, param Message) error {
 	pbData, err := Marshal(param)
 	if err != nil {
 		return err
@@ -146,12 +147,26 @@ func (c *Client) SyncCall(operator string, param Message, onSuccess func(*Contex
 	// 对数据请求的返回状态进行处理,同步阻塞处理机制
 	c.mutex.Lock()
 	quit := make(chan bool)
+
+	callback := c.RequestStatusCallback
+	if callback.OnProgress != nil {
+		callback.OnProgress(0, "proecssing...")
+	}
+
 	c.addMessageListener(listener, func(ctx *Context) {
 		status := ctx.Response.GetResponseProperty("status")
 		if status != "0" {
-			onSuccess(ctx)
+			if callback.OnSuccess != nil {
+				callback.OnSuccess(ctx)
+			}
+
+			if callback.OnProgress != nil {
+				callback.OnProgress(100, "successful")
+			}
 		} else {
-			onError(ctx)
+			if callback.OnError != nil {
+				callback.OnError(ctx)
+			}
 		}
 
 		c.removeMessageListener(listener)
@@ -167,7 +182,7 @@ func (c *Client) SyncCall(operator string, param Message, onSuccess func(*Contex
 }
 
 // 向服务端发送请求，异步处理服务端返回结果
-func (c *Client) AsyncCall(operator string, param Message, onSuccess func(*Context), onError func(*Context)) error {
+func (c *Client) AsyncCall(operator string, param Message) error {
 	pbData, err := Marshal(param)
 	if err != nil {
 		return err
@@ -177,12 +192,25 @@ func (c *Client) AsyncCall(operator string, param Message, onSuccess func(*Conte
 	sequence := time.Now().UnixNano()
 
 	listener := int64(nType) + sequence
+	callback := c.RequestStatusCallback
+	if callback.OnProgress != nil {
+		callback.OnProgress(0, "proecssing...")
+	}
+
 	c.addMessageListener(listener, func(ctx *Context) {
 		status := ctx.Response.GetResponseProperty("status")
 		if status != "0" {
-			onSuccess(ctx)
+			if callback.OnSuccess != nil {
+				callback.OnSuccess(ctx)
+			}
+
+			if callback.OnProgress != nil {
+				callback.OnProgress(100, "successful")
+			}
 		} else {
-			onError(ctx)
+			if callback.OnError != nil {
+				callback.OnError(ctx)
+			}
 		}
 
 		c.removeMessageListener(listener)

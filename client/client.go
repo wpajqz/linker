@@ -154,18 +154,20 @@ func (c *Client) SyncCall(operator string, param Message) error {
 	}
 
 	c.addMessageListener(listener, func(ctx *Context) {
-		status := ctx.Response.GetResponseProperty("status")
-		if status != "0" {
+		code := ctx.Response.GetResponseProperty("code")
+		if code != "" {
+			message := ctx.Response.GetResponseProperty("message")
+			if callback.OnError != nil {
+				v, _ := strconv.Atoi(code)
+				callback.OnError(v, message)
+			}
+		} else {
 			if callback.OnSuccess != nil {
 				callback.OnSuccess(ctx)
 			}
 
 			if callback.OnProgress != nil {
 				callback.OnProgress(100, "successful")
-			}
-		} else {
-			if callback.OnError != nil {
-				callback.OnError(ctx)
 			}
 		}
 
@@ -198,18 +200,20 @@ func (c *Client) AsyncCall(operator string, param Message) error {
 	}
 
 	c.addMessageListener(listener, func(ctx *Context) {
-		status := ctx.Response.GetResponseProperty("status")
-		if status != "0" {
+		code := ctx.Response.GetResponseProperty("code")
+		if code != "" {
+			message := ctx.Response.GetResponseProperty("message")
+			if callback.OnError != nil {
+				v, _ := strconv.Atoi(code)
+				callback.OnError(v, message)
+			}
+		} else {
 			if callback.OnSuccess != nil {
 				callback.OnSuccess(ctx)
 			}
 
 			if callback.OnProgress != nil {
 				callback.OnProgress(100, "successful")
-			}
-		} else {
-			if callback.OnError != nil {
-				callback.OnError(ctx)
 			}
 		}
 

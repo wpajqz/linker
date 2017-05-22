@@ -1,14 +1,16 @@
-package version
+package version_test
 
 import (
 	"fmt"
 	"strconv"
 	"strings"
 	"testing"
+
+	"github.com/wpajqz/linker/version"
 )
 
 func TestFull(t *testing.T) {
-	version := Full()
+	version := version.Full()
 	arr := strings.Split(version, ".")
 	if len(arr) != 3 {
 		t.Fatalf("Version string error: %s", version)
@@ -31,11 +33,11 @@ func TestFull(t *testing.T) {
 }
 
 func TestVersion(t *testing.T) {
-	proto := Proto(Full())
-	major := Major(Full())
-	minor := Minor(Full())
+	proto := version.Proto(version.Full())
+	major := version.Major(version.Full())
+	minor := version.Minor(version.Full())
 	parseVerion := fmt.Sprintf("%d.%d.%d", proto, major, minor)
-	version := Full()
+	version := version.Full()
 	if parseVerion != version {
 		t.Fatalf("Get version incorrect, version [%s], parseVerion [%s]", version, parseVerion)
 	}

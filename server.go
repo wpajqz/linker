@@ -72,8 +72,7 @@ func (s *Server) Handle(pattern string, handler Handler) {
 	data := []byte(pattern)
 	operator := crc32.ChecksumIEEE(data)
 
-	_, ok := s.handlerContainer[operator]
-	if !ok {
+	if _, ok := s.handlerContainer[operator]; !ok {
 		s.handlerContainer[operator] = handler
 	}
 }

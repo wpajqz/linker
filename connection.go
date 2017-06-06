@@ -133,7 +133,7 @@ func (s *Server) handlePacket(conn net.Conn, receivePackets <-chan Packet, quit 
 			res := response{Conn: conn, OperateType: p.OperateType(), Sequence: p.Sequence()}
 			ctx = NewContext(ctx, req, res)
 
-			if rm, ok := s.int32Middleware[p.OperateType()]; ok {
+			if rm, ok := s.routerMiddleware[p.OperateType()]; ok {
 				for _, v := range rm {
 					ctx = v.Handle(ctx)
 				}

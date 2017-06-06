@@ -16,7 +16,7 @@ type (
 		timeout          time.Duration
 		handlerContainer map[uint32]Handler
 		middleware       []Middleware
-		int32Middleware  map[uint32][]Middleware
+		routerMiddleware map[uint32][]Middleware
 		MaxPayload       uint32
 		errorHandler     ErrorHandler
 		heartbeatHandler Handler
@@ -29,7 +29,7 @@ func NewServer() *Server {
 	return &Server{
 		MaxPayload:       MaxPayload,
 		handlerContainer: make(map[uint32]Handler),
-		int32Middleware:  make(map[uint32][]Middleware),
+		routerMiddleware: make(map[uint32][]Middleware),
 		errorHandler: func(err error) {
 			log.Println(err.Error())
 		},
@@ -84,7 +84,7 @@ func (s *Server) BindRouter(routers []Router) {
 		}
 
 		for _, m := range router.Middleware {
-			s.int32Middleware[operator] = append(s.int32Middleware[operator], m)
+			s.routerMiddleware[operator] = append(s.routerMiddleware[operator], m)
 		}
 
 		s.Handle(router.Operator, router.Handler)

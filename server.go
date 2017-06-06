@@ -16,7 +16,6 @@ type (
 		timeout          time.Duration
 		handlerContainer map[uint32]Handler
 		middleware       []Middleware
-		routeMiddleware  map[string]Middleware
 		int32Middleware  map[uint32][]Middleware
 		MaxPayload       uint32
 		errorHandler     ErrorHandler
@@ -30,7 +29,6 @@ func NewServer() *Server {
 	return &Server{
 		MaxPayload:       MaxPayload,
 		handlerContainer: make(map[uint32]Handler),
-		routeMiddleware:  make(map[string]Middleware),
 		int32Middleware:  make(map[uint32][]Middleware),
 		errorHandler: func(err error) {
 			log.Println(err.Error())
@@ -86,9 +84,7 @@ func (s *Server) BindRouter(routers []Router) {
 		}
 
 		for _, m := range router.Middleware {
-			if rm, ok := s.routeMiddleware[m]; ok {
-				s.int32Middleware[operator] = append(s.int32Middleware[operator], rm)
-			}
+			s.int32Middleware[operator] = append(s.int32Middleware[operator], m)
 		}
 
 		s.Handle(router.Operator, router.Handler)
@@ -98,11 +94,6 @@ func (s *Server) BindRouter(routers []Router) {
 // 添加请求需要进行处理的中间件
 func (s *Server) Use(middleware ...Middleware) {
 	s.middleware = append(s.middleware, middleware...)
-}
-
-// 添加请求需要进行处理的中间件
-func (s *Server) RouteMiddleware(routerMiddleware map[string]Middleware) {
-	s.routeMiddleware = routerMiddleware
 }
 
 // 设置默认错误处理方法

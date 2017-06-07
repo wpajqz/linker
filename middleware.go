@@ -7,5 +7,6 @@ type Middleware interface {
 
 // 响应数据被发送到客户端以后需要执行的操作
 type TerminateMiddleware interface {
-	terminate(*Context)
+	Handle(*Context) *Context
+	Terminate(*Context)
 }

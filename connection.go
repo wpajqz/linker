@@ -141,6 +141,9 @@ func (s *Server) handlePacket(conn net.Conn, receivePackets <-chan Packet, quit 
 
 			for _, v := range s.middleware {
 				ctx = v.Handle(ctx)
+				if tm, ok := v.(TerminateMiddleware); ok {
+					tm.Terminate(ctx)
+				}
 			}
 
 			go func(handler Handler, ctx *Context) {

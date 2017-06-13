@@ -2,7 +2,7 @@ package coder
 
 import "errors"
 
-var coderContainer map[string]Coder
+var coderContainer = make(map[string]Coder)
 
 type Coder interface {
 	Encoder(data interface{}) ([]byte, error)

@@ -81,7 +81,7 @@ func (c *Context) Write(operator string, body interface{}) (int, error) {
 		return 0, err
 	}
 
-	p := NewPack(crc32.ChecksumIEEE([]byte(operator)), c.Request.Sequence, c.Response.Header, data)
+	p := NewPack(crc32.ChecksumIEEE([]byte(operator)), 0, c.Response.Header, data)
 
 	return c.Response.Write(p.Bytes())
 }

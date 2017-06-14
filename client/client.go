@@ -9,11 +9,14 @@ import (
 	"sync"
 	"time"
 
-	. "github.com/golang/protobuf/proto"
 	"github.com/wpajqz/linker"
+	"github.com/wpajqz/linker/coder"
 )
 
-const MaxPayload = uint32(2048)
+const (
+	MaxPayload = uint32(2048)
+	TIMEOUT    = 30
+)
 
 var (
 	ErrPacketLength = errors.New("the packet is big than " + strconv.Itoa(int(MaxPayload)))
@@ -45,8 +48,8 @@ func NewClient() *Client {
 	c := &Client{
 		mutex:            new(sync.Mutex),
 		rwMutex:          new(sync.RWMutex),
-		Context:          &Context{Request: &request{}, Response: response{}},
-		timeout:          30 * time.Second,
+		Context:          &Context{Request: &Request{}, Response: Response{}},
+		timeout:          TIMEOUT * time.Second,
 		packet:           make(chan linker.Packet, 1024),
 		handlerContainer: handlerContainer{lock: sync.RWMutex{}, data: make(map[int64]Handler)},
 		cancelHeartbeat:  make(chan bool, 1),
@@ -101,8 +104,14 @@ func (c *Client) Connect(server string, port int) {
 	}(address, c.conn)
 }
 
-func (c *Client) StartHeartbeat(interval time.Duration, param Message) error {
-	pbData, err := Marshal(param)
+func (c *Client) StartHeartbeat(interval time.Duration, param interface{}) error {
+	t := c.Context.Request.GetRequestProperty("Content-Type")
+	r, err := coder.NewCoder(t)
+	if err != nil {
+		return err
+	}
+
+	pbData, err := r.Encoder(param)
 	if err != nil {
 		return err
 	}
@@ -139,8 +148,22 @@ func (c *Client) Close() {
 }
 
 // 向服务端发送请求，同步处理服务端返回结果
-func (c *Client) SyncCall(operator string, param Message, callback RequestStatusCallback) {
-	pbData, _ := Marshal(param)
+func (c *Client) SyncCall(operator string, param interface{}, callback RequestStatusCallback) {
+	t := c.Context.Request.GetRequestProperty("Content-Type")
+	r, err := coder.NewCoder(t)
+	if err != nil {
+		if callback.OnError != nil {
+			callback.OnError(500, err.Error())
+		}
+	}
+
+	pbData, err := r.Encoder(param)
+	if err != nil {
+		if callback.OnError != nil {
+			callback.OnError(500, err.Error())
+		}
+	}
+
 	nType := crc32.ChecksumIEEE([]byte(operator))
 	sequence := time.Now().UnixNano()
 	listener := int64(nType) + sequence
@@ -182,8 +205,22 @@ func (c *Client) SyncCall(operator string, param Message, callback RequestStatus
 }
 
 // 向服务端发送请求，异步处理服务端返回结果
-func (c *Client) AsyncCall(operator string, param Message, callback RequestStatusCallback) {
-	pbData, _ := Marshal(param)
+func (c *Client) AsyncCall(operator string, param interface{}, callback RequestStatusCallback) {
+	t := c.Context.Request.GetRequestProperty("Content-Type")
+	r, err := coder.NewCoder(t)
+	if err != nil {
+		if callback.OnError != nil {
+			callback.OnError(500, err.Error())
+		}
+	}
+
+	pbData, err := r.Encoder(param)
+	if err != nil {
+		if callback.OnError != nil {
+			callback.OnError(500, err.Error())
+		}
+	}
+
 	nType := crc32.ChecksumIEEE([]byte(operator))
 	sequence := time.Now().UnixNano()
 

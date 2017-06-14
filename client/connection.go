@@ -84,7 +84,7 @@ func (c *Client) handleReceivedPackets(conn net.Conn) error {
 
 		operator := int64(nType) + sequence
 		if handler, ok := c.handlerContainer.get(operator); ok {
-			req := &Request{Conn: conn, OperateType: nType, Sequence: sequence}
+			req := &Request{Conn: conn, OperateType: nType, Sequence: sequence, Header: c.Context.Request.Header, Body: c.Context.Request.Body}
 			res := Response{Conn: conn, OperateType: nType, Sequence: sequence, Header: header, Body: body}
 
 			ctx := &Context{req, res}

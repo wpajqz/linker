@@ -15,3 +15,12 @@ type SystemError struct {
 func (e SystemError) Error() string {
 	return fmt.Sprintf("[datetime]:%v [file]:%v [line]:%v [message]:%v", e.when, e.file, e.line, e.what)
 }
+
+type ResponseError struct {
+	Code    int
+	Message string
+}
+
+func (e ResponseError) Error() string {
+	return e.Message
+}

@@ -10,7 +10,7 @@ import (
 )
 
 func (s *Server) handleConnection(conn net.Conn) {
-	quit := make(chan bool)
+	ctx, cancel := context.WithCancel(context.Background())
 
 	defer func() {
 		if err := recover(); err != nil {
@@ -18,11 +18,11 @@ func (s *Server) handleConnection(conn net.Conn) {
 		}
 
 		conn.Close()
-		quit <- true
+		cancel()
 	}()
 
 	receivePackets := make(chan Packet, 100)
-	go s.handlePacket(conn, receivePackets, quit)
+	go s.handlePacket(ctx, conn, receivePackets)
 
 	var (
 		bType         []byte = make([]byte, 4)
@@ -109,16 +109,16 @@ func (s *Server) handleConnection(conn net.Conn) {
 	}
 }
 
-func (s *Server) handlePacket(conn net.Conn, receivePackets <-chan Packet, quit <-chan bool) {
+func (s *Server) handlePacket(ctx context.Context, conn net.Conn, receivePackets <-chan Packet) {
 	defer func() {
 		if err := recover(); err != nil {
 			s.errorHandler(err.(error))
 		}
 	}()
 
-	ctx := NewContext(context.Background(), &request{Conn: conn}, response{Conn: conn})
+	c := NewContext(ctx, &request{Conn: conn}, response{Conn: conn})
 	if s.constructHandler != nil {
-		s.constructHandler(ctx)
+		s.constructHandler(c)
 	}
 
 	for {
@@ -131,18 +131,18 @@ func (s *Server) handlePacket(conn net.Conn, receivePackets <-chan Packet, quit 
 
 			req := &request{Conn: conn, OperateType: p.OperateType(), Sequence: p.Sequence(), Header: p.Header(), Body: p.Body()}
 			res := response{Conn: conn, OperateType: p.OperateType(), Sequence: p.Sequence()}
-			ctx = NewContext(ctx, req, res)
+			c = NewContext(c, req, res)
 
 			if rm, ok := s.routerMiddleware[p.OperateType()]; ok {
 				for _, v := range rm {
-					ctx = v.Handle(ctx)
+					c = v.Handle(c)
 				}
 			}
 
 			for _, v := range s.middleware {
-				ctx = v.Handle(ctx)
+				c = v.Handle(c)
 				if tm, ok := v.(TerminateMiddleware); ok {
-					tm.Terminate(ctx)
+					tm.Terminate(c)
 				}
 			}
 
@@ -153,13 +153,13 @@ func (s *Server) handlePacket(conn net.Conn, receivePackets <-chan Packet, quit 
 					}
 				}()
 
-				handler(ctx)
-			}(handler, ctx)
+				handler(c)
+			}(handler, c)
 
-		case <-quit:
+		case <-ctx.Done():
 			// 执行链接退出以后回收操作
 			if s.destructHandler != nil {
-				s.destructHandler(ctx)
+				s.destructHandler(c)
 			}
 
 			return

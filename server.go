@@ -79,8 +79,8 @@ func (s *Server) Handle(pattern string, handler Handler) {
 func (s *Server) BindRouter(routers []Router) {
 	for _, router := range routers {
 		operator := crc32.ChecksumIEEE([]byte(router.Operator))
-		if operator <= MAX_OPERATOR {
-			panic("Unavailable operator, the value of crc32 need less than " + strconv.Itoa(MAX_OPERATOR))
+		if operator <= OPERATOR_MAX {
+			panic("Unavailable operator, the value of crc32 need less than " + strconv.Itoa(OPERATOR_MAX))
 		}
 
 		for _, m := range router.Middleware {

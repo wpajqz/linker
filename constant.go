@@ -6,7 +6,7 @@ const (
 
 const (
 	OPERATOR_HEARTBEAT = iota
-	MAX_OPERATOR       = 1024
+	OPERATOR_MAX       = 1024
 )
 
 const (

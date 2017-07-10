@@ -146,7 +146,7 @@ func (s *Server) handlePacket(ctx context.Context, conn net.Conn, receivePackets
 				}
 			}
 
-			go func(handler Handler, ctx *Context) {
+			func(handler Handler, ctx *Context) {
 				defer func() {
 					if err := recover(); err != nil {
 						s.errorHandler(err.(error))

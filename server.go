@@ -97,22 +97,22 @@ func (s *Server) Use(middleware ...Middleware) {
 }
 
 // 设置默认错误处理方法
-func (s *Server) SetErrorHandler(errorHandler ErrorHandler) {
+func (s *Server) OnError(errorHandler ErrorHandler) {
 	s.errorHandler = errorHandler
 }
 
 // 客户端链接断开以后执行回收操作
-func (s *Server) SetDestructHandler(handler Handler) {
+func (s *Server) OnClose(handler Handler) {
 	s.destructHandler = handler
 }
 
 // 客户端建立连接以后初始化操作
-func (s *Server) SetConstructHandler(handler Handler) {
+func (s *Server) OnOpen(handler Handler) {
 	s.constructHandler = handler
 }
 
 // 设置心跳包的handler,需要客户端发送心跳包才能够触发
 // 客户端发送心跳包，服务端未调用此方法时只起到建立长连接的作用
-func (s *Server) SetHeartbeatHandler(handler Handler) {
+func (s *Server) OnPing(handler Handler) {
 	s.handlerContainer[OPERATOR_HEARTBEAT] = handler
 }

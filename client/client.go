@@ -36,7 +36,7 @@ type Client struct {
 	Context                 *Context
 	timeout                 time.Duration
 	conn                    net.Conn
-	handlerContainer        handlerContainer
+	handlerContainer        sync.Map
 	packet                  chan linker.Packet
 	cancelHeartbeat         chan bool
 	closeClient             chan bool
@@ -51,7 +51,7 @@ func NewClient() *Client {
 		Context:          &Context{Request: &Request{}, Response: Response{}},
 		timeout:          TIMEOUT * time.Second,
 		packet:           make(chan linker.Packet, 1024),
-		handlerContainer: handlerContainer{lock: sync.RWMutex{}, data: make(map[int64]Handler)},
+		handlerContainer: sync.Map{},
 		cancelHeartbeat:  make(chan bool, 1),
 		closeClient:      make(chan bool, 1),
 		running:          make(chan bool, 1),
@@ -176,7 +176,7 @@ func (c *Client) SyncCall(operator string, param interface{}, callback RequestSt
 		callback.OnProgress(0, "proecssing...")
 	}
 
-	c.handlerContainer.add(listener, func(ctx *Context) {
+	var handler Handler = func(ctx *Context) {
 		code := ctx.Response.GetResponseProperty("code")
 		if code != "" {
 			message := ctx.Response.GetResponseProperty("message")
@@ -194,9 +194,11 @@ func (c *Client) SyncCall(operator string, param interface{}, callback RequestSt
 			}
 		}
 
-		c.handlerContainer.delete(listener)
+		c.handlerContainer.Delete(listener)
 		quit <- true
-	})
+	}
+
+	c.handlerContainer.Store(listener, handler)
 
 	p := linker.NewPack(nType, sequence, c.Context.Request.Header, pbData)
 	c.packet <- p
@@ -229,7 +231,7 @@ func (c *Client) AsyncCall(operator string, param interface{}, callback RequestS
 		callback.OnProgress(0, "proecssing...")
 	}
 
-	c.handlerContainer.add(listener, func(ctx *Context) {
+	var handler Handler = func(ctx *Context) {
 		code := ctx.Response.GetResponseProperty("code")
 		if code != "" {
 			message := ctx.Response.GetResponseProperty("message")
@@ -247,44 +249,20 @@ func (c *Client) AsyncCall(operator string, param interface{}, callback RequestS
 			}
 		}
 
-		c.handlerContainer.delete(listener)
-	})
+		c.handlerContainer.Delete(listener)
+	}
+	c.handlerContainer.Store(listener, handler)
 
 	p := linker.NewPack(nType, sequence, c.Context.Request.Header, pbData)
 	c.packet <- p
 }
 
 // 添加事件监听器
-func (c *Client) AddMessageListener(operator string, callback func(*Context)) {
-	c.handlerContainer.add(int64(crc32.ChecksumIEEE([]byte(operator))), callback)
+func (c *Client) AddMessageListener(operator string, callback Handler) {
+	c.handlerContainer.Store(int64(crc32.ChecksumIEEE([]byte(operator))), callback)
 }
 
 // 移除事件监听器
 func (c *Client) RemoveMessageListener(operator string) {
-	c.handlerContainer.delete(int64(crc32.ChecksumIEEE([]byte(operator))))
-}
-
-type handlerContainer struct {
-	lock sync.RWMutex
-	data map[int64]Handler
-}
-
-func (h *handlerContainer) add(operator int64, callback func(*Context)) {
-	h.lock.Lock()
-	h.data[operator] = callback
-	h.lock.Unlock()
-}
-
-func (h *handlerContainer) get(operator int64) (func(*Context), bool) {
-	h.lock.RLock()
-	listener, ok := h.data[operator]
-	h.lock.RUnlock()
-
-	return listener, ok
-}
-
-func (h *handlerContainer) delete(operator int64) {
-	h.lock.Lock()
-	delete(h.data, operator)
-	h.lock.Unlock()
+	c.handlerContainer.Delete(int64(crc32.ChecksumIEEE([]byte(operator))))
 }

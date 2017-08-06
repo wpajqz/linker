@@ -23,6 +23,7 @@ var (
 )
 
 type Handler func(*Context)
+type ErrorHandler func(error)
 
 type RequestStatusCallback struct {
 	OnSuccess  func(ctx *Context)
@@ -42,6 +43,8 @@ type Client struct {
 	closeClient             chan bool
 	running                 chan bool
 	OnConnectionStateChange func(status bool)
+	destructHandler         Handler
+	errorHandler            ErrorHandler
 }
 
 func NewClient() *Client {
@@ -265,4 +268,14 @@ func (c *Client) AddMessageListener(operator string, callback Handler) {
 // 移除事件监听器
 func (c *Client) RemoveMessageListener(operator string) {
 	c.handlerContainer.Delete(int64(crc32.ChecksumIEEE([]byte(operator))))
+}
+
+// 链接断开以后执行回收操作
+func (c *Client) OnClose(handler Handler) {
+	c.destructHandler = handler
+}
+
+// 设置默认错误处理方法
+func (c *Client) OnError(errorHandler ErrorHandler) {
+	c.errorHandler = errorHandler
 }

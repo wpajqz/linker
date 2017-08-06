@@ -1,6 +1,7 @@
 package client
 
 import (
+	"context"
 	"io"
 	"net"
 
@@ -9,16 +10,24 @@ import (
 
 // 处理客户端连接
 func (c *Client) handleConnection(conn net.Conn) error {
-	qs := make(chan bool)
-	defer func() { qs <- true }()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer func() {
+		if err := recover(); err != nil {
+			if c.errorHandler != nil {
+				c.errorHandler(err.(error))
+			}
+		}
 
-	go c.handleSendPackets(conn, qs)
+		cancel()
+	}()
+
+	go c.handleSendPackets(ctx, conn)
 
 	return c.handleReceivedPackets(conn)
 }
 
 // 对发送的数据包进行处理
-func (c *Client) handleSendPackets(conn net.Conn, quit <-chan bool) {
+func (c *Client) handleSendPackets(ctx context.Context, conn net.Conn) {
 	for {
 		select {
 		case p := <-c.packet:
@@ -26,7 +35,7 @@ func (c *Client) handleSendPackets(conn net.Conn, quit <-chan bool) {
 			if err != nil {
 				return
 			}
-		case <-quit:
+		case <-ctx.Done():
 			return
 		}
 	}

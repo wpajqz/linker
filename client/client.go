@@ -26,9 +26,9 @@ type Handler func(*Context)
 type ErrorHandler func(error)
 
 type RequestStatusCallback struct {
-	OnSuccess  func(ctx *Context)
-	OnProgress func(progress int, status string)
-	OnError    func(status int, message string)
+	OnSuccess      func(ctx *Context)
+	OnError        func(status int, message string)
+	OnStart, OnEnd func()
 }
 
 type Client struct {
@@ -118,8 +118,8 @@ func (c *Client) SyncCall(operator string, param interface{}, callback RequestSt
 	c.mutex.Lock()
 	quit := make(chan bool)
 
-	if callback.OnProgress != nil {
-		callback.OnProgress(0, "proecssing...")
+	if callback.OnStart != nil {
+		callback.OnStart()
 	}
 
 	var handler Handler = func(ctx *Context) {
@@ -135,8 +135,8 @@ func (c *Client) SyncCall(operator string, param interface{}, callback RequestSt
 				callback.OnSuccess(ctx)
 			}
 
-			if callback.OnProgress != nil {
-				callback.OnProgress(100, "successful")
+			if callback.OnEnd != nil {
+				callback.OnEnd()
 			}
 		}
 
@@ -173,8 +173,8 @@ func (c *Client) AsyncCall(operator string, param interface{}, callback RequestS
 	sequence := time.Now().UnixNano()
 
 	listener := int64(nType) + sequence
-	if callback.OnProgress != nil {
-		callback.OnProgress(0, "proecssing...")
+	if callback.OnStart != nil {
+		callback.OnStart()
 	}
 
 	var handler Handler = func(ctx *Context) {
@@ -190,8 +190,8 @@ func (c *Client) AsyncCall(operator string, param interface{}, callback RequestS
 				callback.OnSuccess(ctx)
 			}
 
-			if callback.OnProgress != nil {
-				callback.OnProgress(100, "successful")
+			if callback.OnEnd != nil {
+				callback.OnEnd()
 			}
 		}
 

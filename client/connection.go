@@ -23,7 +23,17 @@ func (c *Client) handleConnection(conn net.Conn) error {
 
 	go c.handleSendPackets(ctx, conn)
 
-	return c.handleReceivedPackets(conn)
+	err := c.handleReceivedPackets(conn)
+	if err != nil {
+		if err == io.EOF {
+			if c.destructHandler != nil {
+				ctx := &Context{}
+				c.destructHandler(ctx)
+			}
+		}
+	}
+
+	return err
 }
 
 // 对发送的数据包进行处理
@@ -44,10 +54,10 @@ func (c *Client) handleSendPackets(ctx context.Context, conn net.Conn) {
 // 对接收到的数据包进行处理
 func (c *Client) handleReceivedPackets(conn net.Conn) error {
 	var (
-		bType         []byte = make([]byte, 4)
-		bSequence     []byte = make([]byte, 8)
-		bHeaderLength []byte = make([]byte, 4)
-		bBodyLength   []byte = make([]byte, 4)
+		bType         = make([]byte, 4)
+		bSequence     = make([]byte, 8)
+		bHeaderLength = make([]byte, 4)
+		bBodyLength   = make([]byte, 4)
 		sequence      int64
 		headerLength  uint32
 		bodyLength    uint32

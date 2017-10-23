@@ -39,75 +39,35 @@ type Client struct {
 	conn                    net.Conn
 	handlerContainer        sync.Map
 	packet                  chan linker.Packet
-	cancelHeartbeat         chan bool
-	closeClient             chan bool
-	running                 chan bool
 	OnConnectionStateChange func(status bool)
+	constructHandler        Handler
 	destructHandler         Handler
 	errorHandler            ErrorHandler
 }
 
-func NewClient() *Client {
-	c := &Client{
-		mutex:            new(sync.Mutex),
-		rwMutex:          new(sync.RWMutex),
-		Context:          &Context{Request: &Request{}, Response: Response{}},
-		timeout:          TIMEOUT * time.Second,
-		packet:           make(chan linker.Packet, 1024),
-		handlerContainer: sync.Map{},
-		cancelHeartbeat:  make(chan bool, 1),
-		closeClient:      make(chan bool, 1),
-		running:          make(chan bool, 1),
-	}
-
-	return c
-}
-
-func (c *Client) Connect(server string, port int) {
+func NewClient(server string, port int) *Client {
 	address := strings.Join([]string{server, strconv.Itoa(port)}, ":")
 	conn, err := net.Dial("tcp", address)
 	if err != nil {
 		panic(err)
 	}
 
-	c.conn = conn
+	c := &Client{
+		conn:             conn,
+		mutex:            new(sync.Mutex),
+		rwMutex:          new(sync.RWMutex),
+		Context:          &Context{Request: &Request{}, Response: Response{}},
+		timeout:          TIMEOUT * time.Second,
+		packet:           make(chan linker.Packet, 1024),
+		handlerContainer: sync.Map{},
+	}
 
-	go func(string, net.Conn) {
-		for {
-			err := c.handleConnection(c.conn)
-			if err != nil {
-				c.running <- false
-			}
+	go c.handleConnection(c.conn)
 
-			select {
-			case r := <-c.running:
-				if !r {
-					// 把在线状态传递出去,方便调用方给用户提示信息
-					if c.OnConnectionStateChange != nil {
-						c.OnConnectionStateChange(r)
-					}
-
-					for {
-						//服务端timeout设置影响链接延时时间
-						conn, err := net.Dial("tcp", address)
-						if err == nil {
-							c.conn = conn
-							if c.OnConnectionStateChange != nil {
-								c.OnConnectionStateChange(true)
-							}
-
-							break
-						}
-					}
-				}
-			case <-c.closeClient:
-				return
-			}
-		}
-	}(address, c.conn)
+	return c
 }
 
-func (c *Client) StartHeartbeat(interval time.Duration, param interface{}) error {
+func (c *Client) Ping(interval time.Duration, param interface{}) error {
 	t := c.Context.Request.GetRequestProperty("Content-Type")
 	r, err := coder.NewCoder(t)
 	if err != nil {
@@ -129,25 +89,8 @@ func (c *Client) StartHeartbeat(interval time.Duration, param interface{}) error
 		select {
 		case <-ticker.C:
 			c.packet <- p
-		case <-c.cancelHeartbeat:
-			return nil
 		}
 	}
-}
-
-func (c *Client) StopHeartbeat() {
-	c.cancelHeartbeat <- true
-}
-
-func (c *Client) SetTimeout(timeout time.Duration) {
-	c.timeout = timeout
-}
-
-func (c *Client) Close() {
-	c.cancelHeartbeat <- true
-	c.closeClient <- true
-	close(c.cancelHeartbeat)
-	close(c.closeClient)
 }
 
 // 向服务端发送请求，同步处理服务端返回结果
@@ -270,6 +213,11 @@ func (c *Client) RemoveMessageListener(operator string) {
 	c.handlerContainer.Delete(int64(crc32.ChecksumIEEE([]byte(operator))))
 }
 
+// 链接建立以后执行的操作
+func (c *Client) OnOpen(handler Handler) {
+	c.constructHandler = handler
+}
+
 // 链接断开以后执行回收操作
 func (c *Client) OnClose(handler Handler) {
 	c.destructHandler = handler
@@ -278,4 +226,9 @@ func (c *Client) OnClose(handler Handler) {
 // 设置默认错误处理方法
 func (c *Client) OnError(errorHandler ErrorHandler) {
 	c.errorHandler = errorHandler
+}
+
+// 接收服务端返回的对心跳包的响应
+func (c *Client) OnPong(pongHandler Handler) {
+	c.handlerContainer.Store(linker.OPERATOR_HEARTBEAT, pongHandler)
 }

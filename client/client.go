@@ -94,7 +94,7 @@ func (c *Client) Ping(interval time.Duration, param interface{}) error {
 }
 
 // 向服务端发送请求，同步处理服务端返回结果
-func (c *Client) SyncCall(operator string, param interface{}, callback RequestStatusCallback) {
+func (c *Client) SyncSend(operator string, param interface{}, callback RequestStatusCallback) {
 	t := c.Context.Request.GetRequestProperty("Content-Type")
 	r, err := coder.NewCoder(t)
 	if err != nil {
@@ -153,7 +153,7 @@ func (c *Client) SyncCall(operator string, param interface{}, callback RequestSt
 }
 
 // 向服务端发送请求，异步处理服务端返回结果
-func (c *Client) AsyncCall(operator string, param interface{}, callback RequestStatusCallback) {
+func (c *Client) AsyncSend(operator string, param interface{}, callback RequestStatusCallback) {
 	t := c.Context.Request.GetRequestProperty("Content-Type")
 	r, err := coder.NewCoder(t)
 	if err != nil {
@@ -204,13 +204,13 @@ func (c *Client) AsyncCall(operator string, param interface{}, callback RequestS
 }
 
 // 添加事件监听器
-func (c *Client) AddMessageListener(operator string, callback Handler) {
-	c.handlerContainer.Store(int64(crc32.ChecksumIEEE([]byte(operator))), callback)
+func (c *Client) AddMessageListener(listener string, callback Handler) {
+	c.handlerContainer.Store(int64(crc32.ChecksumIEEE([]byte(listener))), callback)
 }
 
 // 移除事件监听器
-func (c *Client) RemoveMessageListener(operator string) {
-	c.handlerContainer.Delete(int64(crc32.ChecksumIEEE([]byte(operator))))
+func (c *Client) RemoveMessageListener(listener string) {
+	c.handlerContainer.Delete(int64(crc32.ChecksumIEEE([]byte(listener))))
 }
 
 // 链接建立以后执行的操作

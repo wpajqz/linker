@@ -25,10 +25,10 @@ func (s *Server) handleConnection(conn net.Conn) {
 	go s.handlePacket(ctx, conn, receivePackets)
 
 	var (
-		bType         []byte = make([]byte, 4)
-		bSequence     []byte = make([]byte, 8)
-		bHeaderLength []byte = make([]byte, 4)
-		bBodyLength   []byte = make([]byte, 4)
+		bType         = make([]byte, 4)
+		bSequence     = make([]byte, 8)
+		bHeaderLength = make([]byte, 4)
+		bBodyLength   = make([]byte, 4)
 		sequence      int64
 		headerLength  uint32
 		bodyLength    uint32

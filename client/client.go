@@ -14,12 +14,12 @@ import (
 )
 
 const (
-	MaxPayload = uint32(2048)
+	MaxPayload = 2048
 	TIMEOUT    = 30
 )
 
 var (
-	ErrPacketLength = errors.New("the packet is big than " + strconv.Itoa(int(MaxPayload)))
+	ErrPacketLength = errors.New("the packet is big than " + strconv.Itoa(MaxPayload))
 )
 
 type Handler func(*Context)

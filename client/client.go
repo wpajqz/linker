@@ -28,7 +28,7 @@ type ErrorHandler func(error)
 type RequestStatusCallback struct {
 	OnSuccess  func(ctx *Context)
 	OnProgress func(progress int, status string)
-	OnError    func(code int, message string)
+	OnError    func(status int, message string)
 }
 
 type Client struct {

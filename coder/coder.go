@@ -14,7 +14,7 @@ func NewCoder(name string) (Coder, error) {
 		return v, nil
 	}
 
-	return nil, errors.New("Unsupported data type")
+	return nil, errors.New("unsupported data type")
 }
 
 func register(name string, coder Coder) {

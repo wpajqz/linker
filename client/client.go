@@ -67,16 +67,16 @@ func NewClient(server string, port int) *Client {
 	return c
 }
 
-func (c *Client) Ping(interval time.Duration, param interface{}) error {
+func (c *Client) Ping(interval time.Duration, param interface{}) {
 	t := c.Context.Request.GetRequestProperty("Content-Type")
 	r, err := coder.NewCoder(t)
 	if err != nil {
-		return err
+		panic(err)
 	}
 
 	pbData, err := r.Encoder(param)
 	if err != nil {
-		return err
+		panic(err)
 	}
 
 	sequence := time.Now().UnixNano()
@@ -98,16 +98,12 @@ func (c *Client) SyncSend(operator string, param interface{}, callback RequestSt
 	t := c.Context.Request.GetRequestProperty("Content-Type")
 	r, err := coder.NewCoder(t)
 	if err != nil {
-		if callback.OnError != nil {
-			callback.OnError(500, err.Error())
-		}
+		panic(err)
 	}
 
 	pbData, err := r.Encoder(param)
 	if err != nil {
-		if callback.OnError != nil {
-			callback.OnError(500, err.Error())
-		}
+		panic(err)
 	}
 
 	nType := crc32.ChecksumIEEE([]byte(operator))
@@ -157,16 +153,12 @@ func (c *Client) AsyncSend(operator string, param interface{}, callback RequestS
 	t := c.Context.Request.GetRequestProperty("Content-Type")
 	r, err := coder.NewCoder(t)
 	if err != nil {
-		if callback.OnError != nil {
-			callback.OnError(500, err.Error())
-		}
+		panic(err)
 	}
 
 	pbData, err := r.Encoder(param)
 	if err != nil {
-		if callback.OnError != nil {
-			callback.OnError(500, err.Error())
-		}
+		panic(err)
 	}
 
 	nType := crc32.ChecksumIEEE([]byte(operator))

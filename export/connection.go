@@ -1,9 +1,11 @@
-package client
+package export
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"net"
+	"strconv"
 
 	"github.com/wpajqz/linker"
 )
@@ -14,7 +16,7 @@ func (c *Client) handleConnection(conn net.Conn) error {
 	defer func() {
 		if err := recover(); err != nil {
 			if c.errorHandler != nil {
-				c.errorHandler(err.(error))
+				c.errorHandler.Handle(err.(error).Error())
 			}
 		}
 
@@ -27,8 +29,7 @@ func (c *Client) handleConnection(conn net.Conn) error {
 	if err != nil {
 		if err == io.EOF {
 			if c.destructHandler != nil {
-				ctx := &Context{}
-				c.destructHandler(ctx)
+				c.destructHandler.Handle(nil, nil)
 			}
 		}
 	}
@@ -88,7 +89,7 @@ func (c *Client) handleReceivedPackets(conn net.Conn) error {
 
 		pacLen = headerLength + bodyLength + 20
 		if pacLen > MaxPayload {
-			return ErrPacketLength
+			return fmt.Errorf("the packet is big than %v" + strconv.Itoa(MaxPayload))
 		}
 
 		header := make([]byte, headerLength)
@@ -104,11 +105,7 @@ func (c *Client) handleReceivedPackets(conn net.Conn) error {
 		operator := int64(nType) + sequence
 		if handler, ok := c.handlerContainer.Load(operator); ok {
 			if v, ok := handler.(Handler); ok {
-				req := &Request{Conn: conn, OperateType: nType, Sequence: sequence, Header: c.Context.Request.Header, Body: c.Context.Request.Body}
-				res := Response{Conn: conn, OperateType: nType, Sequence: sequence, Header: header, Body: body}
-
-				ctx := &Context{req, res}
-				v(ctx)
+				v.Handle(header, body)
 			}
 		}
 	}

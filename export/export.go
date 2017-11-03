@@ -11,10 +11,7 @@ import (
 	"github.com/wpajqz/linker"
 )
 
-const (
-	MaxPayload = 2048
-	TIMEOUT    = 30
-)
+const MaxPayload = 2048
 
 type Handler interface {
 	Handle(header, body []byte)
@@ -32,17 +29,17 @@ type RequestStatusCallback interface {
 }
 
 type Client struct {
-	running           chan bool
-	mutex             *sync.Mutex
-	rwMutex           *sync.RWMutex
-	timeout           time.Duration
-	conn              net.Conn
-	handlerContainer  sync.Map
-	packet            chan linker.Packet
-	constructHandler  Handler
-	destructHandler   Handler
-	errorHandler      ErrorHandler
-	request, response struct {
+	running                chan bool
+	mutex                  *sync.Mutex
+	rwMutex                *sync.RWMutex
+	timeout, retryInterval time.Duration
+	conn                   net.Conn
+	handlerContainer       sync.Map
+	packet                 chan linker.Packet
+	constructHandler       Handler
+	destructHandler        Handler
+	errorHandler           ErrorHandler
+	request, response      struct {
 		Header, Body []byte
 	}
 }
@@ -65,7 +62,8 @@ func NewClient(server string, port int) *Client {
 		conn:             conn,
 		mutex:            new(sync.Mutex),
 		rwMutex:          new(sync.RWMutex),
-		timeout:          TIMEOUT * time.Second,
+		timeout:          30 * time.Second,
+		retryInterval:    5 * time.Second,
 		packet:           make(chan linker.Packet, 1024),
 		handlerContainer: sync.Map{},
 	}
@@ -79,6 +77,7 @@ func NewClient(server string, port int) *Client {
 				if err != nil {
 					if c.errorHandler != nil {
 						c.errorHandler.Handle(err.Error())
+						time.Sleep(c.retryInterval) // 重连失败以后休息一会再干活
 					}
 				} else {
 					c.conn = conn
@@ -263,4 +262,14 @@ func (c *Client) GetResponseProperty(key string) string {
 // 设置响应属性
 func (c *Client) SetResponseProperty(key, value string) {
 	c.response.Header = append(c.response.Header, []byte(key+"="+value+";")...)
+}
+
+// 设置断线重连的间隔时间, 单位s
+func (c *Client) SetRetryInterval(interval int) {
+	c.retryInterval = time.Duration(interval) * time.Second
+}
+
+// 设置服务端默认超时时间, 单位s
+func (c *Client) SetTimeout(timeout int) {
+	c.timeout = time.Duration(timeout) * time.Second
 }

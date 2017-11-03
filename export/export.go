@@ -50,11 +50,11 @@ func (f handlerFunc) Handle(header, body []byte) {
 	f(header, body)
 }
 
-func NewClient(server string, port int) *Client {
+func NewClient(server string, port int) (*Client, error) {
 	address := strings.Join([]string{server, strconv.Itoa(port)}, ":")
 	conn, err := net.Dial("tcp", address)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	c := &Client{
@@ -87,7 +87,7 @@ func NewClient(server string, port int) *Client {
 		}
 	}()
 
-	return c
+	return c, nil
 }
 
 // 心跳处理，客户端与服务端保持长连接

@@ -23,6 +23,10 @@ func (c *Client) handleConnection(conn net.Conn) error {
 		cancel()
 	}()
 
+	if c.constructHandler != nil {
+		c.constructHandler.Handle(nil, nil)
+	}
+
 	go c.handleSendPackets(ctx, conn)
 
 	err := c.handleReceivedPackets(conn)

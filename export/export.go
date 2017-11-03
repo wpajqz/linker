@@ -32,6 +32,7 @@ type RequestStatusCallback interface {
 }
 
 type Client struct {
+	running           chan bool
 	mutex             *sync.Mutex
 	rwMutex           *sync.RWMutex
 	timeout           time.Duration
@@ -60,6 +61,7 @@ func NewClient(server string, port int) *Client {
 	}
 
 	c := &Client{
+		running:          make(chan bool, 1),
 		conn:             conn,
 		mutex:            new(sync.Mutex),
 		rwMutex:          new(sync.RWMutex),
@@ -68,7 +70,23 @@ func NewClient(server string, port int) *Client {
 		handlerContainer: sync.Map{},
 	}
 
-	go c.handleConnection(c.conn)
+	// 检测conn的状态，断线以后进行重连操作
+	go func() {
+		err := c.handleConnection(conn)
+		for {
+			if err != nil {
+				conn, err = net.Dial("tcp", address)
+				if err != nil {
+					if c.errorHandler != nil {
+						c.errorHandler.Handle(err.Error())
+					}
+				} else {
+					c.conn = conn
+					err = c.handleConnection(conn)
+				}
+			}
+		}
+	}()
 
 	return c
 }

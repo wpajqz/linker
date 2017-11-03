@@ -101,6 +101,7 @@ func (c *Client) handleReceivedPackets(conn net.Conn) error {
 		if n, err := io.ReadFull(conn, body); err != nil && n != int(bodyLength) {
 			return err
 		}
+
 		c.response.Header = header
 		c.response.Body = body
 

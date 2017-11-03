@@ -99,7 +99,7 @@
 
 FOUNDATION_EXPORT const int64_t ExportMaxPayload;
 
-FOUNDATION_EXPORT ExportClient* ExportNewClient(NSString* server, long port);
+FOUNDATION_EXPORT ExportClient* ExportNewClient(NSString* server, long port, NSError** error);
 
 @class ExportErrorHandler;
 

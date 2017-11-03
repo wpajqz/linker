@@ -16,28 +16,8 @@ const (
 	TIMEOUT    = 30
 )
 
-type request struct {
-	net.Conn
-	OperateType  uint32
-	Sequence     int64
-	Header, Body []byte
-}
-
-type response struct {
-	net.Conn
-	OperateType  uint32
-	Sequence     int64
-	Header, Body []byte
-}
-
 type Handler interface {
 	Handle(header, body []byte)
-}
-
-type handlerFunc func(header, body []byte)
-
-func (f handlerFunc) Handle(header, body []byte) {
-	f(header, body)
 }
 
 type ErrorHandler interface {
@@ -52,17 +32,24 @@ type RequestStatusCallback interface {
 }
 
 type Client struct {
-	mutex            *sync.Mutex
-	rwMutex          *sync.RWMutex
-	timeout          time.Duration
-	conn             net.Conn
-	handlerContainer sync.Map
-	packet           chan linker.Packet
-	constructHandler Handler
-	destructHandler  Handler
-	errorHandler     ErrorHandler
-	request          request
-	response         response
+	mutex             *sync.Mutex
+	rwMutex           *sync.RWMutex
+	timeout           time.Duration
+	conn              net.Conn
+	handlerContainer  sync.Map
+	packet            chan linker.Packet
+	constructHandler  Handler
+	destructHandler   Handler
+	errorHandler      ErrorHandler
+	request, response struct {
+		Header, Body []byte
+	}
+}
+
+type handlerFunc func(header, body []byte)
+
+func (f handlerFunc) Handle(header, body []byte) {
+	f(header, body)
 }
 
 func NewClient(server string, port int) *Client {
@@ -86,11 +73,32 @@ func NewClient(server string, port int) *Client {
 	return c
 }
 
-func (c *Client) Ping(interval int64, param []byte) {
+// 心跳处理，客户端与服务端保持长连接
+func (c *Client) Ping(interval int64, param []byte, callback RequestStatusCallback) {
 	sequence := time.Now().UnixNano()
-	p := linker.NewPack(linker.OPERATOR_HEARTBEAT, sequence, c.request.Header, param)
+	listener := int64(linker.OPERATOR_HEARTBEAT) + sequence
+
+	c.handlerContainer.Store(listener, handlerFunc(func(header, body []byte) {
+		code := c.GetResponseProperty("code")
+		if code != "" {
+			message := c.GetResponseProperty("message")
+			if callback.OnError != nil {
+				v, _ := strconv.Atoi(code)
+				callback.OnError(v, message)
+			}
+		} else {
+			if callback.OnSuccess != nil {
+				callback.OnSuccess(header, body)
+			}
+
+			if callback.OnEnd != nil {
+				callback.OnEnd()
+			}
+		}
+	}))
 
 	// 建立连接以后就发送心跳包建立会话信息，后面的定期发送
+	p := linker.NewPack(linker.OPERATOR_HEARTBEAT, sequence, c.request.Header, param)
 	c.packet <- p
 	ticker := time.NewTicker(time.Duration(interval) * time.Second)
 	for {
@@ -203,16 +211,12 @@ func (c *Client) OnError(errorHandler ErrorHandler) {
 	c.errorHandler = errorHandler
 }
 
-// 接收服务端返回的对心跳包的响应
-func (c *Client) OnPong(pongHandler Handler) {
-	c.handlerContainer.Store(linker.OPERATOR_HEARTBEAT, pongHandler)
-}
-
-// 接收服务端返回的对心跳包的响应
+// 设置请求属性
 func (c *Client) SetRequestProperty(key, value string) {
 	c.request.Header = append(c.request.Header, []byte(key+"="+value+";")...)
 }
 
+// 获取请求属性
 func (c *Client) GetRequestProperty(key string) string {
 	values := strings.Split(string(c.request.Header), ";")
 	for _, value := range values {
@@ -225,6 +229,7 @@ func (c *Client) GetRequestProperty(key string) string {
 	return ""
 }
 
+// 获取响应属性
 func (c *Client) GetResponseProperty(key string) string {
 	values := strings.Split(string(c.response.Header), ";")
 	for _, value := range values {
@@ -235,4 +240,9 @@ func (c *Client) GetResponseProperty(key string) string {
 	}
 
 	return ""
+}
+
+// 设置响应属性
+func (c *Client) SetResponseProperty(key, value string) {
+	c.response.Header = append(c.response.Header, []byte(key+"="+value+";")...)
 }

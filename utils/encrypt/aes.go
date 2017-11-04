@@ -11,7 +11,7 @@ import (
 // 记住每次加密解密前都要设置iv.
 
 // 该包默认的密匙
-const defaultAesKey = "12345abcdef67890"
+const defaultAesKey = "b8ca9aa66def05ff3f24919274bb4a66"
 
 func Encrypt(plaintext []byte) ([]byte, error) {
 	key := []byte(defaultAesKey)

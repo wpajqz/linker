@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"github.com/wpajqz/linker"
+	"github.com/wpajqz/linker/utils/encrypt"
 )
 
 // 处理客户端连接
@@ -104,6 +105,16 @@ func (c *Client) handleReceivedPackets(conn net.Conn) error {
 		body := make([]byte, bodyLength)
 		if n, err := io.ReadFull(conn, body); err != nil && n != int(bodyLength) {
 			return err
+		}
+
+		header, err := encrypt.Decrypt(header)
+		if err != nil {
+			panic(err)
+		}
+
+		body, err = encrypt.Decrypt(body)
+		if err != nil {
+			panic(err)
 		}
 
 		c.response.Header = header

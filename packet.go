@@ -1,5 +1,7 @@
 package linker
 
+import "github.com/wpajqz/linker/utils/encrypt"
+
 type Packet struct {
 	nType         uint32
 	nSequence     int64
@@ -10,6 +12,18 @@ type Packet struct {
 }
 
 func NewPack(operator uint32, sequence int64, header, body []byte) Packet {
+	var err error
+
+	header, err = encrypt.Encrypt(header)
+	if err != nil {
+		panic(err)
+	}
+
+	body, err = encrypt.Encrypt(body)
+	if err != nil {
+		panic(err)
+	}
+
 	return Packet{
 		nType:         operator,
 		nSequence:     sequence,
@@ -41,9 +55,19 @@ func (p Packet) Sequence() int64 {
 }
 
 func (p Packet) Header() []byte {
-	return p.bHeader
+	b, err := encrypt.Decrypt(p.bHeader)
+	if err != nil {
+		panic(err)
+	}
+
+	return b
 }
 
 func (p Packet) Body() []byte {
-	return p.bBody
+	b, err := encrypt.Decrypt(p.bBody)
+	if err != nil {
+		panic(err)
+	}
+
+	return b
 }

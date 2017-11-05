@@ -38,7 +38,7 @@
 @property(strong, readonly) id _ref;
 
 - (instancetype)initWithRef:(id)ref;
-- (instancetype)init:(NSString*)server port:(long)port;
+- (instancetype)init;
 /**
  * 添加事件监听器
  */
@@ -47,6 +47,7 @@
  * 向服务端发送请求，异步处理服务端返回结果
  */
 - (void)asyncSend:(NSString*)operator param:(NSData*)param callback:(id<ExportRequestStatusCallback>)callback;
+- (BOOL)connect:(NSString*)server port:(long)port error:(NSError**)error;
 /**
  * 获取请求属性
  */
@@ -99,7 +100,7 @@
 
 FOUNDATION_EXPORT const int64_t ExportMaxPayload;
 
-FOUNDATION_EXPORT ExportClient* ExportNewClient(NSString* server, long port, NSError** error);
+FOUNDATION_EXPORT ExportClient* ExportNewClient(void);
 
 @class ExportErrorHandler;
 

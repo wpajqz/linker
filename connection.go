@@ -7,6 +7,8 @@ import (
 	"net"
 	"runtime"
 	"time"
+
+	"github.com/wpajqz/linker/utils/encrypt"
 )
 
 func (s *Server) handleConnection(conn net.Conn) {
@@ -103,6 +105,16 @@ func (s *Server) handleConnection(conn net.Conn) {
 
 			_, file, line, _ := runtime.Caller(1)
 			panic(SystemError{time.Now(), file, line, fmt.Sprintf("Read packetLength failed: %v", err)})
+		}
+
+		header, err := encrypt.Decrypt(header)
+		if err != nil {
+			panic(err)
+		}
+
+		body, err = encrypt.Decrypt(body)
+		if err != nil {
+			panic(err)
 		}
 
 		receivePackets <- NewPack(BytesToUint32(bType), sequence, header, body)

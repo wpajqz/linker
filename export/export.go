@@ -162,9 +162,10 @@ func (c *Client) SyncSend(operator string, param []byte, callback RequestStatusC
 				callback.OnSuccess(header, body)
 			}
 
-			if callback.OnEnd != nil {
-				callback.OnEnd()
-			}
+		}
+
+		if callback.OnEnd != nil {
+			callback.OnEnd()
 		}
 
 		c.handlerContainer.Delete(listener)
@@ -199,10 +200,10 @@ func (c *Client) AsyncSend(operator string, param []byte, callback RequestStatus
 			if callback.OnSuccess != nil {
 				callback.OnSuccess(header, body)
 			}
+		}
 
-			if callback.OnEnd != nil {
-				callback.OnEnd()
-			}
+		if callback.OnEnd != nil {
+			callback.OnEnd()
 		}
 
 		c.handlerContainer.Delete(listener)

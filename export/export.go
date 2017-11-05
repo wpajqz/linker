@@ -50,22 +50,31 @@ func (f handlerFunc) Handle(header, body []byte) {
 	f(header, body)
 }
 
-func NewClient(server string, port int) (*Client, error) {
-	address := strings.Join([]string{server, strconv.Itoa(port)}, ":")
-	conn, err := net.Dial("tcp", address)
-	if err != nil {
-		return nil, err
-	}
-
+func NewClient() *Client {
 	c := &Client{
 		running:          make(chan bool, 1),
-		conn:             conn,
 		mutex:            new(sync.Mutex),
 		rwMutex:          new(sync.RWMutex),
 		timeout:          30 * time.Second,
 		retryInterval:    5 * time.Second,
 		packet:           make(chan linker.Packet, 1024),
 		handlerContainer: sync.Map{},
+	}
+
+	return c
+}
+
+func (c *Client) Connect(server string, port int) error {
+	address := strings.Join([]string{server, strconv.Itoa(port)}, ":")
+	conn, err := net.Dial("tcp", address)
+	if err != nil {
+		return err
+	}
+
+	c.conn = conn
+
+	if c.constructHandler != nil {
+		c.constructHandler.Handle(nil, nil)
 	}
 
 	// 检测conn的状态，断线以后进行重连操作
@@ -87,7 +96,7 @@ func NewClient(server string, port int) (*Client, error) {
 		}
 	}()
 
-	return c, nil
+	return nil
 }
 
 // 心跳处理，客户端与服务端保持长连接

@@ -17,6 +17,7 @@ func (c *Client) handleConnection(conn net.Conn) error {
 	defer func() {
 		if err := recover(); err != nil {
 			if c.errorHandler != nil {
+				c.readyState = CLOSED
 				c.errorHandler.Handle(err.(error).Error())
 			}
 		}

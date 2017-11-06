@@ -13,6 +13,13 @@ import (
 
 const MaxPayload = 2048
 
+const (
+	CONNECTING = 0 // 连接还没开启
+	OPEN       = 1 // 连接已开启并准备好进行通信
+	CLOSING    = 2 // 连接正在关闭的过程中
+	CLOSED     = 3 // 连接已经关闭，或者连接无法建立
+)
+
 type Handler interface {
 	Handle(header, body []byte)
 }
@@ -29,6 +36,7 @@ type RequestStatusCallback interface {
 }
 
 type Client struct {
+	readyState             int
 	mutex                  *sync.Mutex
 	rwMutex                *sync.RWMutex
 	timeout, retryInterval time.Duration
@@ -51,6 +59,7 @@ func (f handlerFunc) Handle(header, body []byte) {
 
 func NewClient() *Client {
 	c := &Client{
+		readyState:       CONNECTING,
 		mutex:            new(sync.Mutex),
 		rwMutex:          new(sync.RWMutex),
 		timeout:          30 * time.Second,
@@ -60,6 +69,11 @@ func NewClient() *Client {
 	}
 
 	return c
+}
+
+// 获取链接运行状态
+func (c *Client) GetReadyState() int {
+	return c.readyState
 }
 
 func (c *Client) Connect(server string, port int) error {
@@ -72,6 +86,7 @@ func (c *Client) Connect(server string, port int) error {
 	c.conn = conn
 
 	if c.constructHandler != nil {
+		c.readyState = OPEN
 		c.constructHandler.Handle(nil, nil)
 	}
 
@@ -83,13 +98,16 @@ func (c *Client) Connect(server string, port int) error {
 				conn, err = net.Dial("tcp", address)
 				if err != nil {
 					if c.errorHandler != nil {
+						c.readyState = CLOSED
 						c.errorHandler.Handle(err.Error())
+
 						time.Sleep(c.retryInterval) // 重连失败以后休息一会再干活
 					}
 				} else {
 					c.conn = conn
 
 					if c.constructHandler != nil {
+						c.readyState = OPEN
 						c.constructHandler.Handle(nil, nil)
 					}
 
@@ -100,6 +118,17 @@ func (c *Client) Connect(server string, port int) error {
 	}()
 
 	return nil
+}
+
+// 关闭链接
+func (c *Client) Close() error {
+	var err error
+	if c.readyState != CLOSED {
+		c.readyState = CLOSING
+		err = c.conn.Close()
+	}
+
+	return err
 }
 
 // 心跳处理，客户端与服务端保持长连接

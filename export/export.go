@@ -133,6 +133,14 @@ func (c *Client) Close() error {
 
 // 心跳处理，客户端与服务端保持长连接
 func (c *Client) Ping(interval int64, param []byte, callback RequestStatusCallback) {
+	if c.readyState != OPEN {
+		if c.errorHandler != nil {
+			c.errorHandler.Handle("connection closed")
+		}
+
+		return
+	}
+
 	sequence := time.Now().UnixNano()
 	listener := int64(linker.OPERATOR_HEARTBEAT) + sequence
 
@@ -169,6 +177,14 @@ func (c *Client) Ping(interval int64, param []byte, callback RequestStatusCallba
 
 // 向服务端发送请求，同步处理服务端返回结果
 func (c *Client) SyncSend(operator string, param []byte, callback RequestStatusCallback) {
+	if c.readyState != OPEN {
+		if c.errorHandler != nil {
+			c.errorHandler.Handle("connection closed")
+		}
+
+		return
+	}
+
 	nType := crc32.ChecksumIEEE([]byte(operator))
 	sequence := time.Now().UnixNano()
 	listener := int64(nType) + sequence
@@ -212,6 +228,14 @@ func (c *Client) SyncSend(operator string, param []byte, callback RequestStatusC
 
 // 向服务端发送请求，异步处理服务端返回结果
 func (c *Client) AsyncSend(operator string, param []byte, callback RequestStatusCallback) {
+	if c.readyState != OPEN {
+		if c.errorHandler != nil {
+			c.errorHandler.Handle("connection closed")
+		}
+
+		return
+	}
+
 	nType := crc32.ChecksumIEEE([]byte(operator))
 	sequence := time.Now().UnixNano()
 

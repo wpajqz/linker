@@ -90,6 +90,11 @@ func (c *Client) Connect(server string, port int) error {
 					}
 				} else {
 					c.conn = conn
+
+					if c.constructHandler != nil {
+						c.constructHandler.Handle(nil, nil)
+					}
+
 					err = c.handleConnection(conn)
 				}
 			}

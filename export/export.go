@@ -29,7 +29,6 @@ type RequestStatusCallback interface {
 }
 
 type Client struct {
-	running                chan bool
 	mutex                  *sync.Mutex
 	rwMutex                *sync.RWMutex
 	timeout, retryInterval time.Duration
@@ -52,7 +51,6 @@ func (f handlerFunc) Handle(header, body []byte) {
 
 func NewClient() *Client {
 	c := &Client{
-		running:          make(chan bool, 1),
 		mutex:            new(sync.Mutex),
 		rwMutex:          new(sync.RWMutex),
 		timeout:          30 * time.Second,

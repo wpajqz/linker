@@ -84,9 +84,9 @@ func (c *Client) Connect(server string, port int) error {
 	}
 
 	c.conn = conn
+	c.readyState = OPEN
 
 	if c.constructHandler != nil {
-		c.readyState = OPEN
 		c.constructHandler.Handle(nil, nil)
 	}
 
@@ -97,17 +97,16 @@ func (c *Client) Connect(server string, port int) error {
 			if err != nil {
 				conn, err = net.Dial("tcp", address)
 				if err != nil {
+					c.readyState = CLOSED
 					if c.errorHandler != nil {
-						c.readyState = CLOSED
 						c.errorHandler.Handle(err.Error())
-
 						time.Sleep(c.retryInterval) // 重连失败以后休息一会再干活
 					}
 				} else {
 					c.conn = conn
+					c.readyState = OPEN
 
 					if c.constructHandler != nil {
-						c.readyState = OPEN
 						c.constructHandler.Handle(nil, nil)
 					}
 

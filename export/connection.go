@@ -15,9 +15,9 @@ import (
 func (c *Client) handleConnection(conn net.Conn) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer func() {
+		c.readyState = CLOSED
 		if err := recover(); err != nil {
 			if c.errorHandler != nil {
-				c.readyState = CLOSED
 				c.errorHandler.Handle(err.(error).Error())
 			}
 		}

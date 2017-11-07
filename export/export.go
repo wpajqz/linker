@@ -45,6 +45,7 @@ type Client struct {
 	packet                 chan linker.Packet
 	constructHandler       Handler
 	destructHandler        Handler
+	errorString            string
 	errorHandler           ErrorHandler
 	request, response      struct {
 		Header, Body []byte
@@ -98,8 +99,9 @@ func (c *Client) Connect(server string, port int) error {
 				conn, err = net.Dial("tcp", address)
 				if err != nil {
 					c.readyState = CLOSED
+					c.errorString = err.Error()
 					if c.errorHandler != nil {
-						c.errorHandler.Handle(err.Error())
+						c.errorHandler.Handle(c.errorString)
 						time.Sleep(c.retryInterval) // 重连失败以后休息一会再干活
 					}
 				} else {
@@ -134,7 +136,7 @@ func (c *Client) Close() error {
 func (c *Client) Ping(interval int64, param []byte, callback RequestStatusCallback) {
 	if c.readyState != OPEN {
 		if c.errorHandler != nil {
-			c.errorHandler.Handle("connection closed")
+			c.errorHandler.Handle(c.errorString)
 		}
 
 		return
@@ -178,7 +180,7 @@ func (c *Client) Ping(interval int64, param []byte, callback RequestStatusCallba
 func (c *Client) SyncSend(operator string, param []byte, callback RequestStatusCallback) {
 	if c.readyState != OPEN {
 		if c.errorHandler != nil {
-			c.errorHandler.Handle("connection closed")
+			c.errorHandler.Handle(c.errorString)
 		}
 
 		return
@@ -229,7 +231,7 @@ func (c *Client) SyncSend(operator string, param []byte, callback RequestStatusC
 func (c *Client) AsyncSend(operator string, param []byte, callback RequestStatusCallback) {
 	if c.readyState != OPEN {
 		if c.errorHandler != nil {
-			c.errorHandler.Handle("connection closed")
+			c.errorHandler.Handle(c.errorString)
 		}
 
 		return

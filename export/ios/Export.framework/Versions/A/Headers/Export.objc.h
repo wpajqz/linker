@@ -47,7 +47,15 @@
  * 向服务端发送请求，异步处理服务端返回结果
  */
 - (void)asyncSend:(NSString*)operator param:(NSData*)param callback:(id<ExportRequestStatusCallback>)callback;
+/**
+ * 关闭链接
+ */
+- (BOOL)close:(NSError**)error;
 - (BOOL)connect:(NSString*)server port:(long)port error:(NSError**)error;
+/**
+ * 获取链接运行状态
+ */
+- (long)getReadyState;
 /**
  * 获取请求属性
  */
@@ -98,7 +106,11 @@
 - (void)syncSend:(NSString*)operator param:(NSData*)param callback:(id<ExportRequestStatusCallback>)callback;
 @end
 
+FOUNDATION_EXPORT const int64_t ExportCLOSED;
+FOUNDATION_EXPORT const int64_t ExportCLOSING;
+FOUNDATION_EXPORT const int64_t ExportCONNECTING;
 FOUNDATION_EXPORT const int64_t ExportMaxPayload;
+FOUNDATION_EXPORT const int64_t ExportOPEN;
 
 FOUNDATION_EXPORT ExportClient* ExportNewClient(void);
 

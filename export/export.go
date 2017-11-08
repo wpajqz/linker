@@ -78,6 +78,13 @@ func (c *Client) GetReadyState() int {
 }
 
 func (c *Client) Connect(server string, port int) error {
+	defer func() {
+		c.readyState = OPEN
+		if c.constructHandler != nil {
+			c.constructHandler.Handle(nil, nil)
+		}
+	}()
+
 	address := strings.Join([]string{server, strconv.Itoa(port)}, ":")
 	conn, err := net.Dial("tcp", address)
 	if err != nil {
@@ -85,11 +92,6 @@ func (c *Client) Connect(server string, port int) error {
 	}
 
 	c.conn = conn
-	c.readyState = OPEN
-
-	if c.constructHandler != nil {
-		c.constructHandler.Handle(nil, nil)
-	}
 
 	// 检测conn的状态，断线以后进行重连操作
 	go func() {
@@ -107,10 +109,6 @@ func (c *Client) Connect(server string, port int) error {
 				} else {
 					c.conn = conn
 					c.readyState = OPEN
-
-					if c.constructHandler != nil {
-						c.constructHandler.Handle(nil, nil)
-					}
 
 					err = c.handleConnection(conn)
 				}
@@ -134,14 +132,6 @@ func (c *Client) Close() error {
 
 // 心跳处理，客户端与服务端保持长连接
 func (c *Client) Ping(interval int64, param []byte, callback RequestStatusCallback) {
-	if c.readyState != OPEN {
-		if c.errorHandler != nil {
-			c.errorHandler.Handle(c.errorString)
-		}
-
-		return
-	}
-
 	sequence := time.Now().UnixNano()
 	listener := int64(linker.OPERATOR_HEARTBEAT) + sequence
 
@@ -171,7 +161,9 @@ func (c *Client) Ping(interval int64, param []byte, callback RequestStatusCallba
 	for {
 		select {
 		case <-ticker.C:
-			c.packet <- p
+			if c.readyState == OPEN {
+				c.packet <- p
+			}
 		}
 	}
 }

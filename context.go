@@ -85,3 +85,10 @@ func (c *Context) Write(operator string, body interface{}) (int, error) {
 
 	return c.Response.Write(p.Bytes())
 }
+
+// 向客户端发送原始数据数据
+func (c *Context) WriteBinary(operator string, data []byte) (int, error) {
+	p := NewPack(crc32.ChecksumIEEE([]byte(operator)), 0, c.Response.Header, data)
+
+	return c.Response.Write(p.Bytes())
+}

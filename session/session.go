@@ -2,6 +2,8 @@ package session
 
 import (
 	"sync"
+
+	"github.com/wpajqz/linker"
 )
 
 const (
@@ -10,51 +12,50 @@ const (
 )
 
 var (
-	defaultSession = make(map[string]Platform)
+	defaultSession = make(map[string]Session)
 	mutex          sync.RWMutex
 )
 
-func Get(key string) Platform {
+type (
+	// socket信息、在线状态
+	Session struct {
+		Address string
+		Ctx     *linker.Context
+		Status  int // 0:不在线;1:在线
+	}
+)
+
+func Get(key string) Session {
 	mutex.RLock()
 	defer mutex.RUnlock()
 
 	return defaultSession[key]
 }
 
-func Set(key, platform string, session Session) {
+func Set(key string, session Session) {
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	if v, ok := defaultSession[key]; ok {
-		v.Set(platform, session)
-		defaultSession[key] = v
-	} else {
-		p := Platform{lock: sync.RWMutex{}, data: make(map[string]Session)}
-		p.Set(platform, session)
-		defaultSession[key] = p
-	}
+	defaultSession[key] = session
 }
 
-func IsExist(key, platform string) bool {
+func IsExist(key string) bool {
 	mutex.RLock()
 	defer mutex.RUnlock()
 
-	if v, ok := defaultSession[key]; ok {
-		return v.IsExist(platform)
+	if _, ok := defaultSession[key]; ok {
+		return true
 	}
 
 	return false
 }
 
-func Delete(key, platform string) {
+func Delete(key string) {
 	mutex.Lock()
 	defer mutex.Unlock()
-
-	if v, ok := defaultSession[key]; ok {
-		v.Delete(platform)
-	}
+	delete(defaultSession, key)
 }
 
-func Default() map[string]Platform {
+func Default() map[string]Session {
 	return defaultSession
 }

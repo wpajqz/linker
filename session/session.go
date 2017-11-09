@@ -6,9 +6,11 @@ import (
 	"github.com/wpajqz/linker"
 )
 
+// Session的在线状态
 const (
-	OFFLINE = 0
-	ONLINE  = 1
+	OFF_LINE  = "off"
+	ON_LINE   = "on"
+	BUSY_LINE = "busy"
 )
 
 var (
@@ -21,7 +23,6 @@ type (
 	Session struct {
 		Address string
 		Ctx     *linker.Context
-		Status  int // 0:不在线;1:在线
 	}
 )
 

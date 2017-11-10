@@ -111,6 +111,7 @@ FOUNDATION_EXPORT const int64_t ExportCLOSING;
 FOUNDATION_EXPORT const int64_t ExportCONNECTING;
 FOUNDATION_EXPORT const int64_t ExportMaxPayload;
 FOUNDATION_EXPORT const int64_t ExportOPEN;
+FOUNDATION_EXPORT NSString* const ExportVersion;
 
 FOUNDATION_EXPORT ExportClient* ExportNewClient(void);
 

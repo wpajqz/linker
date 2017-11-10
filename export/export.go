@@ -12,6 +12,7 @@ import (
 )
 
 const MaxPayload = 2048
+const Version = "1.0"
 
 const (
 	CONNECTING = 0 // 连接还没开启

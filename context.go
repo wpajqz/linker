@@ -13,22 +13,18 @@ import (
 type (
 	Context struct {
 		context.Context
-		Request  *request
-		Response response
+		Request     *request
+		Response    response
+		contentType string
 	}
 )
 
 func NewContext(ctx context.Context, req *request, res response) *Context {
-	return &Context{
-		ctx,
-		req,
-		res,
-	}
+	return &Context{Context: ctx, Request: req, Response: res, contentType: "text/json"}
 }
 
 func (c *Context) ParseParam(data interface{}) error {
-	t := c.Request.GetRequestProperty("Content-Type")
-	r, err := coder.NewCoder(t)
+	r, err := coder.NewCoder(c.contentType)
 	if err != nil {
 		return err
 	}
@@ -36,10 +32,14 @@ func (c *Context) ParseParam(data interface{}) error {
 	return r.Decoder(c.Request.Body, data)
 }
 
+// 设置请求可以处理的序列化数据类型
+func (c *Context) SetContentType(contentType string) {
+	c.contentType = contentType
+}
+
 // 响应请求成功的数据包
 func (c *Context) Success(body interface{}) {
-	t := c.Request.GetRequestProperty("Content-Type")
-	r, err := coder.NewCoder(t)
+	r, err := coder.NewCoder(c.contentType)
 	if err != nil {
 		_, file, line, _ := runtime.Caller(1)
 		panic(SystemError{time.Now(), file, line, err.Error()})
@@ -70,8 +70,7 @@ func (c *Context) Error(code int, message string) {
 
 // 向客户端发送数据
 func (c *Context) Write(operator string, body interface{}) (int, error) {
-	t := c.Request.GetRequestProperty("Content-Type")
-	r, err := coder.NewCoder(t)
+	r, err := coder.NewCoder(c.contentType)
 	if err != nil {
 		return 0, err
 	}

@@ -58,9 +58,9 @@ func (c *Context) Success(body interface{}) {
 }
 
 // 响应请求失败的数据包
-func (c *Context) Error(error ResponseError) {
-	c.Response.SetResponseProperty("code", strconv.Itoa(error.Code))
-	c.Response.SetResponseProperty("message", error.Message)
+func (c *Context) Error(code int, message string) {
+	c.Response.SetResponseProperty("code", strconv.Itoa(code))
+	c.Response.SetResponseProperty("message", message)
 
 	p := NewPack(c.Request.OperateType, c.Request.Sequence, c.Response.Header, nil)
 	c.Response.Write(p.Bytes())

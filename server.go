@@ -13,6 +13,7 @@ type (
 	Handler      func(*Context)
 	ErrorHandler func(error)
 	Server       struct {
+		contentType      string
 		timeout          time.Duration
 		handlerContainer map[uint32]Handler
 		middleware       []Middleware
@@ -27,6 +28,7 @@ type (
 
 func NewServer() *Server {
 	return &Server{
+		contentType:      "text/json",
 		MaxPayload:       MaxPayload,
 		handlerContainer: make(map[uint32]Handler),
 		routerMiddleware: make(map[uint32][]Middleware),
@@ -34,6 +36,11 @@ func NewServer() *Server {
 			log.Println(err.Error())
 		},
 	}
+}
+
+// 设置所有请求的序列化数据类型
+func (s *Server) SetContentType(contentType string) {
+	s.contentType = contentType
 }
 
 // 设置默认超时时间

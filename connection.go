@@ -128,11 +128,11 @@ func (s *Server) handlePacket(ctx context.Context, conn net.Conn, receivePackets
 		}
 	}()
 
-	c := NewContext(ctx, &request{Conn: conn}, response{Conn: conn})
 	if s.constructHandler != nil {
-		s.constructHandler(c)
+		s.constructHandler(nil)
 	}
 
+	var c *Context
 	for {
 		select {
 		case p := <-receivePackets:
@@ -143,7 +143,9 @@ func (s *Server) handlePacket(ctx context.Context, conn net.Conn, receivePackets
 
 			req := &request{Conn: conn, OperateType: p.OperateType(), Sequence: p.Sequence(), Header: p.Header(), Body: p.Body()}
 			res := response{Conn: conn, OperateType: p.OperateType(), Sequence: p.Sequence()}
+
 			c = NewContext(c, req, res)
+			c.SetContentType(s.contentType)
 
 			if rm, ok := s.routerMiddleware[p.OperateType()]; ok {
 				for _, v := range rm {

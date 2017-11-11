@@ -20,7 +20,7 @@ type (
 )
 
 func NewContext(ctx context.Context, req *request, res response) *Context {
-	return &Context{Context: ctx, Request: req, Response: res, contentType: "text/json"}
+	return &Context{Context: ctx, Request: req, Response: res}
 }
 
 func (c *Context) ParseParam(data interface{}) error {
@@ -32,7 +32,7 @@ func (c *Context) ParseParam(data interface{}) error {
 	return r.Decoder(c.Request.Body, data)
 }
 
-// 设置请求可以处理的序列化数据类型
+// 设置单个请求可以处理的序列化数据类型，还可以在中间件中更改
 func (c *Context) SetContentType(contentType string) {
 	c.contentType = contentType
 }

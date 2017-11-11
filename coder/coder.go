@@ -2,6 +2,11 @@ package coder
 
 import "errors"
 
+const (
+	JSON     = "text/json"
+	PROTOBUF = "text/protobuf"
+)
+
 var coderContainer = make(map[string]Coder)
 
 type Coder interface {

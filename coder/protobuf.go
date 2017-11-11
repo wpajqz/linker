@@ -27,5 +27,5 @@ func (c *ProtoBufCoder) Decoder(data []byte, des interface{}) error {
 }
 
 func init() {
-	register("text/protobuf", &ProtoBufCoder{})
+	register(PROTOBUF, &ProtoBufCoder{})
 }

@@ -22,6 +22,7 @@ type (
 	// socket信息、在线状态
 	Session struct {
 		Address string
+		Status  string
 		Ctx     *linker.Context
 	}
 )

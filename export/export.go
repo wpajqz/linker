@@ -79,13 +79,6 @@ func (c *Client) GetReadyState() int {
 }
 
 func (c *Client) Connect(server string, port int) error {
-	defer func() {
-		c.readyState = OPEN
-		if c.constructHandler != nil {
-			c.constructHandler.Handle(nil, nil)
-		}
-	}()
-
 	address := strings.Join([]string{server, strconv.Itoa(port)}, ":")
 	conn, err := net.Dial("tcp", address)
 	if err != nil {
@@ -96,7 +89,7 @@ func (c *Client) Connect(server string, port int) error {
 
 	// 检测conn的状态，断线以后进行重连操作
 	go func() {
-		err := c.handleConnection(conn)
+		err := c.handleConnection(c.conn)
 		for {
 			if err != nil {
 				conn, err = net.Dial("tcp", address)
@@ -109,13 +102,30 @@ func (c *Client) Connect(server string, port int) error {
 					}
 				} else {
 					c.conn = conn
-					c.readyState = OPEN
 
-					err = c.handleConnection(conn)
+					quit := make(chan bool, 1)
+					go func() {
+						err = c.handleConnection(c.conn)
+						if err != nil {
+							quit <- true
+						}
+					}()
+
+					c.readyState = OPEN
+					if c.constructHandler != nil {
+						c.constructHandler.Handle(nil, nil)
+					}
+
+					<-quit
 				}
 			}
 		}
 	}()
+
+	c.readyState = OPEN
+	if c.constructHandler != nil {
+		c.constructHandler.Handle(nil, nil)
+	}
 
 	return nil
 }

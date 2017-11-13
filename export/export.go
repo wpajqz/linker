@@ -300,6 +300,11 @@ func (c *Client) OnError(errorHandler ErrorHandler) {
 
 // 设置请求属性
 func (c *Client) SetRequestProperty(key, value string) {
+	v := c.GetRequestProperty(key)
+	if v != "" {
+		c.request.Header = []byte(strings.Trim(string(c.request.Header), key+"="+value+";"))
+	}
+
 	c.request.Header = append(c.request.Header, []byte(key+"="+value+";")...)
 }
 
@@ -331,6 +336,11 @@ func (c *Client) GetResponseProperty(key string) string {
 
 // 设置响应属性
 func (c *Client) SetResponseProperty(key, value string) {
+	v := c.GetResponseProperty(key)
+	if v != "" {
+		c.response.Header = []byte(strings.Trim(string(c.response.Header), key+"="+value+";"))
+	}
+
 	c.response.Header = append(c.response.Header, []byte(key+"="+value+";")...)
 }
 

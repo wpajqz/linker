@@ -13,6 +13,11 @@ type request struct {
 }
 
 func (r *request) SetRequestProperty(key, value string) {
+	v := r.GetRequestProperty(key)
+	if v != "" {
+		r.Header = []byte(strings.Trim(string(r.Header), key+"="+value+";"))
+	}
+
 	r.Header = append(r.Header, []byte(key+"="+value+";")...)
 }
 

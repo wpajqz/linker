@@ -1,6 +1,7 @@
 package linker
 
 import (
+	"bytes"
 	"net"
 	"strings"
 )
@@ -15,7 +16,7 @@ type response struct {
 func (r *response) SetResponseProperty(key, value string) {
 	v := r.GetResponseProperty(key)
 	if v != "" {
-		r.Header = []byte(strings.Trim(string(r.Header), key+"="+value+";"))
+		r.Header = bytes.Trim(r.Header, key+"="+value+";")
 	}
 
 	r.Header = append(r.Header, []byte(key+"="+value+";")...)

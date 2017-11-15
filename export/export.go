@@ -93,6 +93,10 @@ func (c *Client) Connect(server string, port int) error {
 		err := c.handleConnection(c.conn)
 		for {
 			if err != nil {
+				if c.errorHandler != nil {
+					c.errorHandler.Handle(err.Error())
+				}
+
 				conn, err = net.Dial("tcp", address)
 				if err != nil {
 					c.readyState = CLOSED

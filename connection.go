@@ -81,7 +81,7 @@ func (s *Server) handleConnection(conn net.Conn) {
 		bodyLength = BytesToUint32(bBodyLength)
 		pacLen := headerLength + bodyLength + uint32(20)
 
-		if pacLen > s.MaxPayload {
+		if pacLen > s.maxPayload {
 			_, file, line, _ := runtime.Caller(1)
 			panic(SystemError{time.Now(), file, line, "packet larger than MaxPayload"})
 		}

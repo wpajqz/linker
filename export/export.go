@@ -12,8 +12,10 @@ import (
 	"github.com/wpajqz/linker"
 )
 
-const MaxPayload = 2048
-const Version = "1.0"
+const (
+	MaxPayload = 1024 * 1024
+	Version    = "1.0"
+)
 
 const (
 	CONNECTING = 0 // 连接还没开启
@@ -49,6 +51,7 @@ type Client struct {
 	destructHandler        Handler
 	errorString            string
 	errorHandler           ErrorHandler
+	maxPayload             uint32
 	request, response      struct {
 		Header, Body []byte
 	}
@@ -276,6 +279,11 @@ func (c *Client) AsyncSend(operator string, param []byte, callback RequestStatus
 
 	p := linker.NewPack(nType, sequence, c.request.Header, param)
 	c.packet <- p
+}
+
+// 设置可处理的数据包的最大长度
+func (c *Client) SetMaxPayload(maxPayload uint32) {
+	c.maxPayload = maxPayload
 }
 
 // 添加事件监听器

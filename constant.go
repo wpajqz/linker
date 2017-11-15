@@ -1,7 +1,7 @@
 package linker
 
 const (
-	MaxPayload = 2048
+	MaxPayload = 1024 * 1024
 )
 
 const (

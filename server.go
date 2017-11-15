@@ -20,7 +20,7 @@ type (
 		handlerContainer map[uint32]Handler
 		middleware       []Middleware
 		routerMiddleware map[uint32][]Middleware
-		MaxPayload       uint32
+		maxPayload       uint32
 		errorHandler     ErrorHandler
 		heartbeatHandler Handler
 		constructHandler Handler
@@ -31,7 +31,7 @@ type (
 func NewServer() *Server {
 	return &Server{
 		contentType:      coder.JSON,
-		MaxPayload:       MaxPayload,
+		maxPayload:       MaxPayload,
 		handlerContainer: make(map[uint32]Handler),
 		routerMiddleware: make(map[uint32][]Middleware),
 		errorHandler: func(err error) {
@@ -52,7 +52,7 @@ func (s *Server) SetTimeout(timeout time.Duration) {
 
 // 设置可处理的数据包的最大长度
 func (s *Server) SetMaxPayload(maxPayload uint32) {
-	s.MaxPayload = maxPayload
+	s.maxPayload = maxPayload
 }
 
 // 开始运行服务

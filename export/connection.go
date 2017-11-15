@@ -92,7 +92,7 @@ func (c *Client) handleReceivedPackets(conn net.Conn) error {
 
 		pacLen = headerLength + bodyLength + 20
 		if pacLen > MaxPayload {
-			return fmt.Errorf("the packet is big than %v" + strconv.Itoa(MaxPayload))
+			return fmt.Errorf("the packet is big than %v", strconv.Itoa(MaxPayload))
 		}
 
 		header := make([]byte, headerLength)

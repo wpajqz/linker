@@ -13,5 +13,5 @@ func (c *JsonCoder) Decoder(data []byte, v interface{}) error {
 }
 
 func init() {
-	register(JSON, &JsonCoder{})
+	Register(JSON, &JsonCoder{})
 }

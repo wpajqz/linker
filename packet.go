@@ -1,6 +1,9 @@
 package linker
 
-import "github.com/wpajqz/linker/utils/encrypt"
+import (
+	"github.com/wpajqz/linker/utils/convert"
+	"github.com/wpajqz/linker/utils/encrypt"
+)
 
 type Packet struct {
 	nType         uint32
@@ -36,10 +39,10 @@ func NewPack(operator uint32, sequence int64, header, body []byte) Packet {
 
 // 得到序列化后的Packet
 func (p Packet) Bytes() (buf []byte) {
-	buf = append(buf, Uint32ToBytes(p.nType)...)
-	buf = append(buf, Int64ToBytes(p.nSequence)...)
-	buf = append(buf, Uint32ToBytes(p.nHeaderLength)...)
-	buf = append(buf, Uint32ToBytes(p.nBodyLength)...)
+	buf = append(buf, convert.Uint32ToBytes(p.nType)...)
+	buf = append(buf, convert.Int64ToBytes(p.nSequence)...)
+	buf = append(buf, convert.Uint32ToBytes(p.nHeaderLength)...)
+	buf = append(buf, convert.Uint32ToBytes(p.nBodyLength)...)
 	buf = append(buf, p.bHeader...)
 	buf = append(buf, p.bBody...)
 

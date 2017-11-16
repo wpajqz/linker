@@ -1,6 +1,6 @@
 // 均采用大端字节序，事实上这个字节序没有任何用处，
 // 只要服务器和客户端约定采用相同的字节序就行
-package linker
+package convert
 
 func Int64ToBytes(v int64) []byte {
 	buf := make([]byte, 8)

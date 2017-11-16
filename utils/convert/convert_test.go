@@ -1,4 +1,4 @@
-package linker_test
+package convert
 
 import (
 	"testing"

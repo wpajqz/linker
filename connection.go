@@ -8,6 +8,7 @@ import (
 	"runtime"
 	"time"
 
+	"github.com/wpajqz/linker/utils/convert"
 	"github.com/wpajqz/linker/utils/encrypt"
 )
 
@@ -76,9 +77,9 @@ func (s *Server) handleConnection(conn net.Conn) {
 			panic(SystemError{time.Now(), file, line, fmt.Sprintf("Read packetLength failed: %v", err)})
 		}
 
-		sequence = BytesToInt64(bSequence)
-		headerLength = BytesToUint32(bHeaderLength)
-		bodyLength = BytesToUint32(bBodyLength)
+		sequence = convert.BytesToInt64(bSequence)
+		headerLength = convert.BytesToUint32(bHeaderLength)
+		bodyLength = convert.BytesToUint32(bBodyLength)
 		pacLen := headerLength + bodyLength + uint32(20)
 
 		if pacLen > s.maxPayload {
@@ -117,7 +118,7 @@ func (s *Server) handleConnection(conn net.Conn) {
 			panic(err)
 		}
 
-		receivePackets <- NewPack(BytesToUint32(bType), sequence, header, body)
+		receivePackets <- NewPack(convert.BytesToUint32(bType), sequence, header, body)
 	}
 }
 

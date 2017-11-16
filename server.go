@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/wpajqz/linker/coder"
+	"github.com/wpajqz/linker/codec"
 )
 
 type (
@@ -30,7 +30,7 @@ type (
 
 func NewServer() *Server {
 	return &Server{
-		contentType:      coder.JSON,
+		contentType:      codec.JSON,
 		maxPayload:       MaxPayload,
 		handlerContainer: make(map[uint32]Handler),
 		routerMiddleware: make(map[uint32][]Middleware),

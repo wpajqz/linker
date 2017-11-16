@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/wpajqz/linker/coder"
+	"github.com/wpajqz/linker/codec"
 )
 
 type (
@@ -24,7 +24,7 @@ func NewContext(ctx context.Context, req *request, res response, contentType str
 }
 
 func (c *Context) ParseParam(data interface{}) error {
-	r, err := coder.NewCoder(c.contentType)
+	r, err := codec.NewCoder(c.contentType)
 	if err != nil {
 		return err
 	}
@@ -39,7 +39,7 @@ func (c *Context) SetContentType(contentType string) {
 
 // 响应请求成功的数据包
 func (c *Context) Success(body interface{}) {
-	r, err := coder.NewCoder(c.contentType)
+	r, err := codec.NewCoder(c.contentType)
 	if err != nil {
 		_, file, line, _ := runtime.Caller(1)
 		panic(SystemError{time.Now(), file, line, err.Error()})
@@ -70,7 +70,7 @@ func (c *Context) Error(code int, message string) {
 
 // 向客户端发送数据
 func (c *Context) Write(operator string, body interface{}) (int, error) {
-	r, err := coder.NewCoder(c.contentType)
+	r, err := codec.NewCoder(c.contentType)
 	if err != nil {
 		return 0, err
 	}

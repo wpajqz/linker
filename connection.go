@@ -144,9 +144,7 @@ func (s *Server) handlePacket(ctx context.Context, conn net.Conn, receivePackets
 			req := &request{Conn: conn, OperateType: p.OperateType(), Sequence: p.Sequence(), Header: p.Header(), Body: p.Body()}
 			res := response{Conn: conn, OperateType: p.OperateType(), Sequence: p.Sequence()}
 
-			c = NewContext(c, req, res)
-			c.SetContentType(s.contentType)
-
+			c = NewContext(c, req, res, s.contentType)
 			if rm, ok := s.routerMiddleware[p.OperateType()]; ok {
 				for _, v := range rm {
 					c = v.Handle(c)

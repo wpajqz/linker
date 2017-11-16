@@ -19,8 +19,8 @@ type (
 	}
 )
 
-func NewContext(ctx context.Context, req *request, res response) *Context {
-	return &Context{Context: ctx, Request: req, Response: res}
+func NewContext(ctx context.Context, req *request, res response, contentType string) *Context {
+	return &Context{Context: ctx, Request: req, Response: res, contentType: contentType}
 }
 
 func (c *Context) ParseParam(data interface{}) error {

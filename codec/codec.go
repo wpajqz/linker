@@ -16,11 +16,11 @@ var adapters = make(map[string]Coder)
 
 func Register(name string, adapter Coder) {
 	if adapter == nil {
-		panic("codec: Register adapter is nil")
+		panic("codec: register adapter is nil")
 	}
 
 	if _, ok := adapters["name"]; ok {
-		panic("codec: Register called twice for adapter " + name)
+		panic("codec: register called twice for adapter " + name)
 	}
 
 	adapters[name] = adapter

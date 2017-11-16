@@ -17,22 +17,22 @@ func (c *StringCoder) Encoder(data interface{}) ([]byte, error) {
 	case *[]byte:
 		return *t, nil
 	default:
-		return nil, fmt.Errorf("%T can not be directly converted to []byte type", t)
+		return nil, fmt.Errorf("%T can not be directly converted to []byte", t)
 	}
 }
 
 func (c *StringCoder) Decoder(data []byte, v interface{}) error {
 	switch t := v.(type) {
 	case string:
-		t = string(data)
+		return fmt.Errorf("expect %T but %T", &t, t)
 	case *string:
 		*t = string(data)
 	case []byte:
-		copy(t, data)
+		return fmt.Errorf("expect %T but %T", &t, t)
 	case *[]byte:
 		*t = data
 	default:
-		return fmt.Errorf("[]byte can not be directly converted to %T type", t)
+		return fmt.Errorf("[]byte can not be directly converted to %T", t)
 	}
 
 	return nil

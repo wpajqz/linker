@@ -7,7 +7,8 @@ import (
 	"net"
 	"strconv"
 
-	"github.com/wpajqz/linker"
+	"github.com/wpajqz/linker/utils/convert"
+
 	"github.com/wpajqz/linker/utils/encrypt"
 )
 
@@ -85,10 +86,10 @@ func (c *Client) handleReceivedPackets(conn net.Conn) error {
 			return err
 		}
 
-		nType := linker.BytesToUint32(bType)
-		sequence = linker.BytesToInt64(bSequence)
-		headerLength = linker.BytesToUint32(bHeaderLength)
-		bodyLength = linker.BytesToUint32(bBodyLength)
+		nType := convert.BytesToUint32(bType)
+		sequence = convert.BytesToInt64(bSequence)
+		headerLength = convert.BytesToUint32(bHeaderLength)
+		bodyLength = convert.BytesToUint32(bBodyLength)
 
 		pacLen = headerLength + bodyLength + 20
 		if pacLen > MaxPayload {

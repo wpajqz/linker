@@ -5,6 +5,7 @@ import "fmt"
 const (
 	JSON     = "text/json"
 	PROTOBUF = "text/protobuf"
+	String   = "text/string"
 )
 
 type Coder interface {

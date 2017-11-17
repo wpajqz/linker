@@ -100,10 +100,10 @@ func (c *Client) Connect(server string, port int) error {
 				if err == io.EOF {
 					if c.destructHandler != nil {
 						c.destructHandler.Handle(nil, nil)
-					} else {
-						if c.errorHandler != nil {
-							c.errorHandler.Handle(err.Error())
-						}
+					}
+				} else {
+					if c.errorHandler != nil {
+						c.errorHandler.Handle(err.Error())
 					}
 				}
 

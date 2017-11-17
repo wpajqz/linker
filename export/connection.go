@@ -29,16 +29,7 @@ func (c *Client) handleConnection(conn net.Conn) error {
 
 	go c.handleSendPackets(ctx, conn)
 
-	err := c.handleReceivedPackets(conn)
-	if err != nil {
-		if err == io.EOF {
-			if c.destructHandler != nil {
-				c.destructHandler.Handle(nil, nil)
-			}
-		}
-	}
-
-	return err
+	return c.handleReceivedPackets(conn)
 }
 
 // 对发送的数据包进行处理

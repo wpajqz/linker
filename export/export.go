@@ -3,6 +3,7 @@ package export
 import (
 	"bytes"
 	"hash/crc32"
+	"io"
 	"net"
 	"strconv"
 	"strings"
@@ -96,8 +97,14 @@ func (c *Client) Connect(server string, port int) error {
 		err := c.handleConnection(c.conn)
 		for {
 			if err != nil {
-				if c.errorHandler != nil {
-					c.errorHandler.Handle(err.Error())
+				if err == io.EOF {
+					if c.destructHandler != nil {
+						c.destructHandler.Handle(nil, nil)
+					} else {
+						if c.errorHandler != nil {
+							c.errorHandler.Handle(err.Error())
+						}
+					}
 				}
 
 				conn, err = net.Dial("tcp", address)

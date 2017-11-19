@@ -99,12 +99,12 @@ func (c *Client) handleReceivedPackets(conn net.Conn) error {
 
 		header, err := encrypt.Decrypt(header)
 		if err != nil {
-			panic(err)
+			return err
 		}
 
 		body, err = encrypt.Decrypt(body)
 		if err != nil {
-			panic(err)
+			return err
 		}
 
 		c.response.Header = header

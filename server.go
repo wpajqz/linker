@@ -56,10 +56,10 @@ func (s *Server) SetMaxPayload(maxPayload uint32) {
 }
 
 // 开始运行服务
-func (s *Server) Run(name, address string) {
+func (s *Server) Run(name, address string) error {
 	listener, err := net.Listen(name, address)
 	if err != nil {
-		panic(err.Error())
+		return err
 	}
 
 	defer listener.Close()

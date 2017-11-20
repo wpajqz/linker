@@ -12,18 +12,7 @@ import (
 	"github.com/wpajqz/linker/utils/encrypt"
 )
 
-func (s *Server) handleConnection(conn net.Conn) {
-	ctx, cancel := context.WithCancel(context.Background())
-
-	defer func() {
-		if err := recover(); err != nil {
-			s.errorHandler(err.(error))
-		}
-
-		conn.Close()
-		cancel()
-	}()
-
+func (s *Server) handleConnection(ctx context.Context, conn net.Conn) error {
 	receivePackets := make(chan Packet, 100)
 	go s.handlePacket(ctx, conn, receivePackets)
 
@@ -43,38 +32,38 @@ func (s *Server) handleConnection(conn net.Conn) {
 
 		if n, err := io.ReadFull(conn, bType); err != nil && n != 4 {
 			if err == io.EOF {
-				return
+				return err
 			}
 
 			_, file, line, _ := runtime.Caller(1)
-			panic(SystemError{time.Now(), file, line, fmt.Sprintf("Read packetLength failed: %v", err)})
+			return SystemError{time.Now(), file, line, fmt.Sprintf("Read packetLength failed: %v", err)}
 		}
 
 		if n, err := io.ReadFull(conn, bSequence); err != nil && n != 8 {
 			if err == io.EOF {
-				return
+				return err
 			}
 
 			_, file, line, _ := runtime.Caller(1)
-			panic(SystemError{time.Now(), file, line, fmt.Sprintf("Read packetLength failed: %v", err)})
+			return SystemError{time.Now(), file, line, fmt.Sprintf("Read packetLength failed: %v", err)}
 		}
 
 		if n, err := io.ReadFull(conn, bHeaderLength); err != nil && n != 4 {
 			if err == io.EOF {
-				return
+				return err
 			}
 
 			_, file, line, _ := runtime.Caller(1)
-			panic(SystemError{time.Now(), file, line, fmt.Sprintf("Read packetLength failed: %v", err)})
+			return SystemError{time.Now(), file, line, fmt.Sprintf("Read packetLength failed: %v", err)}
 		}
 
 		if n, err := io.ReadFull(conn, bBodyLength); err != nil && n != 4 {
 			if err == io.EOF {
-				return
+				return err
 			}
 
 			_, file, line, _ := runtime.Caller(1)
-			panic(SystemError{time.Now(), file, line, fmt.Sprintf("Read packetLength failed: %v", err)})
+			return SystemError{time.Now(), file, line, fmt.Sprintf("Read packetLength failed: %v", err)}
 		}
 
 		sequence = convert.BytesToInt64(bSequence)
@@ -84,38 +73,28 @@ func (s *Server) handleConnection(conn net.Conn) {
 
 		if pacLen > s.maxPayload {
 			_, file, line, _ := runtime.Caller(1)
-			panic(SystemError{time.Now(), file, line, "packet larger than MaxPayload"})
+			return SystemError{time.Now(), file, line, "packet larger than MaxPayload"}
 		}
 
 		header := make([]byte, headerLength)
 		if n, err := io.ReadFull(conn, header); err != nil && n != int(headerLength) {
-			if err == io.EOF {
-				return
-			}
-
-			_, file, line, _ := runtime.Caller(1)
-			panic(SystemError{time.Now(), file, line, fmt.Sprintf("Read packetLength failed: %v", err)})
+			return err
 
 		}
 
 		body := make([]byte, bodyLength)
 		if n, err := io.ReadFull(conn, body); err != nil && n != int(bodyLength) {
-			if err == io.EOF {
-				return
-			}
-
-			_, file, line, _ := runtime.Caller(1)
-			panic(SystemError{time.Now(), file, line, fmt.Sprintf("Read packetLength failed: %v", err)})
+			return err
 		}
 
 		header, err := encrypt.Decrypt(header)
 		if err != nil {
-			panic(err)
+			return err
 		}
 
 		body, err = encrypt.Decrypt(body)
 		if err != nil {
-			panic(err)
+			return err
 		}
 
 		receivePackets <- NewPack(convert.BytesToUint32(bType), sequence, header, body)
@@ -123,10 +102,6 @@ func (s *Server) handleConnection(conn net.Conn) {
 }
 
 func (s *Server) handlePacket(ctx context.Context, conn net.Conn, receivePackets <-chan Packet) {
-	if s.constructHandler != nil {
-		s.constructHandler(nil)
-	}
-
 	var c *Context
 	for {
 		select {
@@ -137,20 +112,29 @@ func (s *Server) handlePacket(ctx context.Context, conn net.Conn, receivePackets
 			}
 
 			c = NewContext(conn, p.OperateType(), p.Sequence(), s.contentType, p.Header(), p.Body())
-			if rm, ok := s.routerMiddleware[p.OperateType()]; ok {
-				for _, v := range rm {
+			go func(handler Handler, ctx *Context) {
+				defer func() {
+					if err := recover(); err != nil {
+						s.errorHandler(err.(error))
+					}
+				}()
+
+				if rm, ok := s.routerMiddleware[p.OperateType()]; ok {
+					for _, v := range rm {
+						c = v.Handle(c)
+					}
+				}
+
+				for _, v := range s.middleware {
 					c = v.Handle(c)
+					if tm, ok := v.(TerminateMiddleware); ok {
+						tm.Terminate(c)
+					}
 				}
-			}
 
-			for _, v := range s.middleware {
-				c = v.Handle(c)
-				if tm, ok := v.(TerminateMiddleware); ok {
-					tm.Terminate(c)
-				}
-			}
-
-			handler(c)
+				handler(c)
+				c.Success(nil) // If it don't call the function of Success or Error, deal it by default
+			}(handler, c)
 		case <-ctx.Done():
 			// 执行链接退出以后回收操作
 			if s.destructHandler != nil {

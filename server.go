@@ -1,8 +1,10 @@
 package linker
 
 import (
+	"context"
 	"fmt"
 	"hash/crc32"
+	"io"
 	"log"
 	"net"
 	"strconv"
@@ -70,7 +72,26 @@ func (s *Server) Run(name, address string) error {
 		if err != nil {
 			continue
 		}
-		go s.handleConnection(conn)
+
+		go func(conn net.Conn) {
+			defer conn.Close()
+
+			if s.constructHandler != nil {
+				s.constructHandler(nil)
+			}
+
+			ctx, cancel := context.WithCancel(context.Background())
+			err := s.handleConnection(ctx, conn)
+			if err != nil {
+				if err == io.EOF {
+					cancel()
+				} else {
+					if s.errorHandler != nil {
+						s.errorHandler(err.(error))
+					}
+				}
+			}
+		}(conn)
 	}
 }
 

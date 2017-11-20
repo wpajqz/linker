@@ -5,8 +5,10 @@ import (
 	"context"
 	"hash/crc32"
 	"net"
+	"runtime"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/wpajqz/linker/codec"
 )
@@ -61,30 +63,36 @@ func (c *Context) ParseParam(data interface{}) error {
 }
 
 // 响应请求成功的数据包
-func (c *Context) Success(body interface{}) (n int, err error) {
+func (c *Context) Success(body interface{}) {
 	r, err := codec.NewCoder(c.contentType)
 	if err != nil {
-		return 0, err
+		_, file, line, _ := runtime.Caller(1)
+		panic(SystemError{time.Now(), file, line, err.Error()})
 	}
 
 	data, err := r.Encoder(body)
 	if err != nil {
-		return 0, err
+		_, file, line, _ := runtime.Caller(1)
+		panic(SystemError{time.Now(), file, line, err.Error()})
 	}
 
 	p := NewPack(c.operateType, c.sequence, c.Response.Header, data)
 
-	return c.Conn.Write(p.Bytes())
+	_, err = c.Conn.Write(p.Bytes())
+
+	panic(err)
 }
 
 // 响应请求失败的数据包
-func (c *Context) Error(code int, message string) (n int, err error) {
+func (c *Context) Error(code int, message string) {
 	c.SetResponseProperty("code", strconv.Itoa(code))
 	c.SetResponseProperty("message", message)
 
 	p := NewPack(c.operateType, c.sequence, c.Response.Header, nil)
 
-	return c.Conn.Write(p.Bytes())
+	_, err := c.Conn.Write(p.Bytes())
+
+	panic(err)
 }
 
 // 向客户端发送数据

@@ -78,8 +78,6 @@ func (c *Context) Success(body interface{}) {
 
 	p := NewPack(c.operateType, c.sequence, c.Response.Header, data)
 	c.Conn.Write(p.Bytes())
-
-	//panic(nil)
 }
 
 // 响应请求失败的数据包
@@ -89,8 +87,6 @@ func (c *Context) Error(code int, message string) {
 
 	p := NewPack(c.operateType, c.sequence, c.Response.Header, nil)
 	c.Conn.Write(p.Bytes())
-
-	//runtime.Goexit()
 }
 
 // 向客户端发送数据

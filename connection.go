@@ -123,12 +123,6 @@ func (s *Server) handleConnection(conn net.Conn) {
 }
 
 func (s *Server) handlePacket(ctx context.Context, conn net.Conn, receivePackets <-chan Packet) {
-	defer func() {
-		if err := recover(); err != nil {
-			s.errorHandler(err.(error))
-		}
-	}()
-
 	if s.constructHandler != nil {
 		s.constructHandler(nil)
 	}
@@ -156,16 +150,7 @@ func (s *Server) handlePacket(ctx context.Context, conn net.Conn, receivePackets
 				}
 			}
 
-			func(handler Handler, ctx *Context) {
-				defer func() {
-					if err := recover(); err != nil {
-						s.errorHandler(err.(error))
-					}
-				}()
-
-				handler(c)
-			}(handler, c)
-
+			handler(c)
 		case <-ctx.Done():
 			// 执行链接退出以后回收操作
 			if s.destructHandler != nil {

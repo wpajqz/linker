@@ -8,7 +8,6 @@ import (
 	"strconv"
 
 	"github.com/wpajqz/linker/utils/convert"
-
 	"github.com/wpajqz/linker/utils/encrypt"
 )
 

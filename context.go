@@ -5,10 +5,8 @@ import (
 	"context"
 	"hash/crc32"
 	"net"
-	"runtime"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/wpajqz/linker/codec"
 )
@@ -63,30 +61,30 @@ func (c *Context) ParseParam(data interface{}) error {
 }
 
 // 响应请求成功的数据包
-func (c *Context) Success(body interface{}) {
+func (c *Context) Success(body interface{}) (n int, err error) {
 	r, err := codec.NewCoder(c.contentType)
 	if err != nil {
-		_, file, line, _ := runtime.Caller(1)
-		panic(SystemError{time.Now(), file, line, err.Error()})
+		return 0, err
 	}
 
 	data, err := r.Encoder(body)
 	if err != nil {
-		_, file, line, _ := runtime.Caller(1)
-		panic(SystemError{time.Now(), file, line, err.Error()})
+		return 0, err
 	}
 
 	p := NewPack(c.operateType, c.sequence, c.Response.Header, data)
-	c.Conn.Write(p.Bytes())
+
+	return c.Conn.Write(p.Bytes())
 }
 
 // 响应请求失败的数据包
-func (c *Context) Error(code int, message string) {
+func (c *Context) Error(code int, message string) (n int, err error) {
 	c.SetResponseProperty("code", strconv.Itoa(code))
 	c.SetResponseProperty("message", message)
 
 	p := NewPack(c.operateType, c.sequence, c.Response.Header, nil)
-	c.Conn.Write(p.Bytes())
+
+	return c.Conn.Write(p.Bytes())
 }
 
 // 向客户端发送数据

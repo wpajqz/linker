@@ -52,7 +52,7 @@ type Client struct {
 	destructHandler        Handler
 	errorString            string
 	errorHandler           ErrorHandler
-	maxPayload             uint32
+	maxPayload             int32
 	request, response      struct {
 		Header, Body []byte
 	}
@@ -289,7 +289,7 @@ func (c *Client) AsyncSend(operator string, param []byte, callback RequestStatus
 }
 
 // 设置可处理的数据包的最大长度
-func (c *Client) SetMaxPayload(maxPayload uint32) {
+func (c *Client) SetMaxPayload(maxPayload int32) {
 	c.maxPayload = maxPayload
 }
 

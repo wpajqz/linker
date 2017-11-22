@@ -17,6 +17,7 @@ type (
 	Handler      func(*Context)
 	ErrorHandler func(error)
 	Server       struct {
+		debug            bool
 		contentType      string
 		timeout          time.Duration
 		handlerContainer map[uint32]Handler
@@ -40,6 +41,11 @@ func NewServer() *Server {
 			log.Println(err.Error())
 		},
 	}
+}
+
+// 设置所有请求的序列化数据类型
+func (s *Server) SetDebug(bool bool) {
+	s.debug = bool
 }
 
 // 设置所有请求的序列化数据类型

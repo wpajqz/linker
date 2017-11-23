@@ -64,18 +64,22 @@ func (f handlerFunc) Handle(header, body []byte) {
 	f(header, body)
 }
 
+var defaultClient *Client
+
 func NewClient() *Client {
-	c := &Client{
-		readyState:       CONNECTING,
-		mutex:            new(sync.Mutex),
-		rwMutex:          new(sync.RWMutex),
-		timeout:          30 * time.Second,
-		retryInterval:    5 * time.Second,
-		packet:           make(chan linker.Packet, 1024),
-		handlerContainer: sync.Map{},
+	if defaultClient == nil {
+		defaultClient = &Client{
+			readyState:       CONNECTING,
+			mutex:            new(sync.Mutex),
+			rwMutex:          new(sync.RWMutex),
+			timeout:          30 * time.Second,
+			retryInterval:    5 * time.Second,
+			packet:           make(chan linker.Packet, 1024),
+			handlerContainer: sync.Map{},
+		}
 	}
 
-	return c
+	return defaultClient
 }
 
 // 获取链接运行状态

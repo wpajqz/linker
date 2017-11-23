@@ -46,7 +46,7 @@
 /**
  * 向服务端发送请求，异步处理服务端返回结果
  */
-- (void)asyncSend:(NSString*)operator param:(NSData*)param callback:(id<ExportRequestStatusCallback>)callback;
+- (BOOL)asyncSend:(NSString*)operator param:(NSData*)param callback:(id<ExportRequestStatusCallback>)callback error:(NSError**)error;
 /**
  * 关闭链接
  */
@@ -79,11 +79,15 @@
 /**
  * 心跳处理，客户端与服务端保持长连接
  */
-- (void)ping:(int64_t)interval param:(NSData*)param callback:(id<ExportRequestStatusCallback>)callback;
+- (BOOL)ping:(int64_t)interval param:(NSData*)param callback:(id<ExportRequestStatusCallback>)callback error:(NSError**)error;
 /**
  * 移除事件监听器
  */
 - (void)removeMessageListener:(NSString*)listener;
+/**
+ * 设置可处理的数据包的最大长度
+ */
+- (void)setMaxPayload:(int32_t)maxPayload;
 /**
  * 设置请求属性
  */
@@ -103,7 +107,7 @@
 /**
  * 向服务端发送请求，同步处理服务端返回结果
  */
-- (void)syncSend:(NSString*)operator param:(NSData*)param callback:(id<ExportRequestStatusCallback>)callback;
+- (BOOL)syncSend:(NSString*)operator param:(NSData*)param callback:(id<ExportRequestStatusCallback>)callback error:(NSError**)error;
 @end
 
 FOUNDATION_EXPORT const int64_t ExportCLOSED;

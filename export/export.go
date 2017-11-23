@@ -50,7 +50,6 @@ type Client struct {
 	packet                 chan linker.Packet
 	constructHandler       Handler
 	destructHandler        Handler
-	errorString            string
 	errorHandler           ErrorHandler
 	maxPayload             int32
 	request, response      struct {
@@ -110,9 +109,8 @@ func (c *Client) Connect(server string, port int) error {
 				conn, err = net.Dial("tcp", address)
 				if err != nil {
 					c.readyState = CLOSED
-					c.errorString = err.Error()
 					if c.errorHandler != nil {
-						c.errorHandler.Handle(c.errorString)
+						c.errorHandler.Handle(err.Error())
 						time.Sleep(c.retryInterval) // 重连失败以后休息一会再干活
 					}
 				} else {
@@ -196,14 +194,6 @@ func (c *Client) Ping(interval int64, param []byte, callback RequestStatusCallba
 
 // 向服务端发送请求，同步处理服务端返回结果
 func (c *Client) SyncSend(operator string, param []byte, callback RequestStatusCallback) {
-	if c.readyState != OPEN {
-		if c.errorHandler != nil {
-			c.errorHandler.Handle(c.errorString)
-		}
-
-		return
-	}
-
 	nType := crc32.ChecksumIEEE([]byte(operator))
 	sequence := time.Now().UnixNano()
 	listener := int64(nType) + sequence
@@ -247,14 +237,6 @@ func (c *Client) SyncSend(operator string, param []byte, callback RequestStatusC
 
 // 向服务端发送请求，异步处理服务端返回结果
 func (c *Client) AsyncSend(operator string, param []byte, callback RequestStatusCallback) {
-	if c.readyState != OPEN {
-		if c.errorHandler != nil {
-			c.errorHandler.Handle(c.errorString)
-		}
-
-		return
-	}
-
 	nType := crc32.ChecksumIEEE([]byte(operator))
 	sequence := time.Now().UnixNano()
 

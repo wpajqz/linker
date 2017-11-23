@@ -3,7 +3,6 @@ package export
 import (
 	"bytes"
 	"errors"
-	"fmt"
 	"hash/crc32"
 	"io"
 	"net"
@@ -163,7 +162,7 @@ func (c *Client) Ping(interval int64, param []byte, callback RequestStatusCallba
 	}
 
 	if c.readyState != OPEN {
-		return fmt.Errorf("dial tcp %s: getsockopt: connection refused", c.conn.RemoteAddr())
+		return errors.New("getsockopt: connection refuse")
 	}
 
 	sequence := time.Now().UnixNano()
@@ -209,7 +208,7 @@ func (c *Client) SyncSend(operator string, param []byte, callback RequestStatusC
 	}
 
 	if c.readyState != OPEN {
-		return fmt.Errorf("dial tcp %s: getsockopt: connection refused", c.conn.RemoteAddr())
+		return errors.New("getsockopt: connection refuse")
 	}
 
 	nType := crc32.ChecksumIEEE([]byte(operator))
@@ -262,7 +261,7 @@ func (c *Client) AsyncSend(operator string, param []byte, callback RequestStatus
 	}
 
 	if c.readyState != OPEN {
-		return fmt.Errorf("dial tcp %s: getsockopt: connection refused", c.conn.RemoteAddr())
+		return errors.New("getsockopt: connection refuse")
 	}
 
 	nType := crc32.ChecksumIEEE([]byte(operator))

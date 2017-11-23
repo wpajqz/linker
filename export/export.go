@@ -2,6 +2,8 @@ package export
 
 import (
 	"bytes"
+	"errors"
+	"fmt"
 	"hash/crc32"
 	"io"
 	"net"
@@ -155,7 +157,15 @@ func (c *Client) Close() error {
 }
 
 // 心跳处理，客户端与服务端保持长连接
-func (c *Client) Ping(interval int64, param []byte, callback RequestStatusCallback) {
+func (c *Client) Ping(interval int64, param []byte, callback RequestStatusCallback) error {
+	if callback == nil {
+		return errors.New("callback can't be nil")
+	}
+
+	if c.readyState != OPEN {
+		return fmt.Errorf("dial tcp %s: getsockopt: connection refused", c.conn.RemoteAddr())
+	}
+
 	sequence := time.Now().UnixNano()
 	listener := int64(linker.OPERATOR_HEARTBEAT) + sequence
 
@@ -193,7 +203,15 @@ func (c *Client) Ping(interval int64, param []byte, callback RequestStatusCallba
 }
 
 // 向服务端发送请求，同步处理服务端返回结果
-func (c *Client) SyncSend(operator string, param []byte, callback RequestStatusCallback) {
+func (c *Client) SyncSend(operator string, param []byte, callback RequestStatusCallback) error {
+	if callback == nil {
+		return errors.New("callback can't be nil")
+	}
+
+	if c.readyState != OPEN {
+		return fmt.Errorf("dial tcp %s: getsockopt: connection refused", c.conn.RemoteAddr())
+	}
+
 	nType := crc32.ChecksumIEEE([]byte(operator))
 	sequence := time.Now().UnixNano()
 	listener := int64(nType) + sequence
@@ -233,10 +251,20 @@ func (c *Client) SyncSend(operator string, param []byte, callback RequestStatusC
 	c.packet <- p
 	<-quit
 	c.mutex.Unlock()
+
+	return nil
 }
 
 // 向服务端发送请求，异步处理服务端返回结果
-func (c *Client) AsyncSend(operator string, param []byte, callback RequestStatusCallback) {
+func (c *Client) AsyncSend(operator string, param []byte, callback RequestStatusCallback) error {
+	if callback == nil {
+		return errors.New("callback can't be nil")
+	}
+
+	if c.readyState != OPEN {
+		return fmt.Errorf("dial tcp %s: getsockopt: connection refused", c.conn.RemoteAddr())
+	}
+
 	nType := crc32.ChecksumIEEE([]byte(operator))
 	sequence := time.Now().UnixNano()
 
@@ -268,6 +296,8 @@ func (c *Client) AsyncSend(operator string, param []byte, callback RequestStatus
 
 	p := linker.NewPack(nType, sequence, c.request.Header, param)
 	c.packet <- p
+
+	return nil
 }
 
 // 设置可处理的数据包的最大长度

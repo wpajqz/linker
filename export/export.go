@@ -141,7 +141,7 @@ func (c *Client) Ping(interval int64, param []byte, callback RequestStatusCallba
 	}
 
 	if c.readyState != OPEN {
-		return errors.New("getsockopt: connection refuse")
+		return errors.New("Ping getsockopt: connection refuse")
 	}
 
 	sequence := time.Now().UnixNano()
@@ -173,9 +173,11 @@ func (c *Client) Ping(interval int64, param []byte, callback RequestStatusCallba
 	for {
 		select {
 		case <-ticker.C:
-			if c.readyState == OPEN {
-				c.packet <- p
+			if c.readyState != OPEN {
+				return nil
 			}
+
+			c.packet <- p
 		}
 	}
 }
@@ -187,7 +189,7 @@ func (c *Client) SyncSend(operator string, param []byte, callback RequestStatusC
 	}
 
 	if c.readyState != OPEN {
-		return errors.New("getsockopt: connection refuse")
+		return errors.New("SyncSend getsockopt: connection refuse")
 	}
 
 	nType := crc32.ChecksumIEEE([]byte(operator))
@@ -240,7 +242,7 @@ func (c *Client) AsyncSend(operator string, param []byte, callback RequestStatus
 	}
 
 	if c.readyState != OPEN {
-		return errors.New("getsockopt: connection refuse")
+		return errors.New("AsyncSend getsockopt: connection refuse")
 	}
 
 	nType := crc32.ChecksumIEEE([]byte(operator))

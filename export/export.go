@@ -92,6 +92,7 @@ func (c *Client) Connect(server string, port int) error {
 		err := c.handleConnection(conn)
 		for {
 			if err != nil {
+				c.readyState = CLOSED
 				if err == io.EOF {
 					if c.destructHandler != nil {
 						c.destructHandler.Handle(nil, nil)
@@ -102,14 +103,10 @@ func (c *Client) Connect(server string, port int) error {
 					}
 				}
 
+				time.Sleep(c.retryInterval) // 重连失败以后休息一会再干活
+
 				conn, err = net.Dial("tcp", address)
-				if err != nil {
-					c.readyState = CLOSED
-					if c.errorHandler != nil {
-						c.errorHandler.Handle(err.Error())
-						time.Sleep(c.retryInterval) // 重连失败以后休息一会再干活
-					}
-				} else {
+				if err == nil {
 					quit := make(chan bool, 1)
 					go func() {
 						err = c.handleConnection(conn)

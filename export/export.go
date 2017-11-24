@@ -46,7 +46,6 @@ type Client struct {
 	mutex                  *sync.Mutex
 	rwMutex                *sync.RWMutex
 	timeout, retryInterval time.Duration
-	conn                   net.Conn
 	handlerContainer       sync.Map
 	packet                 chan linker.Packet
 	constructHandler       Handler
@@ -64,22 +63,16 @@ func (f handlerFunc) Handle(header, body []byte) {
 	f(header, body)
 }
 
-var defaultClient *Client
-
 func NewClient() *Client {
-	if defaultClient == nil {
-		defaultClient = &Client{
-			readyState:       CONNECTING,
-			mutex:            new(sync.Mutex),
-			rwMutex:          new(sync.RWMutex),
-			timeout:          30 * time.Second,
-			retryInterval:    5 * time.Second,
-			packet:           make(chan linker.Packet, 1024),
-			handlerContainer: sync.Map{},
-		}
+	return &Client{
+		readyState:       CONNECTING,
+		mutex:            new(sync.Mutex),
+		rwMutex:          new(sync.RWMutex),
+		timeout:          30 * time.Second,
+		retryInterval:    5 * time.Second,
+		packet:           make(chan linker.Packet, 1024),
+		handlerContainer: sync.Map{},
 	}
-
-	return defaultClient
 }
 
 // 获取链接运行状态
@@ -94,11 +87,9 @@ func (c *Client) Connect(server string, port int) error {
 		return err
 	}
 
-	c.conn = conn
-
 	// 检测conn的状态，断线以后进行重连操作
-	go func() {
-		err := c.handleConnection(c.conn)
+	go func(conn net.Conn) {
+		err := c.handleConnection(conn)
 		for {
 			if err != nil {
 				if err == io.EOF {
@@ -119,11 +110,9 @@ func (c *Client) Connect(server string, port int) error {
 						time.Sleep(c.retryInterval) // 重连失败以后休息一会再干活
 					}
 				} else {
-					c.conn = conn
-
 					quit := make(chan bool, 1)
 					go func() {
-						err = c.handleConnection(c.conn)
+						err = c.handleConnection(conn)
 						if err != nil {
 							quit <- true
 						}
@@ -138,7 +127,7 @@ func (c *Client) Connect(server string, port int) error {
 				}
 			}
 		}
-	}()
+	}(conn)
 
 	c.readyState = OPEN
 	if c.constructHandler != nil {
@@ -146,17 +135,6 @@ func (c *Client) Connect(server string, port int) error {
 	}
 
 	return nil
-}
-
-// 关闭链接
-func (c *Client) Close() error {
-	var err error
-	if c.readyState != CLOSED {
-		c.readyState = CLOSING
-		err = c.conn.Close()
-	}
-
-	return err
 }
 
 // 心跳处理，客户端与服务端保持长连接

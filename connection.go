@@ -102,7 +102,7 @@ func (s *Server) handleConnection(ctx context.Context, conn net.Conn) error {
 }
 
 func (s *Server) handlePacket(ctx context.Context, conn net.Conn, receivePackets <-chan Packet) {
-	var c *Context
+	var c = &Context{}
 	for {
 		select {
 		case p := <-receivePackets:
@@ -112,7 +112,7 @@ func (s *Server) handlePacket(ctx context.Context, conn net.Conn, receivePackets
 			}
 
 			c = NewContext(conn, p.OperateType(), p.Sequence(), s.contentType, p.Header(), p.Body())
-			go func(handler Handler, ctx *Context) {
+			go func(handler Handler) {
 				defer func() {
 					if err := recover(); err != nil {
 						s.errorHandler(err.(error))
@@ -134,7 +134,7 @@ func (s *Server) handlePacket(ctx context.Context, conn net.Conn, receivePackets
 
 				handler(c)
 				c.Success(nil) // If it don't call the function of Success or Error, deal it by default
-			}(handler, c)
+			}(handler)
 		case <-ctx.Done():
 			// 执行链接退出以后回收操作
 			if s.destructHandler != nil {

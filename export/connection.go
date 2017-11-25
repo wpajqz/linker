@@ -14,16 +14,7 @@ import (
 // 处理客户端连接
 func (c *Client) handleConnection(conn net.Conn) error {
 	ctx, cancel := context.WithCancel(context.Background())
-	defer func() {
-		c.readyState = CLOSED
-		if err := recover(); err != nil {
-			if c.errorHandler != nil {
-				c.errorHandler.Handle(err.(error).Error())
-			}
-		}
-
-		cancel()
-	}()
+	defer func(cancel context.CancelFunc) { cancel() }(cancel)
 
 	go c.handleSendPackets(ctx, conn)
 
@@ -37,7 +28,9 @@ func (c *Client) handleSendPackets(ctx context.Context, conn net.Conn) {
 		case p := <-c.packet:
 			_, err := conn.Write(p.Bytes())
 			if err != nil {
-				return
+				if c.errorHandler != nil {
+					c.errorHandler.Handle(err.Error())
+				}
 			}
 		case <-ctx.Done():
 			return

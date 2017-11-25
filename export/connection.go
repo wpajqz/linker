@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"runtime"
 	"strconv"
+	"time"
 
 	"github.com/wpajqz/linker/utils/convert"
 	"github.com/wpajqz/linker/utils/encrypt"
@@ -29,7 +31,9 @@ func (c *Client) handleSendPackets(ctx context.Context, conn net.Conn) {
 			_, err := conn.Write(p.Bytes())
 			if err != nil {
 				if c.errorHandler != nil {
-					c.errorHandler.Handle(err.Error())
+					_, file, line, _ := runtime.Caller(1)
+					s := fmt.Sprintf("[datetime]:%v [file]:%v [line]:%v [message]:%v", time.Now(), file, line, err.Error())
+					c.errorHandler.Handle(s)
 				}
 			}
 		case <-ctx.Done():

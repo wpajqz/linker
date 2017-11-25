@@ -113,12 +113,6 @@ func (s *Server) handlePacket(ctx context.Context, conn net.Conn, receivePackets
 
 			c = NewContext(conn, p.OperateType(), p.Sequence(), s.contentType, p.Header(), p.Body())
 			go func(handler Handler) {
-				defer func() {
-					if err := recover(); err != nil {
-						s.errorHandler(err.(error))
-					}
-				}()
-
 				if rm, ok := s.routerMiddleware[p.OperateType()]; ok {
 					for _, v := range rm {
 						c = v.Handle(c)

@@ -8,7 +8,6 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/wpajqz/linker/codec"
 )
@@ -66,21 +65,19 @@ func (c *Context) ParseParam(data interface{}) error {
 func (c *Context) Success(body interface{}) {
 	r, err := codec.NewCoder(c.contentType)
 	if err != nil {
-		_, file, line, _ := runtime.Caller(1)
-		panic(SystemError{time.Now(), file, line, err.Error()})
+		panic(err)
 	}
 
 	data, err := r.Encoder(body)
 	if err != nil {
-		_, file, line, _ := runtime.Caller(1)
-		panic(SystemError{time.Now(), file, line, err.Error()})
+		panic(err)
 	}
 
 	p := NewPack(c.operateType, c.sequence, c.Response.Header, data)
 
-	_, err = c.Conn.Write(p.Bytes())
+	c.Conn.Write(p.Bytes())
 
-	panic(err)
+	runtime.Goexit()
 }
 
 // 响应请求失败的数据包
@@ -90,9 +87,9 @@ func (c *Context) Error(code int, message string) {
 
 	p := NewPack(c.operateType, c.sequence, c.Response.Header, nil)
 
-	_, err := c.Conn.Write(p.Bytes())
+	c.Conn.Write(p.Bytes())
 
-	panic(err)
+	runtime.Goexit()
 }
 
 // 向客户端发送数据

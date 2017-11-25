@@ -30,8 +30,7 @@ func (c *Client) handleSendPackets(ctx context.Context, conn net.Conn) {
 		select {
 		case p := <-c.packet:
 			if c.debug {
-				log.Println("send packet's header:", string(p.Header()))
-				log.Println("send packet's body:", string(p.Body()))
+				log.Println("[send packet]", "operator:", p.OperateType(), "header:", string(p.Header()), "body:", string(p.Body()))
 			}
 			_, err := conn.Write(p.Bytes())
 			if err != nil {
@@ -111,8 +110,7 @@ func (c *Client) handleReceivedPackets(conn net.Conn) error {
 		c.response.Body = body
 
 		if c.debug {
-			log.Println("receive packet's header:", string(header))
-			log.Println("receive packet's body:", string(body))
+			log.Println("[receive packet]", "operator:", nType, "header:", string(header), "body:", string(body))
 		}
 
 		operator := int64(nType) + sequence

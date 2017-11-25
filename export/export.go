@@ -108,12 +108,12 @@ func (c *Client) Connect(server string, port int) error {
 				conn, err = net.Dial("tcp", address)
 				if err == nil {
 					quit := make(chan bool, 1)
-					go func() {
+					go func(conn net.Conn) {
 						err = c.handleConnection(conn)
 						if err != nil {
 							quit <- true
 						}
-					}()
+					}(conn)
 
 					c.readyState = OPEN
 					if c.constructHandler != nil {

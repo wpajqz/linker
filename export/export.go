@@ -42,6 +42,7 @@ type RequestStatusCallback interface {
 }
 
 type Client struct {
+	debug                  bool
 	readyState             int
 	mutex                  *sync.Mutex
 	rwMutex                *sync.RWMutex
@@ -73,6 +74,11 @@ func NewClient() *Client {
 		packet:           make(chan linker.Packet, 1024),
 		handlerContainer: sync.Map{},
 	}
+}
+
+// 设置是否显示调试信息
+func (c *Client) SetDebug(bool bool) {
+	c.debug = bool
 }
 
 // 获取链接运行状态

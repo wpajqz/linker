@@ -77,8 +77,8 @@ func NewClient() *Client {
 }
 
 // 设置是否显示调试信息
-func (c *Client) SetDebug(bool bool) {
-	c.debug = bool
+func (c *Client) SetDebug(b bool) {
+	c.debug = b
 }
 
 // 获取链接运行状态

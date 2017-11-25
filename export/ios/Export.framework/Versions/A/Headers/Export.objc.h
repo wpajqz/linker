@@ -47,10 +47,6 @@
  * 向服务端发送请求，异步处理服务端返回结果
  */
 - (BOOL)asyncSend:(NSString*)operator param:(NSData*)param callback:(id<ExportRequestStatusCallback>)callback error:(NSError**)error;
-/**
- * 关闭链接
- */
-- (BOOL)close:(NSError**)error;
 - (BOOL)connect:(NSString*)server port:(long)port error:(NSError**)error;
 /**
  * 获取链接运行状态
@@ -84,6 +80,10 @@
  * 移除事件监听器
  */
 - (void)removeMessageListener:(NSString*)listener;
+/**
+ * 设置是否显示调试信息
+ */
+- (void)setDebug:(BOOL)b;
 /**
  * 设置可处理的数据包的最大长度
  */

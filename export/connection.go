@@ -31,7 +31,7 @@ func (c *Client) handleSendPackets(ctx context.Context, conn net.Conn) {
 			_, err := conn.Write(p.Bytes())
 			if err != nil {
 				if c.errorHandler != nil {
-					_, file, line, _ := runtime.Caller(1)
+					_, file, line, _ := runtime.Caller(0)
 					s := fmt.Sprintf("[datetime]:%v [file]:%v [line]:%v [message]:%v", time.Now(), file, line, err.Error())
 					c.errorHandler.Handle(s)
 				}

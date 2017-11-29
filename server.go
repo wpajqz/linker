@@ -38,7 +38,9 @@ func NewServer() *Server {
 		handlerContainer: make(map[uint32]Handler),
 		routerMiddleware: make(map[uint32][]Middleware),
 		errorHandler: func(err error) {
-			log.Println(err.Error())
+			if err != io.EOF {
+				log.Println(err.Error())
+			}
 		},
 	}
 }
@@ -89,12 +91,9 @@ func (s *Server) Run(name, address string) error {
 			ctx, cancel := context.WithCancel(context.Background())
 			err := s.handleConnection(ctx, conn)
 			if err != nil {
-				if err == io.EOF {
-					cancel()
-				} else {
-					if s.errorHandler != nil {
-						s.errorHandler(err.(error))
-					}
+				cancel()
+				if s.errorHandler != nil {
+					s.errorHandler(err)
 				}
 			}
 		}(conn)

@@ -2,7 +2,6 @@ package linker
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"net"
 	"runtime"
@@ -31,39 +30,19 @@ func (s *Server) handleConnection(ctx context.Context, conn net.Conn) error {
 		conn.SetDeadline(time.Now().Add(s.timeout))
 
 		if n, err := io.ReadFull(conn, bType); err != nil && n != 4 {
-			if err == io.EOF {
-				return err
-			}
-
-			_, file, line, _ := runtime.Caller(1)
-			return SystemError{time.Now(), file, line, fmt.Sprintf("Read packetLength failed: %v", err)}
+			return err
 		}
 
 		if n, err := io.ReadFull(conn, bSequence); err != nil && n != 8 {
-			if err == io.EOF {
-				return err
-			}
-
-			_, file, line, _ := runtime.Caller(1)
-			return SystemError{time.Now(), file, line, fmt.Sprintf("Read packetLength failed: %v", err)}
+			return err
 		}
 
 		if n, err := io.ReadFull(conn, bHeaderLength); err != nil && n != 4 {
-			if err == io.EOF {
-				return err
-			}
-
-			_, file, line, _ := runtime.Caller(1)
-			return SystemError{time.Now(), file, line, fmt.Sprintf("Read packetLength failed: %v", err)}
+			return err
 		}
 
 		if n, err := io.ReadFull(conn, bBodyLength); err != nil && n != 4 {
-			if err == io.EOF {
-				return err
-			}
-
-			_, file, line, _ := runtime.Caller(1)
-			return SystemError{time.Now(), file, line, fmt.Sprintf("Read packetLength failed: %v", err)}
+			return err
 		}
 
 		sequence = convert.BytesToInt64(bSequence)

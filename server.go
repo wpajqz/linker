@@ -34,6 +34,7 @@ type (
 func NewServer() *Server {
 	return &Server{
 		contentType:      codec.JSON,
+		timeout:          TIMEOUT,
 		maxPayload:       MaxPayload,
 		handlerContainer: make(map[uint32]Handler),
 		routerMiddleware: make(map[uint32][]Middleware),

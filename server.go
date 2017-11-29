@@ -82,16 +82,24 @@ func (s *Server) Run(name, address string) error {
 		}
 
 		go func(conn net.Conn) {
-			defer conn.Close()
+			ctx, cancel := context.WithCancel(context.Background())
+			defer func() {
+				if r := recover(); r != nil {
+					if s.errorHandler != nil {
+						s.errorHandler(r.(error))
+					}
+				}
+
+				cancel()
+				conn.Close()
+			}()
 
 			if s.constructHandler != nil {
 				s.constructHandler(nil)
 			}
 
-			ctx, cancel := context.WithCancel(context.Background())
 			err := s.handleConnection(ctx, conn)
 			if err != nil {
-				cancel()
 				if s.errorHandler != nil {
 					s.errorHandler(err)
 				}

@@ -89,7 +89,7 @@ func (s *Server) handleWebSocketConnection(ctx context.Context, conn *websocket.
 }
 
 func (s *Server) handleWebSocketPacket(ctx context.Context, conn *websocket.Conn, receivePackets <-chan Packet) {
-	var c Context
+	var c Context = &ContextWebsocket{Conn: conn}
 	for {
 		select {
 		case p := <-receivePackets:

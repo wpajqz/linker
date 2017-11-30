@@ -82,7 +82,7 @@ func (s *Server) handleTcpConnection(ctx context.Context, conn net.Conn) error {
 }
 
 func (s *Server) handleTcpPacket(ctx context.Context, conn net.Conn, receivePackets <-chan Packet) {
-	var c Context
+	var c Context = &ContextTcp{Conn: conn}
 	for {
 		select {
 		case p := <-receivePackets:

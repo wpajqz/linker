@@ -1,18 +1,13 @@
 package linker
 
 import (
-	"context"
 	"errors"
-	"fmt"
 	"hash/crc32"
 	"io"
 	"log"
-	"net"
-	"net/http"
 	"strconv"
 	"time"
 
-	"github.com/gorilla/websocket"
 	"github.com/wpajqz/linker/codec"
 )
 
@@ -133,95 +128,4 @@ func (s *Server) OnOpen(handler Handler) {
 // 客户端发送心跳包，服务端未调用此方法时只起到建立长连接的作用
 func (s *Server) OnPing(handler Handler) {
 	s.handlerContainer[OPERATOR_HEARTBEAT] = handler
-}
-
-// 开始运行Tcp服务
-func (s *Server) runTcp(name, address string) error {
-	listener, err := net.Listen(name, address)
-	if err != nil {
-		return err
-	}
-
-	defer listener.Close()
-
-	fmt.Printf("%s server running on %s\n", name, address)
-	for {
-		conn, err := listener.Accept()
-		if err != nil {
-			continue
-		}
-
-		go func(conn net.Conn) {
-			ctx, cancel := context.WithCancel(context.Background())
-			defer func() {
-				if r := recover(); r != nil {
-					if s.errorHandler != nil {
-						s.errorHandler(r.(error))
-					}
-				}
-
-				cancel()
-				conn.Close()
-			}()
-
-			if s.constructHandler != nil {
-				s.constructHandler(nil)
-			}
-
-			err := s.handleTcpConnection(ctx, conn)
-			if err != nil {
-				if s.errorHandler != nil {
-					s.errorHandler(err)
-				}
-			}
-		}(conn)
-	}
-}
-
-// 开始运行webocket服务
-func (s *Server) runWebSocket(name, address string) error {
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		var upgrade = websocket.Upgrader{
-			HandshakeTimeout:  TIMEOUT,
-			ReadBufferSize:    MaxPayload,
-			WriteBufferSize:   MaxPayload,
-			EnableCompression: true,
-			CheckOrigin: func(r *http.Request) bool {
-				return true
-			},
-		}
-
-		conn, err := upgrade.Upgrade(w, r, nil)
-		if err != nil {
-			w.Write([]byte(err.Error()))
-			return
-		}
-
-		ctx, cancel := context.WithCancel(context.Background())
-		defer func() {
-			if r := recover(); r != nil {
-				if s.errorHandler != nil {
-					s.errorHandler(r.(error))
-				}
-			}
-
-			cancel()
-			conn.Close()
-		}()
-
-		if s.constructHandler != nil {
-			s.constructHandler(nil)
-		}
-
-		err = s.handleWebSocketConnection(ctx, conn)
-		if err != nil {
-			if s.errorHandler != nil {
-				s.errorHandler(err)
-			}
-		}
-	})
-
-	fmt.Printf("%s server running on %s\n", name, address)
-
-	return http.ListenAndServe(address, nil)
 }

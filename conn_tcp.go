@@ -13,7 +13,7 @@ import (
 
 var _ Context = new(ContextTcp)
 
-func (s *Server) handleConnection(ctx context.Context, conn net.Conn) error {
+func (s *Server) handleTcpConnection(ctx context.Context, conn net.Conn) error {
 	receivePackets := make(chan Packet, 100)
 	go s.handlePacket(ctx, conn, receivePackets)
 

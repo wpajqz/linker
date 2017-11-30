@@ -116,7 +116,7 @@ func (s *Server) runTcp(name, address string) error {
 				s.constructHandler(nil)
 			}
 
-			err := s.handleConnection(ctx, conn)
+			err := s.handleTcpConnection(ctx, conn)
 			if err != nil {
 				if s.errorHandler != nil {
 					s.errorHandler(err)

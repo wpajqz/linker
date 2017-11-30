@@ -182,6 +182,7 @@ func (s *Server) runTcp(name, address string) error {
 func (s *Server) runWebSocket(name, address string) error {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		var upgrade = websocket.Upgrader{
+			HandshakeTimeout:  TIMEOUT,
 			ReadBufferSize:    MaxPayload,
 			WriteBufferSize:   MaxPayload,
 			EnableCompression: true,

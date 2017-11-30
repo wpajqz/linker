@@ -137,7 +137,6 @@ func (s *Server) handleWebSocketConnection(ctx context.Context, conn *websocket.
 
 	conn.SetReadLimit(MaxPayload)
 	conn.SetReadDeadline(time.Now().Add(s.timeout))
-	conn.SetPongHandler(func(string) error { conn.SetReadDeadline(time.Now().Add(s.timeout)); return nil })
 
 	for {
 		_, r, err := conn.NextReader()

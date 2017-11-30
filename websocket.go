@@ -128,7 +128,7 @@ func (s *Server) handleWebSocketPacket(ctx context.Context, conn *websocket.Conn
 }
 
 // 开始运行webocket服务
-func (s *Server) RunWebSocket(name, address string) error {
+func (s *Server) RunWebSocket(address string) error {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		var upgrade = websocket.Upgrader{
 			HandshakeTimeout:  TIMEOUT,
@@ -170,7 +170,7 @@ func (s *Server) RunWebSocket(name, address string) error {
 		}
 	})
 
-	fmt.Printf("%s server running on %s\n", name, address)
+	fmt.Printf("websocket server running on %s\n", address)
 
 	return http.ListenAndServe(address, nil)
 }

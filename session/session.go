@@ -23,7 +23,7 @@ type (
 	Session struct {
 		UID    string
 		Status string
-		Ctx    *linker.Context
+		Ctx    linker.Context
 	}
 )
 

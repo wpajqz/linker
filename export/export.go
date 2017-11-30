@@ -3,6 +3,7 @@ package export
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"hash/crc32"
 	"io"
 	"net"
@@ -234,6 +235,7 @@ func (c *Client) SyncSend(operator string, param []byte, callback RequestStatusC
 	}))
 
 	p := linker.NewPack(nType, sequence, c.request.Header, param)
+	fmt.Println(p.Bytes())
 	c.packet <- p
 	<-quit
 	c.mutex.Unlock()

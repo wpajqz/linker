@@ -11,6 +11,8 @@ import (
 	"github.com/wpajqz/linker/utils/encrypt"
 )
 
+var _ Context = new(ContextTcp)
+
 func (s *Server) handleConnection(ctx context.Context, conn net.Conn) error {
 	receivePackets := make(chan Packet, 100)
 	go s.handlePacket(ctx, conn, receivePackets)
@@ -81,7 +83,7 @@ func (s *Server) handleConnection(ctx context.Context, conn net.Conn) error {
 }
 
 func (s *Server) handlePacket(ctx context.Context, conn net.Conn, receivePackets <-chan Packet) {
-	var c = &Context{}
+	var c Context
 	for {
 		select {
 		case p := <-receivePackets:

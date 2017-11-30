@@ -30,6 +30,8 @@ type (
 		GetRequestProperty(key string) string
 		SetResponseProperty(key, value string)
 		GetResponseProperty(key string) string
+		LocalAddr() string
+		RemoteAddr() string
 	}
 
 	ContextTcp struct {
@@ -189,6 +191,14 @@ func (c *ContextTcp) GetResponseProperty(key string) string {
 	return ""
 }
 
+func (c *ContextTcp) LocalAddr() string {
+	return c.Conn.LocalAddr().String()
+}
+
+func (c *ContextTcp) RemoteAddr() string {
+	return c.Conn.RemoteAddr().String()
+}
+
 func NewContextWebsocket(conn *websocket.Conn, OperateType uint32, Sequence int64, contentType string, Header, Body []byte) *ContextWebsocket {
 	return &ContextWebsocket{
 		Context:     context.Background(),
@@ -319,4 +329,12 @@ func (c *ContextWebsocket) GetResponseProperty(key string) string {
 	}
 
 	return ""
+}
+
+func (c *ContextWebsocket) LocalAddr() string {
+	return c.Conn.LocalAddr().String()
+}
+
+func (c *ContextWebsocket) RemoteAddr() string {
+	return c.Conn.RemoteAddr().String()
 }

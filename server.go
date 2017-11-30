@@ -1,7 +1,6 @@
 package linker
 
 import (
-	"errors"
 	"hash/crc32"
 	"io"
 	"log"
@@ -62,20 +61,6 @@ func (s *Server) SetTimeout(timeout time.Duration) {
 // 设置可处理的数据包的最大长度
 func (s *Server) SetMaxPayload(maxPayload uint32) {
 	s.maxPayload = maxPayload
-}
-
-// 运行服务
-func (s *Server) Run(name, address string) (err error) {
-	switch name {
-	case "tcp":
-		err = s.runTcp(name, address)
-	case "web":
-		err = s.runWebSocket(name, address)
-	default:
-		err = errors.New("unsupported server:" + name)
-	}
-
-	return err
 }
 
 // 在服务中注册要处理的handler

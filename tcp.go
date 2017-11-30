@@ -121,7 +121,7 @@ func (s *Server) handleTcpPacket(ctx context.Context, conn net.Conn, receivePack
 }
 
 // 开始运行Tcp服务
-func (s *Server) runTcp(name, address string) error {
+func (s *Server) RunTcp(name, address string) error {
 	listener, err := net.Listen(name, address)
 	if err != nil {
 		return err

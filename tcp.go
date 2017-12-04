@@ -28,7 +28,6 @@ func (s *Server) handleTcpConnection(ctx context.Context, conn net.Conn) error {
 
 	reader := bufio.NewReader(conn)
 	for {
-
 		conn.SetDeadline(time.Now().Add(s.timeout))
 
 		if n, err := reader.Read(bType); err != nil && n != 4 {

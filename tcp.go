@@ -1,9 +1,9 @@
 package linker
 
 import (
+	"bufio"
 	"context"
 	"fmt"
-	"io"
 	"net"
 	"runtime"
 	"time"
@@ -26,23 +26,24 @@ func (s *Server) handleTcpConnection(ctx context.Context, conn net.Conn) error {
 		bodyLength    uint32
 	)
 
+	reader := bufio.NewReader(conn)
 	for {
 
 		conn.SetDeadline(time.Now().Add(s.timeout))
 
-		if n, err := io.ReadFull(conn, bType); err != nil && n != 4 {
+		if n, err := reader.Read(bType); err != nil && n != 4 {
 			return err
 		}
 
-		if n, err := io.ReadFull(conn, bSequence); err != nil && n != 8 {
+		if n, err := reader.Read(bSequence); err != nil && n != 8 {
 			return err
 		}
 
-		if n, err := io.ReadFull(conn, bHeaderLength); err != nil && n != 4 {
+		if n, err := reader.Read(bHeaderLength); err != nil && n != 4 {
 			return err
 		}
 
-		if n, err := io.ReadFull(conn, bBodyLength); err != nil && n != 4 {
+		if n, err := reader.Read(bBodyLength); err != nil && n != 4 {
 			return err
 		}
 
@@ -57,13 +58,13 @@ func (s *Server) handleTcpConnection(ctx context.Context, conn net.Conn) error {
 		}
 
 		header := make([]byte, headerLength)
-		if n, err := io.ReadFull(conn, header); err != nil && n != int(headerLength) {
+		if n, err := reader.Read(header); err != nil && n != int(headerLength) {
 			return err
 
 		}
 
 		body := make([]byte, bodyLength)
-		if n, err := io.ReadFull(conn, body); err != nil && n != int(bodyLength) {
+		if n, err := reader.Read(body); err != nil && n != int(bodyLength) {
 			return err
 		}
 

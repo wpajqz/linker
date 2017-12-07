@@ -10,6 +10,7 @@ import (
 
 	"github.com/wpajqz/linker/utils/convert"
 	"github.com/wpajqz/linker/utils/encrypt"
+	"errors"
 )
 
 func (s *Server) handleTcpConnection(ctx context.Context, conn net.Conn) error {
@@ -141,7 +142,12 @@ func (s *Server) RunTcp(name, address string) error {
 			defer func() {
 				if r := recover(); r != nil {
 					if s.errorHandler != nil {
-						s.errorHandler(r.(error))
+						switch v := r.(type) {
+						case error:
+							s.errorHandler(v)
+						case string:
+							s.errorHandler(errors.New(v))
+						}
 					}
 				}
 

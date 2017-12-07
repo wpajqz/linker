@@ -10,6 +10,7 @@ import (
 
 	"github.com/gorilla/websocket"
 
+	"errors"
 	"github.com/wpajqz/linker/utils/convert"
 	"github.com/wpajqz/linker/utils/encrypt"
 )
@@ -150,7 +151,12 @@ func (s *Server) RunWebSocket(address string) error {
 		defer func() {
 			if r := recover(); r != nil {
 				if s.errorHandler != nil {
-					s.errorHandler(r.(error))
+					switch v := r.(type) {
+					case error:
+						s.errorHandler(v)
+					case string:
+						s.errorHandler(errors.New(v))
+					}
 				}
 			}
 

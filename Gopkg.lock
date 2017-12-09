@@ -8,10 +8,10 @@
   revision = "1e59b77b52bf8e4b449a57e6f79f21226d571845"
 
 [[projects]]
+  branch = "master"
   name = "github.com/gorilla/websocket"
   packages = ["."]
-  revision = "ea4d1f681babbce9545c9c5f3d5194a789c89f5b"
-  version = "v1.2.0"
+  revision = "c55883f97322b4bcbf48f734e23d6ab3af1ea488"
 
 [[projects]]
   name = "github.com/inconshreveable/mousetrap"
@@ -34,6 +34,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "28c9748477acd70cbe57f738974356ae89ec896f1c09a44dbe1e120f039ab819"
+  inputs-digest = "1e8294bda7572c7e2c31880eca36b40599e7c72f1ff23c88d72208a421a8c81e"
   solver-name = "gps-cdcl"
   solver-version = 1

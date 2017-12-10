@@ -64,7 +64,7 @@ func (s *Server) SetMaxPayload(maxPayload uint32) {
 }
 
 // 在服务中注册要处理的handler
-func (s *Server) Handle(pattern string, handler Handler) {
+func (s *Server) HandleFunc(pattern string, handler Handler) {
 	data := []byte(pattern)
 	operator := crc32.ChecksumIEEE(data)
 
@@ -85,7 +85,7 @@ func (s *Server) BindRouter(routers []Router) {
 			s.routerMiddleware[operator] = append(s.routerMiddleware[operator], m)
 		}
 
-		s.Handle(router.Operator, router.Handler)
+		s.HandleFunc(router.Operator, router.Handler)
 	}
 }
 

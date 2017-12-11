@@ -12,7 +12,7 @@ type (
 	Handler      func(Context)
 	ErrorHandler func(error)
 	Server       struct {
-		router           Router
+		router           *Router
 		debug            bool
 		contentType      string
 		timeout          time.Duration
@@ -80,6 +80,6 @@ func (s *Server) OnPing(handler Handler) {
 }
 
 // 绑定路由
-func (s *Server) BindRouter(r Router)  {
+func (s *Server) BindRouter(r *Router)  {
 	s.router = r
 }

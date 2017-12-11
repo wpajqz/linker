@@ -2,6 +2,7 @@ package linker
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -9,8 +10,6 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-
-	"errors"
 	"github.com/wpajqz/linker/utils/convert"
 	"github.com/wpajqz/linker/utils/encrypt"
 )
@@ -94,20 +93,25 @@ func (s *Server) handleWebSocketPacket(ctx context.Context, conn *websocket.Conn
 	for {
 		select {
 		case p := <-receivePackets:
-			handler, ok := s.handlerContainer[p.OperateType()]
+			c = NewContextWebsocket(conn, p.OperateType(), p.Sequence(), s.contentType, p.Header(), p.Body())
+			if p.OperateType() == OPERATOR_HEARTBEAT && s.pingHandler != nil {
+				s.pingHandler(c)
+				continue
+			}
+
+			handler, ok := s.router.handlerContainer[p.OperateType()]
 			if !ok {
 				continue
 			}
 
-			c = NewContextWebsocket(conn, p.OperateType(), p.Sequence(), s.contentType, p.Header(), p.Body())
 			go func(handler Handler) {
-				if rm, ok := s.routerMiddleware[p.OperateType()]; ok {
+				if rm, ok := s.router.routerMiddleware[p.OperateType()]; ok {
 					for _, v := range rm {
 						c = v.Handle(c)
 					}
 				}
 
-				for _, v := range s.middleware {
+				for _, v := range s.router.middleware {
 					c = v.Handle(c)
 					if tm, ok := v.(TerminateMiddleware); ok {
 						tm.Terminate(c)

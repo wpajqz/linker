@@ -1,10 +1,8 @@
 package linker
 
 import (
-	"hash/crc32"
 	"io"
 	"log"
-	"strconv"
 	"time"
 
 	"github.com/wpajqz/linker/codec"
@@ -14,27 +12,24 @@ type (
 	Handler      func(Context)
 	ErrorHandler func(error)
 	Server       struct {
+		router           Router
 		debug            bool
 		contentType      string
 		timeout          time.Duration
-		handlerContainer map[uint32]Handler
-		middleware       []Middleware
-		routerMiddleware map[uint32][]Middleware
 		maxPayload       uint32
 		errorHandler     ErrorHandler
 		heartbeatHandler Handler
 		constructHandler Handler
 		destructHandler  Handler
+		pingHandler      Handler
 	}
 )
 
 func NewServer() *Server {
 	return &Server{
-		contentType:      codec.JSON,
-		timeout:          TIMEOUT,
-		maxPayload:       MaxPayload,
-		handlerContainer: make(map[uint32]Handler),
-		routerMiddleware: make(map[uint32][]Middleware),
+		contentType: codec.JSON,
+		timeout:     TIMEOUT,
+		maxPayload:  MaxPayload,
 		errorHandler: func(err error) {
 			if err != io.EOF {
 				log.Println(err.Error())
@@ -63,37 +58,6 @@ func (s *Server) SetMaxPayload(maxPayload uint32) {
 	s.maxPayload = maxPayload
 }
 
-// 在服务中注册要处理的handler
-func (s *Server) HandleFunc(pattern string, handler Handler) {
-	data := []byte(pattern)
-	operator := crc32.ChecksumIEEE(data)
-
-	if _, ok := s.handlerContainer[operator]; !ok {
-		s.handlerContainer[operator] = handler
-	}
-}
-
-// 绑定Server需要处理的router
-func (s *Server) BindRouter(routers []Router) {
-	for _, router := range routers {
-		operator := crc32.ChecksumIEEE([]byte(router.Operator))
-		if operator <= OPERATOR_MAX {
-			panic("Unavailable operator, the value of crc32 need less than " + strconv.Itoa(OPERATOR_MAX))
-		}
-
-		for _, m := range router.Middleware {
-			s.routerMiddleware[operator] = append(s.routerMiddleware[operator], m)
-		}
-
-		s.HandleFunc(router.Operator, router.Handler)
-	}
-}
-
-// 添加请求需要进行处理的中间件
-func (s *Server) Use(middleware ...Middleware) {
-	s.middleware = append(s.middleware, middleware...)
-}
-
 // 设置默认错误处理方法
 func (s *Server) OnError(errorHandler ErrorHandler) {
 	s.errorHandler = errorHandler
@@ -112,5 +76,10 @@ func (s *Server) OnOpen(handler Handler) {
 // 设置心跳包的handler,需要客户端发送心跳包才能够触发
 // 客户端发送心跳包，服务端未调用此方法时只起到建立长连接的作用
 func (s *Server) OnPing(handler Handler) {
-	s.handlerContainer[OPERATOR_HEARTBEAT] = handler
+	s.pingHandler = handler
+}
+
+// 绑定路由
+func (s *Server) BindRouter(r Router)  {
+	s.router = r
 }

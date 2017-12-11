@@ -18,8 +18,8 @@ func NewRouter() *Router {
 	}
 }
 
-// 注册
-func (r *Router) HandleFunc(pattern string, handler Handler, middleware ...Middleware) *Router {
+// 注册路由，路由中间件
+func (r *Router) Route(pattern string, handler Handler, middleware ...Middleware) *Router {
 	operator := crc32.ChecksumIEEE([]byte(pattern))
 	if operator <= OPERATOR_MAX {
 		panic("Unavailable operator, the value of crc32 need less than " + strconv.Itoa(OPERATOR_MAX))

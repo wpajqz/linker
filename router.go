@@ -5,16 +5,42 @@ import (
 	"strconv"
 )
 
-type Router struct {
-	handlerContainer map[uint32]Handler
-	routerMiddleware map[uint32][]Middleware
-	middleware       []Middleware
-}
+type (
+	Router struct {
+		prefix           string
+		handlerContainer map[uint32]Handler
+		routerMiddleware map[uint32][]Middleware
+		middleware       []Middleware
+	}
+
+	LinkRouter func(*Router)
+)
 
 func NewRouter() *Router {
 	return &Router{
 		handlerContainer: make(map[uint32]Handler),
 		routerMiddleware: make(map[uint32][]Middleware),
+	}
+}
+
+// 获取带命名空间router
+func (r *Router) NSRouter(prefix string, params ...LinkRouter) *Router {
+	r.prefix = prefix
+	for _, p := range params {
+		p(r)
+	}
+
+	return r
+}
+
+// 命名空间路由注册路由和中间件
+func (r *Router) NSRoute(pattern string, handler Handler, middleware ...Middleware) LinkRouter {
+	return func(r *Router) {
+		if r.prefix != "" {
+			pattern = r.prefix + pattern
+		}
+
+		r.Route(pattern, handler, middleware...)
 	}
 }
 

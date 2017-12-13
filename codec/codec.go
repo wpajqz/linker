@@ -6,6 +6,7 @@ const (
 	JSON     = "text/json"
 	PROTOBUF = "text/protobuf"
 	String   = "text/string"
+	XML      = "text/xml"
 )
 
 type Coder interface {

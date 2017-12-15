@@ -8,9 +8,9 @@ import (
 	"runtime"
 	"time"
 
+	"errors"
 	"github.com/wpajqz/linker/utils/convert"
 	"github.com/wpajqz/linker/utils/encrypt"
-	"errors"
 )
 
 func (s *Server) handleTcpConnection(ctx context.Context, conn net.Conn) error {
@@ -88,8 +88,12 @@ func (s *Server) handleTcpPacket(ctx context.Context, conn net.Conn, receivePack
 		select {
 		case p := <-receivePackets:
 			c = NewContextTcp(conn, p.OperateType(), p.Sequence(), s.contentType, p.Header(), p.Body())
-			if p.OperateType() == OPERATOR_HEARTBEAT && s.pingHandler != nil{
-				s.pingHandler(c)
+			if p.OperateType() == OPERATOR_HEARTBEAT && s.pingHandler != nil {
+				go func() {
+					s.pingHandler(c)
+					c.Success(nil)
+				}()
+
 				continue
 			}
 

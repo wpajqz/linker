@@ -1,9 +1,10 @@
 package linker
 
 import (
-	"gopkg.in/go-playground/validator.v9"
 	"reflect"
 	"sync"
+
+	"gopkg.in/go-playground/validator.v9"
 )
 
 var Validator StructValidator = &defaultValidator{}

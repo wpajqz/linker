@@ -88,11 +88,12 @@ func (c *ContextTcp) SetContentType(contentType string) {
 func (c *ContextTcp) ParseParam(data interface{}) error {
 	r, err := codec.NewCoder(c.contentType)
 	if err != nil {
-		return err
+		c.Error(StatusUnsupportedMediaType, err.Error())
 	}
 
 	err = r.Decoder(c.body, data)
 	if err != nil {
+		c.Error(StatusUnsupportedMediaType, err.Error())
 		return err
 	}
 
@@ -233,10 +234,15 @@ func (c *ContextWebsocket) SetContentType(contentType string) {
 func (c *ContextWebsocket) ParseParam(data interface{}) error {
 	r, err := codec.NewCoder(c.contentType)
 	if err != nil {
-		return err
+		c.Error(StatusUnsupportedMediaType, err.Error())
 	}
 
-	return r.Decoder(c.body, data)
+	err = r.Decoder(c.body, data)
+	if err != nil {
+		c.Error(StatusUnsupportedMediaType, err.Error())
+	}
+
+	return validate(data)
 }
 
 // 响应请求成功的数据包

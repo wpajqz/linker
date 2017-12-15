@@ -91,7 +91,12 @@ func (c *ContextTcp) ParseParam(data interface{}) error {
 		return err
 	}
 
-	return r.Decoder(c.body, data)
+	err = r.Decoder(c.body, data)
+	if err != nil {
+		return err
+	}
+
+	return validate(data)
 }
 
 // 响应请求成功的数据包

@@ -147,7 +147,7 @@ func (c *Client) Ping(interval int64, param []byte, callback RequestStatusCallba
 	}
 
 	if c.readyState != OPEN {
-		return errors.New("Ping getsockopt: connection refuse")
+		return errors.New("ping getsockopt: connection refuse")
 	}
 
 	sequence := time.Now().UnixNano()

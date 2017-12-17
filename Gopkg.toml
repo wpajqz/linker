@@ -77,7 +77,3 @@
 [[constraint]]
   branch = "master"
   name = "github.com/gorilla/websocket"
-
-[[constraint]]
-  branch = "master"
-  name = "gopkg.in/go-playground/validator.v9"

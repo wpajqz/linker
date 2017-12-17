@@ -88,12 +88,11 @@ func (c *ContextTcp) SetContentType(contentType string) {
 func (c *ContextTcp) ParseParam(data interface{}) error {
 	r, err := codec.NewCoder(c.contentType)
 	if err != nil {
-		c.Error(StatusUnsupportedMediaType, err.Error())
+		return err
 	}
 
 	err = r.Decoder(c.body, data)
 	if err != nil {
-		c.Error(StatusUnsupportedMediaType, err.Error())
 		return err
 	}
 
@@ -234,12 +233,12 @@ func (c *ContextWebsocket) SetContentType(contentType string) {
 func (c *ContextWebsocket) ParseParam(data interface{}) error {
 	r, err := codec.NewCoder(c.contentType)
 	if err != nil {
-		c.Error(StatusUnsupportedMediaType, err.Error())
+		return err
 	}
 
 	err = r.Decoder(c.body, data)
 	if err != nil {
-		c.Error(StatusUnsupportedMediaType, err.Error())
+		return err
 	}
 
 	return validate(data)

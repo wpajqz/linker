@@ -18,7 +18,6 @@ type (
 		timeout          time.Duration
 		maxPayload       uint32
 		errorHandler     ErrorHandler
-		heartbeatHandler Handler
 		constructHandler Handler
 		destructHandler  Handler
 		pingHandler      Handler
@@ -80,6 +79,6 @@ func (s *Server) OnPing(handler Handler) {
 }
 
 // 绑定路由
-func (s *Server) BindRouter(r *Router)  {
+func (s *Server) BindRouter(r *Router) {
 	s.router = r
 }

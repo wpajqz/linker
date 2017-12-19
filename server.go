@@ -9,7 +9,10 @@ import (
 )
 
 type (
-	Handler      func(Context)
+	Handler interface {
+		Handle(Context)
+	}
+	HandlerFunc  func(Context)
 	ErrorHandler func(error)
 	Server       struct {
 		router           *Router
@@ -81,4 +84,8 @@ func (s *Server) OnPing(handler Handler) {
 // 绑定路由
 func (s *Server) BindRouter(r *Router) {
 	s.router = r
+}
+
+func (f HandlerFunc) Handle(ctx Context) {
+	f(ctx)
 }

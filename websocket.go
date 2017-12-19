@@ -96,7 +96,7 @@ func (s *Server) handleWebSocketPacket(ctx context.Context, conn *websocket.Conn
 			c = NewContextWebsocket(conn, p.OperateType(), p.Sequence(), s.contentType, p.Header(), p.Body())
 			if p.OperateType() == OPERATOR_HEARTBEAT && s.pingHandler != nil {
 				go func() {
-					s.pingHandler(c)
+					s.pingHandler.Handle(c)
 					c.Success(nil)
 				}()
 
@@ -122,13 +122,13 @@ func (s *Server) handleWebSocketPacket(ctx context.Context, conn *websocket.Conn
 					}
 				}
 
-				handler(c)
+				handler.Handle(c)
 				c.Success(nil) // If it don't call the function of Success or Error, deal it by default
 			}(handler)
 		case <-ctx.Done():
 			// 执行链接退出以后回收操作
 			if s.destructHandler != nil {
-				s.destructHandler(c)
+				s.destructHandler.Handle(c)
 			}
 
 			return
@@ -173,7 +173,7 @@ func (s *Server) RunWebSocket(address string) error {
 		}()
 
 		if s.constructHandler != nil {
-			s.constructHandler(nil)
+			s.constructHandler.Handle(nil)
 		}
 
 		err = s.handleWebSocketConnection(ctx, conn)

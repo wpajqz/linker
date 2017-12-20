@@ -6,26 +6,26 @@ import (
 	"io"
 	"log"
 	"net"
-	"runtime"
 	"strconv"
-	"time"
 
 	"github.com/wpajqz/linker/utils/convert"
 	"github.com/wpajqz/linker/utils/encrypt"
 )
 
 // 处理客户端连接
-func (c *Client) handleConnection(conn net.Conn) error {
+func (c *Client) handleConnection(conn net.Conn) (err error) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer func(cancel context.CancelFunc) { cancel() }(cancel)
 
-	go c.handleSendPackets(ctx, conn)
+	go func(conn net.Conn) {
+		err = c.handleSendPackets(ctx, conn)
+	}(conn)
 
 	return c.handleReceivedPackets(conn)
 }
 
 // 对发送的数据包进行处理
-func (c *Client) handleSendPackets(ctx context.Context, conn net.Conn) {
+func (c *Client) handleSendPackets(ctx context.Context, conn net.Conn) error {
 	for {
 		select {
 		case p := <-c.packet:
@@ -34,14 +34,10 @@ func (c *Client) handleSendPackets(ctx context.Context, conn net.Conn) {
 			}
 			_, err := conn.Write(p.Bytes())
 			if err != nil {
-				if c.errorHandler != nil {
-					_, file, line, _ := runtime.Caller(0)
-					s := fmt.Sprintf("[datetime]:%v [file]:%v [line]:%v [message]:%v", time.Now(), file, line, err.Error())
-					c.errorHandler.Handle(s)
-				}
+				return err
 			}
 		case <-ctx.Done():
-			return
+			return nil
 		}
 	}
 }

@@ -10,6 +10,7 @@ import (
 
 	"github.com/wpajqz/linker/utils/convert"
 	"github.com/wpajqz/linker/utils/encrypt"
+	"time"
 )
 
 // 处理客户端连接
@@ -56,6 +57,8 @@ func (c *Client) handleReceivedPackets(conn net.Conn) error {
 	)
 
 	for {
+		conn.SetDeadline(time.Now().Add(c.timeout))
+
 		if n, err := io.ReadFull(conn, bType); err != nil && n != 4 {
 			return err
 		}

@@ -69,7 +69,7 @@ func NewClient() *Client {
 		readyState:       CONNECTING,
 		mutex:            new(sync.Mutex),
 		rwMutex:          new(sync.RWMutex),
-		timeout:          30 * time.Second,
+		timeout:          60 * time.Second,
 		retryInterval:    5 * time.Second,
 		packet:           make(chan linker.Packet, 1024),
 		handlerContainer: sync.Map{},

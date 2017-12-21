@@ -18,11 +18,24 @@ func (c *Client) handleConnection(conn net.Conn) (err error) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer func(cancel context.CancelFunc) { cancel() }(cancel)
 
+	q := make(chan bool, 2)
 	go func(conn net.Conn) {
 		err = c.handleSendPackets(ctx, conn)
+		if err != nil {
+			q <- true
+		}
 	}(conn)
 
-	return c.handleReceivedPackets(conn)
+	go func(conn net.Conn) {
+		err = c.handleReceivedPackets(conn)
+		if err != nil {
+			q <- true
+		}
+	}(conn)
+
+	<-q
+
+	return
 }
 
 // 对发送的数据包进行处理

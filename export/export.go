@@ -115,9 +115,14 @@ func (c *Client) Connect(server string, port int) {
 					}
 				}(conn)
 
-				c.readyState = OPEN
-				if c.constructHandler != nil {
-					c.constructHandler.Handle(nil, nil)
+				for {
+					if c.readyState == OPEN {
+						if c.constructHandler != nil {
+							c.constructHandler.Handle(nil, nil)
+						}
+
+						break
+					}
 				}
 
 				<-quit

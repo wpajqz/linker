@@ -74,6 +74,8 @@ func (c *Client) handleReceivedPackets(conn net.Conn) error {
 	for {
 		conn.SetReadDeadline(time.Now().Add(c.timeout))
 
+		c.readyState = OPEN
+
 		if n, err := io.ReadFull(conn, bType); err != nil && n != 4 {
 			return err
 		}

@@ -37,6 +37,8 @@ func (c *Client) handleSendPackets(ctx context.Context, conn net.Conn) error {
 			if err != nil {
 				return err
 			}
+
+			conn.SetWriteDeadline(time.Now().Add(c.timeout))
 		case <-ctx.Done():
 			return nil
 		}
@@ -57,7 +59,7 @@ func (c *Client) handleReceivedPackets(conn net.Conn) error {
 	)
 
 	for {
-		conn.SetDeadline(time.Now().Add(c.timeout))
+		conn.SetReadDeadline(time.Now().Add(c.timeout))
 
 		if n, err := io.ReadFull(conn, bType); err != nil && n != 4 {
 			return err

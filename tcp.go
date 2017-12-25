@@ -1,7 +1,7 @@
 package linker
 
 import (
-	"bufio"
+	//"bufio"
 	"context"
 	"fmt"
 	"net"
@@ -9,7 +9,8 @@ import (
 
 	"errors"
 	"github.com/wpajqz/linker/utils/convert"
-	"github.com/wpajqz/linker/utils/encrypt"
+	"io"
+	"runtime"
 )
 
 func (s *Server) handleTcpConnection(ctx context.Context, conn net.Conn) error {
@@ -26,48 +27,42 @@ func (s *Server) handleTcpConnection(ctx context.Context, conn net.Conn) error {
 		bodyLength    uint32
 	)
 
-	reader := bufio.NewReader(conn)
 	for {
 		conn.SetDeadline(time.Now().Add(s.timeout))
 
-		if n, err := reader.Read(bType); err != nil && n != 4 {
+		if n, err := io.ReadFull(conn, bType); err != nil && n != 4 {
 			return err
 		}
 
-		if n, err := reader.Read(bSequence); err != nil && n != 8 {
+		if n, err := io.ReadFull(conn, bSequence); err != nil && n != 8 {
 			return err
 		}
 
-		if n, err := reader.Read(bHeaderLength); err != nil && n != 4 {
+		if n, err := io.ReadFull(conn, bHeaderLength); err != nil && n != 4 {
 			return err
 		}
 
-		if n, err := reader.Read(bBodyLength); err != nil && n != 4 {
+		if n, err := io.ReadFull(conn, bBodyLength); err != nil && n != 4 {
 			return err
 		}
 
 		sequence = convert.BytesToInt64(bSequence)
 		headerLength = convert.BytesToUint32(bHeaderLength)
 		bodyLength = convert.BytesToUint32(bBodyLength)
+		pacLen := headerLength + bodyLength + uint32(20)
+
+		if pacLen > s.maxPayload {
+			_, file, line, _ := runtime.Caller(1)
+			return SystemError{time.Now(), file, line, "packet larger than MaxPayload"}
+		}
 
 		header := make([]byte, headerLength)
-		if n, err := reader.Read(header); err != nil && n != int(headerLength) {
+		if n, err := io.ReadFull(conn, header); err != nil && n != int(headerLength) {
 			return err
-
 		}
 
 		body := make([]byte, bodyLength)
-		if n, err := reader.Read(body); err != nil && n != int(bodyLength) {
-			return err
-		}
-
-		header, err := encrypt.Decrypt(header)
-		if err != nil {
-			return err
-		}
-
-		body, err = encrypt.Decrypt(body)
-		if err != nil {
+		if n, err := io.ReadFull(conn, body); err != nil && n != int(bodyLength) {
 			return err
 		}
 

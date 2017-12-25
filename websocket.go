@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"runtime"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -56,12 +55,6 @@ func (s *Server) handleWebSocketConnection(ctx context.Context, conn *websocket.
 		sequence = convert.BytesToInt64(bSequence)
 		headerLength = convert.BytesToUint32(bHeaderLength)
 		bodyLength = convert.BytesToUint32(bBodyLength)
-		pacLen := headerLength + bodyLength + uint32(20)
-
-		if pacLen > s.maxPayload {
-			_, file, line, _ := runtime.Caller(1)
-			return SystemError{time.Now(), file, line, "packet larger than MaxPayload"}
-		}
 
 		header := make([]byte, headerLength)
 		if n, err := io.ReadFull(r, header); err != nil && n != int(headerLength) {

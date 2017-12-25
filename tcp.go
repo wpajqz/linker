@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"net"
-	"runtime"
 	"time"
 
 	"errors"
@@ -50,12 +49,6 @@ func (s *Server) handleTcpConnection(ctx context.Context, conn net.Conn) error {
 		sequence = convert.BytesToInt64(bSequence)
 		headerLength = convert.BytesToUint32(bHeaderLength)
 		bodyLength = convert.BytesToUint32(bBodyLength)
-		pacLen := headerLength + bodyLength + uint32(20)
-
-		if pacLen > s.maxPayload {
-			_, file, line, _ := runtime.Caller(1)
-			return SystemError{time.Now(), file, line, "packet larger than MaxPayload"}
-		}
 
 		header := make([]byte, headerLength)
 		if n, err := reader.Read(header); err != nil && n != int(headerLength) {

@@ -1,16 +1,16 @@
 package linker
 
 import (
-	//"bufio"
 	"context"
+	"errors"
 	"fmt"
+	"io"
 	"net"
+	"runtime"
 	"time"
 
-	"errors"
 	"github.com/wpajqz/linker/utils/convert"
-	"io"
-	"runtime"
+	"github.com/wpajqz/linker/utils/encrypt"
 )
 
 func (s *Server) handleTcpConnection(ctx context.Context, conn net.Conn) error {
@@ -63,6 +63,16 @@ func (s *Server) handleTcpConnection(ctx context.Context, conn net.Conn) error {
 
 		body := make([]byte, bodyLength)
 		if n, err := io.ReadFull(conn, body); err != nil && n != int(bodyLength) {
+			return err
+		}
+
+		header, err := encrypt.Decrypt(header)
+		if err != nil {
+			return err
+		}
+
+		body, err = encrypt.Decrypt(body)
+		if err != nil {
 			return err
 		}
 

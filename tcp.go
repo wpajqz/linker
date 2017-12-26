@@ -100,7 +100,7 @@ func (s *Server) handleTcpPacket(ctx context.Context, conn net.Conn, receivePack
 				continue
 			}
 
-			go func(handler Handler) {
+			go func(c Context, handler Handler) {
 				if rm, ok := s.router.routerMiddleware[p.OperateType()]; ok {
 					for _, v := range rm {
 						c = v.Handle(c)
@@ -116,7 +116,7 @@ func (s *Server) handleTcpPacket(ctx context.Context, conn net.Conn, receivePack
 
 				handler.Handle(c)
 				c.Success(nil) // If it don't call the function of Success or Error, deal it by default
-			}(handler)
+			}(c, handler)
 		case <-ctx.Done():
 			// 执行链接退出以后回收操作
 			if s.destructHandler != nil {

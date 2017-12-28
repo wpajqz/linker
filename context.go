@@ -25,7 +25,6 @@ type (
 		Success(body interface{})
 		Error(code int, message string)
 		Write(operator string, body interface{}) (int, error)
-		WriteBinary(operator string, data []byte) (int, error)
 		SetRequestProperty(key, value string)
 		GetRequestProperty(key string) string
 		SetResponseProperty(key, value string)
@@ -137,13 +136,6 @@ func (c *ContextTcp) Write(operator string, body interface{}) (int, error) {
 		return 0, err
 	}
 
-	p := NewPack(crc32.ChecksumIEEE([]byte(operator)), 0, c.Response.Header, data)
-
-	return c.Conn.Write(p.Bytes())
-}
-
-// 向客户端发送原始数据数据
-func (c *ContextTcp) WriteBinary(operator string, data []byte) (int, error) {
 	p := NewPack(crc32.ChecksumIEEE([]byte(operator)), 0, c.Response.Header, data)
 
 	return c.Conn.Write(p.Bytes())
@@ -277,13 +269,6 @@ func (c *ContextWebsocket) Write(operator string, body interface{}) (int, error)
 		return 0, err
 	}
 
-	p := NewPack(crc32.ChecksumIEEE([]byte(operator)), 0, c.Response.Header, data)
-
-	return 0, c.Conn.WriteMessage(websocket.TextMessage, p.Bytes())
-}
-
-// 向客户端发送原始数据数据
-func (c *ContextWebsocket) WriteBinary(operator string, data []byte) (int, error) {
 	p := NewPack(crc32.ChecksumIEEE([]byte(operator)), 0, c.Response.Header, data)
 
 	return 0, c.Conn.WriteMessage(websocket.TextMessage, p.Bytes())

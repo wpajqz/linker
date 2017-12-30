@@ -5,6 +5,11 @@ import (
 	"time"
 )
 
+var (
+	rt   *ReTry
+	once sync.Once
+)
+
 type ReTry struct {
 	items   sync.Map
 	timeout time.Duration
@@ -17,7 +22,11 @@ type Item struct {
 }
 
 func NewRetry(timeout time.Duration) *ReTry {
-	return &ReTry{items: sync.Map{}, timeout: timeout}
+	once.Do(func() {
+		rt = &ReTry{items: sync.Map{}, timeout: timeout}
+	})
+
+	return rt
 }
 
 func (rt *ReTry) Put(key interface{}, value *Item) {

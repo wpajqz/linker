@@ -87,49 +87,51 @@ func (c *Client) GetReadyState() int {
 }
 
 func (c *Client) Connect(server string, port int) {
-	// 检测conn的状态，断线以后进行重连操作
-	go func() {
-		address := strings.Join([]string{server, strconv.Itoa(port)}, ":")
-		conn, err := net.Dial("tcp", address)
+	if c.readyState != OPEN {
+		// 检测conn的状态，断线以后进行重连操作
+		go func() {
+			address := strings.Join([]string{server, strconv.Itoa(port)}, ":")
+			conn, err := net.Dial("tcp", address)
 
-		for {
-			if err != nil {
-				c.readyState = CLOSED
-				if err == io.EOF {
-					if c.destructHandler != nil {
-						c.destructHandler.Handle(nil, nil)
-					}
-				} else {
-					if c.errorHandler != nil {
-						c.errorHandler.Handle(err.Error())
-					}
-				}
-
-				time.Sleep(c.retryInterval) // 重连失败以后休息一会再干活
-				conn, err = net.Dial("tcp", address)
-			} else {
-				quit := make(chan bool, 1)
-				go func(conn net.Conn) {
-					err = c.handleConnection(conn)
-					if err != nil {
-						quit <- true
-					}
-				}(conn)
-
-				for {
-					if c.readyState == OPEN {
-						if c.constructHandler != nil {
-							c.constructHandler.Handle(nil, nil)
+			for {
+				if err != nil {
+					c.readyState = CLOSED
+					if err == io.EOF {
+						if c.destructHandler != nil {
+							c.destructHandler.Handle(nil, nil)
 						}
-
-						break
+					} else {
+						if c.errorHandler != nil {
+							c.errorHandler.Handle(err.Error())
+						}
 					}
-				}
 
-				<-quit
+					time.Sleep(c.retryInterval) // 重连失败以后休息一会再干活
+					conn, err = net.Dial("tcp", address)
+				} else {
+					quit := make(chan bool, 1)
+					go func(conn net.Conn) {
+						err = c.handleConnection(conn)
+						if err != nil {
+							quit <- true
+						}
+					}(conn)
+
+					for {
+						if c.readyState == OPEN {
+							if c.constructHandler != nil {
+								c.constructHandler.Handle(nil, nil)
+							}
+
+							break
+						}
+					}
+
+					<-quit
+				}
 			}
-		}
-	}()
+		}()
+	}
 }
 
 // 心跳处理，客户端与服务端保持长连接

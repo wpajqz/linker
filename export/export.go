@@ -90,8 +90,9 @@ func (c *Client) Connect(server string, port int) {
 	// 检测conn的状态，断线以后进行重连操作
 	go func() {
 		address := strings.Join([]string{server, strconv.Itoa(port)}, ":")
+		conn, err := net.Dial("tcp", address)
+
 		for {
-			conn, err := net.Dial("tcp", address)
 			if err != nil {
 				c.readyState = CLOSED
 				if err == io.EOF {

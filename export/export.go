@@ -26,12 +26,10 @@ const (
 	CLOSED     = 3 // 连接已经关闭，或者连接无法建立
 )
 
+var defaultClient *Client
+
 type Handler interface {
 	Handle(header, body []byte)
-}
-
-type ErrorHandler interface {
-	Handle(err string)
 }
 
 type RequestStatusCallback interface {
@@ -41,17 +39,21 @@ type RequestStatusCallback interface {
 	OnEnd()
 }
 
+type ReadyStateCallback interface {
+	OnOpen()
+	OnClose()
+	OnError(err string)
+}
+
 type Client struct {
 	debug                  bool
+	readyStateCallback     ReadyStateCallback
 	readyState             int
 	mutex                  *sync.Mutex
 	rwMutex                *sync.RWMutex
 	timeout, retryInterval time.Duration
 	handlerContainer       sync.Map
 	packet                 chan linker.Packet
-	constructHandler       Handler
-	destructHandler        Handler
-	errorHandler           ErrorHandler
 	maxPayload             int32
 	request, response      struct {
 		Header, Body []byte
@@ -64,16 +66,26 @@ func (f handlerFunc) Handle(header, body []byte) {
 	f(header, body)
 }
 
-func NewClient() *Client {
-	return &Client{
-		readyState:       CONNECTING,
-		mutex:            new(sync.Mutex),
-		rwMutex:          new(sync.RWMutex),
-		timeout:          60 * 6 * time.Second,
-		retryInterval:    5 * time.Second,
-		packet:           make(chan linker.Packet, 1024),
-		handlerContainer: sync.Map{},
+func NewClient(server string, port int, readyStateCallback ReadyStateCallback) *Client {
+	if defaultClient == nil {
+		defaultClient = &Client{
+			readyState:       CONNECTING,
+			mutex:            new(sync.Mutex),
+			rwMutex:          new(sync.RWMutex),
+			timeout:          60 * 6 * time.Second,
+			retryInterval:    5 * time.Second,
+			packet:           make(chan linker.Packet, 1024),
+			handlerContainer: sync.Map{},
+		}
+
+		if readyStateCallback != nil {
+			defaultClient.readyStateCallback = readyStateCallback
+		}
+
+		go defaultClient.connect(server, port)
 	}
+
+	return defaultClient
 }
 
 // 设置是否显示调试信息
@@ -84,54 +96,6 @@ func (c *Client) SetDebug(b bool) {
 // 获取链接运行状态
 func (c *Client) GetReadyState() int {
 	return c.readyState
-}
-
-func (c *Client) Connect(server string, port int) {
-	if c.readyState != OPEN {
-		// 检测conn的状态，断线以后进行重连操作
-		go func() {
-			address := strings.Join([]string{server, strconv.Itoa(port)}, ":")
-			conn, err := net.Dial("tcp", address)
-
-			for {
-				if err != nil {
-					c.readyState = CLOSED
-					if err == io.EOF {
-						if c.destructHandler != nil {
-							c.destructHandler.Handle(nil, nil)
-						}
-					} else {
-						if c.errorHandler != nil {
-							c.errorHandler.Handle(err.Error())
-						}
-					}
-
-					time.Sleep(c.retryInterval) // 重连失败以后休息一会再干活
-					conn, err = net.Dial("tcp", address)
-				} else {
-					quit := make(chan bool, 1)
-					go func(conn net.Conn) {
-						err = c.handleConnection(conn)
-						if err != nil {
-							quit <- true
-						}
-					}(conn)
-
-					for {
-						if c.readyState == OPEN {
-							if c.constructHandler != nil {
-								c.constructHandler.Handle(nil, nil)
-							}
-
-							break
-						}
-					}
-
-					<-quit
-				}
-			}
-		}()
-	}
 }
 
 // 心跳处理，客户端与服务端保持长连接
@@ -295,21 +259,6 @@ func (c *Client) RemoveMessageListener(listener string) {
 	c.handlerContainer.Delete(int64(crc32.ChecksumIEEE([]byte(listener))))
 }
 
-// 链接建立以后执行的操作
-func (c *Client) OnOpen(handler Handler) {
-	c.constructHandler = handler
-}
-
-// 链接断开以后执行回收操作
-func (c *Client) OnClose(handler Handler) {
-	c.destructHandler = handler
-}
-
-// 设置默认错误处理方法
-func (c *Client) OnError(errorHandler ErrorHandler) {
-	c.errorHandler = errorHandler
-}
-
 // 设置请求属性
 func (c *Client) SetRequestProperty(key, value string) {
 	v := c.GetRequestProperty(key)
@@ -364,4 +313,48 @@ func (c *Client) SetRetryInterval(interval int) {
 // 设置服务端默认超时时间, 单位s
 func (c *Client) SetTimeout(timeout int) {
 	c.timeout = time.Duration(timeout) * time.Second
+}
+
+func (c *Client) connect(server string, port int) {
+	// 检测conn的状态，断线以后进行重连操作
+	address := strings.Join([]string{server, strconv.Itoa(port)}, ":")
+	conn, err := net.Dial("tcp", address)
+
+	for {
+		if err != nil {
+			c.readyState = CLOSED
+			if err == io.EOF {
+				if c.readyStateCallback.OnClose != nil {
+					c.readyStateCallback.OnClose()
+				}
+			} else {
+				if c.readyStateCallback.OnError != nil {
+					c.readyStateCallback.OnError(err.Error())
+				}
+			}
+
+			time.Sleep(c.retryInterval) // 重连失败以后休息一会再干活
+			conn, err = net.Dial("tcp", address)
+		} else {
+			quit := make(chan bool, 1)
+			go func(conn net.Conn) {
+				err = c.handleConnection(conn)
+				if err != nil {
+					quit <- true
+				}
+			}(conn)
+
+			for {
+				if c.readyState == OPEN {
+					if c.readyStateCallback.OnOpen != nil {
+						c.readyStateCallback.OnOpen()
+					}
+
+					break
+				}
+			}
+
+			<-quit
+		}
+	}
 }

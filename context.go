@@ -240,7 +240,7 @@ func (c *ContextWebsocket) Success(body interface{}) {
 
 	p := NewPack(c.operateType, c.sequence, c.Response.Header, data)
 
-	c.Conn.WriteMessage(websocket.TextMessage, p.Bytes())
+	c.Conn.WriteMessage(websocket.BinaryMessage, p.Bytes())
 
 	runtime.Goexit()
 }
@@ -252,7 +252,7 @@ func (c *ContextWebsocket) Error(code int, message string) {
 
 	p := NewPack(c.operateType, c.sequence, c.Response.Header, nil)
 
-	c.Conn.WriteMessage(websocket.TextMessage, p.Bytes())
+	c.Conn.WriteMessage(websocket.BinaryMessage, p.Bytes())
 
 	runtime.Goexit()
 }
@@ -271,7 +271,7 @@ func (c *ContextWebsocket) Write(operator string, body interface{}) (int, error)
 
 	p := NewPack(crc32.ChecksumIEEE([]byte(operator)), 0, c.Response.Header, data)
 
-	return 0, c.Conn.WriteMessage(websocket.TextMessage, p.Bytes())
+	return 0, c.Conn.WriteMessage(websocket.BinaryMessage, p.Bytes())
 }
 
 func (c *ContextWebsocket) SetRequestProperty(key, value string) {

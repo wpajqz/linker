@@ -140,9 +140,9 @@ func (s *Server) handleWebSocketPacket(ctx context.Context, conn *websocket.Conn
 func (s *Server) RunWebSocket(address string) error {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		var upgrade = websocket.Upgrader{
-			HandshakeTimeout:  TIMEOUT,
-			ReadBufferSize:    MaxPayload,
-			WriteBufferSize:   MaxPayload,
+			HandshakeTimeout:  s.timeout,
+			ReadBufferSize:    int(s.maxPayload),
+			WriteBufferSize:   int(s.maxPayload),
 			EnableCompression: true,
 			CheckOrigin: func(r *http.Request) bool {
 				return true

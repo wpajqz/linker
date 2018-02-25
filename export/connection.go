@@ -8,8 +8,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/wpajqz/linker"
 	"github.com/wpajqz/linker/utils/convert"
-	"github.com/wpajqz/linker/utils/encrypt"
 )
 
 // 处理客户端连接
@@ -43,7 +43,8 @@ func (c *Client) handleSendPackets(ctx context.Context, conn net.Conn) error {
 		select {
 		case p := <-c.packet:
 			if c.debug {
-				fmt.Println("[send packet]", "operator:", p.OperateType(), "header:", string(p.Header()), "body:", string(p.Body()))
+				receivePacket := linker.NewReceivePack(p.Operator, p.Sequence, p.Header, p.Body)
+				fmt.Println("[send packet]", "operator:", receivePacket.Operator, "header:", string(receivePacket.Header), "body:", string(receivePacket.Body))
 			}
 			_, err := conn.Write(p.Bytes())
 			if err != nil {
@@ -111,27 +112,19 @@ func (c *Client) handleReceivedPackets(conn net.Conn) error {
 			return err
 		}
 
-		header, err := encrypt.Decrypt(header)
-		if err != nil {
-			return err
-		}
+		receive := linker.NewReceivePack(nType, sequence, header, body)
 
-		body, err = encrypt.Decrypt(body)
-		if err != nil {
-			return err
-		}
-
-		c.response.Header = header
-		c.response.Body = body
+		c.response.Header = receive.Header
+		c.response.Body = receive.Body
 
 		if c.debug {
-			fmt.Println("[receive packet]", "operator:", nType, "header:", string(header), "body:", string(body))
+			fmt.Println("[receive packet]", "operator:", nType, "header:", string(receive.Header), "body:", string(receive.Body))
 		}
 
 		operator := int64(nType) + sequence
 		if handler, ok := c.handlerContainer.Load(operator); ok {
 			if v, ok := handler.(Handler); ok {
-				v.Handle(header, body)
+				v.Handle(receive.Header, receive.Body)
 			}
 		}
 	}

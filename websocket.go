@@ -11,7 +11,6 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/wpajqz/linker/utils/convert"
-	"github.com/wpajqz/linker/utils/encrypt"
 )
 
 func (s *Server) handleWebSocketConnection(ctx context.Context, conn *websocket.Conn) error {
@@ -74,17 +73,7 @@ func (s *Server) handleWebSocketConnection(ctx context.Context, conn *websocket.
 			return err
 		}
 
-		header, err = encrypt.Decrypt(header)
-		if err != nil {
-			return err
-		}
-
-		body, err = encrypt.Decrypt(body)
-		if err != nil {
-			return err
-		}
-
-		receivePackets <- NewPack(convert.BytesToUint32(bType), sequence, header, body)
+		receivePackets <- NewReceivePack(convert.BytesToUint32(bType), sequence, header, body)
 	}
 }
 
@@ -93,8 +82,8 @@ func (s *Server) handleWebSocketPacket(ctx context.Context, conn *websocket.Conn
 	for {
 		select {
 		case p := <-receivePackets:
-			c = NewContextWebsocket(conn, p.OperateType(), p.Sequence(), s.contentType, p.Header(), p.Body())
-			if p.OperateType() == OPERATOR_HEARTBEAT && s.pingHandler != nil {
+			c = NewContextWebsocket(conn, p.Operator, p.Sequence, s.contentType, p.Header, p.Body)
+			if p.Operator == OPERATOR_HEARTBEAT && s.pingHandler != nil {
 				go func() {
 					s.pingHandler.Handle(c)
 					c.Success(nil)
@@ -103,13 +92,13 @@ func (s *Server) handleWebSocketPacket(ctx context.Context, conn *websocket.Conn
 				continue
 			}
 
-			handler, ok := s.router.handlerContainer[p.OperateType()]
+			handler, ok := s.router.handlerContainer[p.Operator]
 			if !ok {
 				continue
 			}
 
 			go func(c Context, handler Handler) {
-				if rm, ok := s.router.routerMiddleware[p.OperateType()]; ok {
+				if rm, ok := s.router.routerMiddleware[p.Operator]; ok {
 					for _, v := range rm {
 						c = v.Handle(c)
 					}

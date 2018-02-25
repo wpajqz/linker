@@ -105,7 +105,7 @@ func (c *ContextTcp) Success(body interface{}) {
 		panic(err)
 	}
 
-	p := NewPack(c.operateType, c.sequence, c.Response.Header, data)
+	p := NewSendPack(c.operateType, c.sequence, c.Response.Header, data)
 
 	c.Conn.Write(p.Bytes())
 
@@ -117,7 +117,7 @@ func (c *ContextTcp) Error(code int, message string) {
 	c.SetResponseProperty("code", strconv.Itoa(code))
 	c.SetResponseProperty("message", message)
 
-	p := NewPack(c.operateType, c.sequence, c.Response.Header, nil)
+	p := NewSendPack(c.operateType, c.sequence, c.Response.Header, nil)
 
 	c.Conn.Write(p.Bytes())
 
@@ -136,7 +136,7 @@ func (c *ContextTcp) Write(operator string, body interface{}) (int, error) {
 		return 0, err
 	}
 
-	p := NewPack(crc32.ChecksumIEEE([]byte(operator)), 0, c.Response.Header, data)
+	p := NewSendPack(crc32.ChecksumIEEE([]byte(operator)), 0, c.Response.Header, data)
 
 	return c.Conn.Write(p.Bytes())
 }
@@ -238,7 +238,7 @@ func (c *ContextWebsocket) Success(body interface{}) {
 		panic(err)
 	}
 
-	p := NewPack(c.operateType, c.sequence, c.Response.Header, data)
+	p := NewSendPack(c.operateType, c.sequence, c.Response.Header, data)
 
 	c.Conn.WriteMessage(websocket.BinaryMessage, p.Bytes())
 
@@ -250,7 +250,7 @@ func (c *ContextWebsocket) Error(code int, message string) {
 	c.SetResponseProperty("code", strconv.Itoa(code))
 	c.SetResponseProperty("message", message)
 
-	p := NewPack(c.operateType, c.sequence, c.Response.Header, nil)
+	p := NewSendPack(c.operateType, c.sequence, c.Response.Header, nil)
 
 	c.Conn.WriteMessage(websocket.BinaryMessage, p.Bytes())
 
@@ -269,7 +269,7 @@ func (c *ContextWebsocket) Write(operator string, body interface{}) (int, error)
 		return 0, err
 	}
 
-	p := NewPack(crc32.ChecksumIEEE([]byte(operator)), 0, c.Response.Header, data)
+	p := NewSendPack(crc32.ChecksumIEEE([]byte(operator)), 0, c.Response.Header, data)
 
 	return 0, c.Conn.WriteMessage(websocket.BinaryMessage, p.Bytes())
 }

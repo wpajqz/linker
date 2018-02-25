@@ -47,7 +47,6 @@ type ReadyStateCallback interface {
 }
 
 type Client struct {
-	debug                  bool
 	readyStateCallback     ReadyStateCallback
 	readyState             int
 	mutex                  *sync.Mutex
@@ -87,11 +86,6 @@ func NewClient(server string, port int, readyStateCallback ReadyStateCallback) *
 	}
 
 	return defaultClient
-}
-
-// 设置是否显示调试信息
-func (c *Client) SetDebug(b bool) {
-	c.debug = b
 }
 
 // 获取链接运行状态

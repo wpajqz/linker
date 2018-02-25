@@ -43,16 +43,6 @@ func (c *Client) handleSendPackets(ctx context.Context, conn net.Conn) error {
 	for {
 		select {
 		case p := <-c.packet:
-			if c.debug {
-				receivePacket, err := linker.NewPacket(p.Operator, p.Sequence, p.Header, p.Body, []linker.PacketPlugin{
-					&plugins.Decryption{},
-				})
-				if err != nil {
-					return err
-				}
-
-				fmt.Println("[send packet]", "operator:", receivePacket.Operator, "header:", string(receivePacket.Header), "body:", string(receivePacket.Body))
-			}
 			_, err := conn.Write(p.Bytes())
 			if err != nil {
 				return err
@@ -128,10 +118,6 @@ func (c *Client) handleReceivedPackets(conn net.Conn) error {
 
 		c.response.Header = receive.Header
 		c.response.Body = receive.Body
-
-		if c.debug {
-			fmt.Println("[receive packet]", "operator:", nType, "header:", string(receive.Header), "body:", string(receive.Body))
-		}
 
 		operator := int64(nType) + sequence
 		if handler, ok := c.handlerContainer.Load(operator); ok {

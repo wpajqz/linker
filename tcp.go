@@ -66,7 +66,7 @@ func (s *Server) handleTcpConnection(ctx context.Context, conn net.Conn) error {
 			return err
 		}
 
-		rp, err := NewReceivePack(convert.BytesToUint32(bType), sequence, header, body, []PacketPlugin{
+		rp, err := NewPacket(convert.BytesToUint32(bType), sequence, header, body, []PacketPlugin{
 			&plugins.Decryption{},
 		})
 

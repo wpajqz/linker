@@ -44,7 +44,7 @@ func (c *Client) handleSendPackets(ctx context.Context, conn net.Conn) error {
 		select {
 		case p := <-c.packet:
 			if c.debug {
-				receivePacket, err := linker.NewReceivePack(p.Operator, p.Sequence, p.Header, p.Body, []linker.PacketPlugin{
+				receivePacket, err := linker.NewPacket(p.Operator, p.Sequence, p.Header, p.Body, []linker.PacketPlugin{
 					&plugins.Decryption{},
 				})
 				if err != nil {
@@ -119,7 +119,7 @@ func (c *Client) handleReceivedPackets(conn net.Conn) error {
 			return err
 		}
 
-		receive, err := linker.NewReceivePack(nType, sequence, header, body, []linker.PacketPlugin{
+		receive, err := linker.NewPacket(nType, sequence, header, body, []linker.PacketPlugin{
 			&plugins.Decryption{},
 		})
 		if err != nil {

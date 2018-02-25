@@ -20,22 +20,7 @@ type (
 	}
 )
 
-func NewSendPack(operator uint32, sequence int64, header, body []byte, plugins []PacketPlugin) (Packet, error) {
-	for _, plugin := range plugins {
-		header, body = plugin.Handle(header, body)
-	}
-
-	return Packet{
-		Operator:     operator,
-		Sequence:     sequence,
-		HeaderLength: uint32(len(header)),
-		BodyLength:   uint32(len(body)),
-		Header:       header,
-		Body:         body,
-	}, nil
-}
-
-func NewReceivePack(operator uint32, sequence int64, header, body []byte, plugins []PacketPlugin) (Packet, error) {
+func NewPacket(operator uint32, sequence int64, header, body []byte, plugins []PacketPlugin) (Packet, error) {
 	for _, plugin := range plugins {
 		header, body = plugin.Handle(header, body)
 	}

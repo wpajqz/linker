@@ -106,7 +106,7 @@ func (c *ContextTcp) Success(body interface{}) {
 		panic(err)
 	}
 
-	p, err := NewSendPack(c.operateType, c.sequence, c.Response.Header, data, []PacketPlugin{
+	p, err := NewPacket(c.operateType, c.sequence, c.Response.Header, data, []PacketPlugin{
 		&plugins.Encryption{},
 	})
 
@@ -124,7 +124,7 @@ func (c *ContextTcp) Error(code int, message string) {
 	c.SetResponseProperty("code", strconv.Itoa(code))
 	c.SetResponseProperty("message", message)
 
-	p, err := NewSendPack(c.operateType, c.sequence, c.Response.Header, nil, []PacketPlugin{
+	p, err := NewPacket(c.operateType, c.sequence, c.Response.Header, nil, []PacketPlugin{
 		&plugins.Encryption{},
 	})
 
@@ -149,7 +149,7 @@ func (c *ContextTcp) Write(operator string, body interface{}) (int, error) {
 		return 0, err
 	}
 
-	p, err := NewSendPack(crc32.ChecksumIEEE([]byte(operator)), 0, c.Response.Header, data,
+	p, err := NewPacket(crc32.ChecksumIEEE([]byte(operator)), 0, c.Response.Header, data,
 		[]PacketPlugin{
 			&plugins.Encryption{},
 		})
@@ -258,7 +258,7 @@ func (c *ContextWebsocket) Success(body interface{}) {
 		panic(err)
 	}
 
-	p, err := NewSendPack(c.operateType, c.sequence, c.Response.Header, data, []PacketPlugin{
+	p, err := NewPacket(c.operateType, c.sequence, c.Response.Header, data, []PacketPlugin{
 		&plugins.Encryption{},
 	})
 
@@ -276,7 +276,7 @@ func (c *ContextWebsocket) Error(code int, message string) {
 	c.SetResponseProperty("code", strconv.Itoa(code))
 	c.SetResponseProperty("message", message)
 
-	p, err := NewSendPack(c.operateType, c.sequence, c.Response.Header, nil, []PacketPlugin{
+	p, err := NewPacket(c.operateType, c.sequence, c.Response.Header, nil, []PacketPlugin{
 		&plugins.Encryption{},
 	})
 
@@ -301,7 +301,7 @@ func (c *ContextWebsocket) Write(operator string, body interface{}) (int, error)
 		return 0, err
 	}
 
-	p, err := NewSendPack(crc32.ChecksumIEEE([]byte(operator)), 0, c.Response.Header, data, []PacketPlugin{
+	p, err := NewPacket(crc32.ChecksumIEEE([]byte(operator)), 0, c.Response.Header, data, []PacketPlugin{
 		&plugins.Encryption{},
 	})
 

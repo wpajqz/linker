@@ -132,7 +132,7 @@ func (c *Client) Ping(interval int64, param []byte, callback RequestStatusCallba
 	}))
 
 	// 建立连接以后就发送心跳包建立会话信息，后面的定期发送
-	p, err := linker.NewSendPack(linker.OPERATOR_HEARTBEAT, sequence, c.request.Header, param, []linker.PacketPlugin{
+	p, err := linker.NewPacket(linker.OPERATOR_HEARTBEAT, sequence, c.request.Header, param, []linker.PacketPlugin{
 		&plugins.Encryption{},
 	})
 
@@ -199,7 +199,7 @@ func (c *Client) SyncSend(operator string, param []byte, callback RequestStatusC
 		quit <- true
 	}))
 
-	p, err := linker.NewSendPack(nType, sequence, c.request.Header, param, []linker.PacketPlugin{
+	p, err := linker.NewPacket(nType, sequence, c.request.Header, param, []linker.PacketPlugin{
 		&plugins.Encryption{},
 	})
 
@@ -253,7 +253,7 @@ func (c *Client) AsyncSend(operator string, param []byte, callback RequestStatus
 		c.handlerContainer.Delete(listener)
 	}))
 
-	p, err := linker.NewSendPack(nType, sequence, c.request.Header, param, []linker.PacketPlugin{
+	p, err := linker.NewPacket(nType, sequence, c.request.Header, param, []linker.PacketPlugin{
 		&plugins.Encryption{},
 	})
 

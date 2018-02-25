@@ -14,16 +14,15 @@ type Packet struct {
 	Body         []byte
 }
 
-func NewSendPack(operator uint32, sequence int64, header, body []byte) Packet {
-	var err error
-	header, err = encrypt.Encrypt(header)
+func NewSendPack(operator uint32, sequence int64, header, body []byte) (Packet, error) {
+	header, err := encrypt.Encrypt(header)
 	if err != nil {
-		panic(err)
+		return Packet{}, err
 	}
 
 	body, err = encrypt.Encrypt(body)
 	if err != nil {
-		panic(err)
+		return Packet{}, err
 	}
 
 	return Packet{
@@ -33,19 +32,18 @@ func NewSendPack(operator uint32, sequence int64, header, body []byte) Packet {
 		BodyLength:   uint32(len(body)),
 		Header:       header,
 		Body:         body,
-	}
+	}, nil
 }
 
-func NewReceivePack(operator uint32, sequence int64, header, body []byte) Packet {
-	var err error
-	header, err = encrypt.Decrypt(header)
+func NewReceivePack(operator uint32, sequence int64, header, body []byte) (Packet, error) {
+	header, err := encrypt.Decrypt(header)
 	if err != nil {
-		panic(err)
+		return Packet{}, nil
 	}
 
 	body, err = encrypt.Decrypt(body)
 	if err != nil {
-		panic(err)
+		return Packet{}, nil
 	}
 
 	return Packet{
@@ -55,7 +53,7 @@ func NewReceivePack(operator uint32, sequence int64, header, body []byte) Packet
 		BodyLength:   uint32(len(body)),
 		Header:       header,
 		Body:         body,
-	}
+	}, nil
 }
 
 // 得到序列化后的Packet

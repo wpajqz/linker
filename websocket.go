@@ -73,7 +73,12 @@ func (s *Server) handleWebSocketConnection(ctx context.Context, conn *websocket.
 			return err
 		}
 
-		receivePackets <- NewReceivePack(convert.BytesToUint32(bType), sequence, header, body)
+		rp, err := NewReceivePack(convert.BytesToUint32(bType), sequence, header, body)
+		if err != nil {
+			return err
+		}
+
+		receivePackets <- rp
 	}
 }
 

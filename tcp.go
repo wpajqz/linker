@@ -65,7 +65,12 @@ func (s *Server) handleTcpConnection(ctx context.Context, conn net.Conn) error {
 			return err
 		}
 
-		receivePackets <- NewReceivePack(convert.BytesToUint32(bType), sequence, header, body)
+		rp, err := NewReceivePack(convert.BytesToUint32(bType), sequence, header, body)
+		if err != nil {
+			return err
+		}
+
+		receivePackets <- rp
 	}
 }
 

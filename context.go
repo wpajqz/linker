@@ -105,7 +105,10 @@ func (c *ContextTcp) Success(body interface{}) {
 		panic(err)
 	}
 
-	p := NewSendPack(c.operateType, c.sequence, c.Response.Header, data)
+	p, err := NewSendPack(c.operateType, c.sequence, c.Response.Header, data)
+	if err != nil {
+		panic(err)
+	}
 
 	c.Conn.Write(p.Bytes())
 
@@ -117,7 +120,10 @@ func (c *ContextTcp) Error(code int, message string) {
 	c.SetResponseProperty("code", strconv.Itoa(code))
 	c.SetResponseProperty("message", message)
 
-	p := NewSendPack(c.operateType, c.sequence, c.Response.Header, nil)
+	p, err := NewSendPack(c.operateType, c.sequence, c.Response.Header, nil)
+	if err != nil {
+		panic(err)
+	}
 
 	c.Conn.Write(p.Bytes())
 
@@ -136,7 +142,10 @@ func (c *ContextTcp) Write(operator string, body interface{}) (int, error) {
 		return 0, err
 	}
 
-	p := NewSendPack(crc32.ChecksumIEEE([]byte(operator)), 0, c.Response.Header, data)
+	p, err := NewSendPack(crc32.ChecksumIEEE([]byte(operator)), 0, c.Response.Header, data)
+	if err != nil {
+		panic(err)
+	}
 
 	return c.Conn.Write(p.Bytes())
 }
@@ -238,7 +247,10 @@ func (c *ContextWebsocket) Success(body interface{}) {
 		panic(err)
 	}
 
-	p := NewSendPack(c.operateType, c.sequence, c.Response.Header, data)
+	p, err := NewSendPack(c.operateType, c.sequence, c.Response.Header, data)
+	if err != nil {
+		panic(err)
+	}
 
 	c.Conn.WriteMessage(websocket.BinaryMessage, p.Bytes())
 
@@ -250,7 +262,10 @@ func (c *ContextWebsocket) Error(code int, message string) {
 	c.SetResponseProperty("code", strconv.Itoa(code))
 	c.SetResponseProperty("message", message)
 
-	p := NewSendPack(c.operateType, c.sequence, c.Response.Header, nil)
+	p, err := NewSendPack(c.operateType, c.sequence, c.Response.Header, nil)
+	if err != nil {
+		panic(err)
+	}
 
 	c.Conn.WriteMessage(websocket.BinaryMessage, p.Bytes())
 
@@ -269,7 +284,10 @@ func (c *ContextWebsocket) Write(operator string, body interface{}) (int, error)
 		return 0, err
 	}
 
-	p := NewSendPack(crc32.ChecksumIEEE([]byte(operator)), 0, c.Response.Header, data)
+	p, err := NewSendPack(crc32.ChecksumIEEE([]byte(operator)), 0, c.Response.Header, data)
+	if err != nil {
+		panic(err)
+	}
 
 	return 0, c.Conn.WriteMessage(websocket.BinaryMessage, p.Bytes())
 }

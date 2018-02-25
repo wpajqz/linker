@@ -108,6 +108,7 @@ func (c *ContextTcp) Success(body interface{}) {
 
 	p, err := NewPacket(c.operateType, c.sequence, c.Response.Header, data, []PacketPlugin{
 		&plugins.Encryption{},
+		&plugins.Debug{Sender: true},
 	})
 
 	if err != nil {
@@ -126,6 +127,7 @@ func (c *ContextTcp) Error(code int, message string) {
 
 	p, err := NewPacket(c.operateType, c.sequence, c.Response.Header, nil, []PacketPlugin{
 		&plugins.Encryption{},
+		&plugins.Debug{Sender: true},
 	})
 
 	if err != nil {
@@ -152,6 +154,7 @@ func (c *ContextTcp) Write(operator string, body interface{}) (int, error) {
 	p, err := NewPacket(crc32.ChecksumIEEE([]byte(operator)), 0, c.Response.Header, data,
 		[]PacketPlugin{
 			&plugins.Encryption{},
+			&plugins.Debug{Sender: true},
 		})
 
 	if err != nil {
@@ -260,6 +263,7 @@ func (c *ContextWebsocket) Success(body interface{}) {
 
 	p, err := NewPacket(c.operateType, c.sequence, c.Response.Header, data, []PacketPlugin{
 		&plugins.Encryption{},
+		&plugins.Debug{Sender: true},
 	})
 
 	if err != nil {
@@ -278,6 +282,7 @@ func (c *ContextWebsocket) Error(code int, message string) {
 
 	p, err := NewPacket(c.operateType, c.sequence, c.Response.Header, nil, []PacketPlugin{
 		&plugins.Encryption{},
+		&plugins.Debug{Sender: true},
 	})
 
 	if err != nil {
@@ -303,6 +308,7 @@ func (c *ContextWebsocket) Write(operator string, body interface{}) (int, error)
 
 	p, err := NewPacket(crc32.ChecksumIEEE([]byte(operator)), 0, c.Response.Header, data, []PacketPlugin{
 		&plugins.Encryption{},
+		&plugins.Debug{Sender: true},
 	})
 
 	if err != nil {

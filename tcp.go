@@ -68,6 +68,7 @@ func (s *Server) handleTcpConnection(ctx context.Context, conn net.Conn) error {
 
 		rp, err := NewPacket(convert.BytesToUint32(bType), sequence, header, body, []PacketPlugin{
 			&plugins.Decryption{},
+			&plugins.Debug{Sender: false},
 		})
 
 		if err != nil {

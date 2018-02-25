@@ -76,6 +76,7 @@ func (s *Server) handleWebSocketConnection(ctx context.Context, conn *websocket.
 
 		rp, err := NewPacket(convert.BytesToUint32(bType), sequence, header, body, []PacketPlugin{
 			&plugins.Decryption{},
+			&plugins.Debug{Sender: false},
 		})
 
 		if err != nil {

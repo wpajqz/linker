@@ -9,6 +9,7 @@ import (
 	"runtime"
 	"time"
 
+	"github.com/wpajqz/linker/plugins"
 	"github.com/wpajqz/linker/utils/convert"
 )
 
@@ -65,7 +66,10 @@ func (s *Server) handleTcpConnection(ctx context.Context, conn net.Conn) error {
 			return err
 		}
 
-		rp, err := NewReceivePack(convert.BytesToUint32(bType), sequence, header, body)
+		rp, err := NewReceivePack(convert.BytesToUint32(bType), sequence, header, body, []PacketPlugin{
+			&plugins.Decryption{},
+		})
+
 		if err != nil {
 			return err
 		}

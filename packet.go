@@ -2,27 +2,27 @@ package linker
 
 import (
 	"github.com/wpajqz/linker/utils/convert"
-	"github.com/wpajqz/linker/utils/encrypt"
 )
 
-type Packet struct {
-	Operator     uint32
-	Sequence     int64
-	HeaderLength uint32
-	BodyLength   uint32
-	Header       []byte
-	Body         []byte
-}
-
-func NewSendPack(operator uint32, sequence int64, header, body []byte) (Packet, error) {
-	header, err := encrypt.Encrypt(header)
-	if err != nil {
-		return Packet{}, err
+type (
+	Packet struct {
+		Operator     uint32
+		Sequence     int64
+		HeaderLength uint32
+		BodyLength   uint32
+		Header       []byte
+		Body         []byte
 	}
 
-	body, err = encrypt.Encrypt(body)
-	if err != nil {
-		return Packet{}, err
+	// Packet plugin, for example debug,gzip,encrypt,decrypt
+	PacketPlugin interface {
+		Handle(header, body []byte) (h, b []byte)
+	}
+)
+
+func NewSendPack(operator uint32, sequence int64, header, body []byte, plugins []PacketPlugin) (Packet, error) {
+	for _, plugin := range plugins {
+		header, body = plugin.Handle(header, body)
 	}
 
 	return Packet{
@@ -35,15 +35,9 @@ func NewSendPack(operator uint32, sequence int64, header, body []byte) (Packet, 
 	}, nil
 }
 
-func NewReceivePack(operator uint32, sequence int64, header, body []byte) (Packet, error) {
-	header, err := encrypt.Decrypt(header)
-	if err != nil {
-		return Packet{}, nil
-	}
-
-	body, err = encrypt.Decrypt(body)
-	if err != nil {
-		return Packet{}, nil
+func NewReceivePack(operator uint32, sequence int64, header, body []byte, plugins []PacketPlugin) (Packet, error) {
+	for _, plugin := range plugins {
+		header, body = plugin.Handle(header, body)
 	}
 
 	return Packet{

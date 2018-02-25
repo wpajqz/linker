@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/wpajqz/linker"
+	"github.com/wpajqz/linker/plugins"
 	"github.com/wpajqz/linker/utils/convert"
 )
 
@@ -43,7 +44,13 @@ func (c *Client) handleSendPackets(ctx context.Context, conn net.Conn) error {
 		select {
 		case p := <-c.packet:
 			if c.debug {
-				receivePacket := linker.NewReceivePack(p.Operator, p.Sequence, p.Header, p.Body)
+				receivePacket, err := linker.NewReceivePack(p.Operator, p.Sequence, p.Header, p.Body, []linker.PacketPlugin{
+					&plugins.Decryption{},
+				})
+				if err != nil {
+					return err
+				}
+
 				fmt.Println("[send packet]", "operator:", receivePacket.Operator, "header:", string(receivePacket.Header), "body:", string(receivePacket.Body))
 			}
 			_, err := conn.Write(p.Bytes())
@@ -112,7 +119,12 @@ func (c *Client) handleReceivedPackets(conn net.Conn) error {
 			return err
 		}
 
-		receive := linker.NewReceivePack(nType, sequence, header, body)
+		receive, err := linker.NewReceivePack(nType, sequence, header, body, []linker.PacketPlugin{
+			&plugins.Decryption{},
+		})
+		if err != nil {
+			return err
+		}
 
 		c.response.Header = receive.Header
 		c.response.Body = receive.Body

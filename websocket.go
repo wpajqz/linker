@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	"github.com/wpajqz/linker/plugins"
 	"github.com/wpajqz/linker/utils/convert"
 )
 
@@ -73,7 +74,10 @@ func (s *Server) handleWebSocketConnection(ctx context.Context, conn *websocket.
 			return err
 		}
 
-		rp, err := NewReceivePack(convert.BytesToUint32(bType), sequence, header, body)
+		rp, err := NewReceivePack(convert.BytesToUint32(bType), sequence, header, body, []PacketPlugin{
+			&plugins.Decryption{},
+		})
+
 		if err != nil {
 			return err
 		}

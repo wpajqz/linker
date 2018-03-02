@@ -9,7 +9,6 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/wpajqz/linker/plugins"
 	"github.com/wpajqz/linker/utils/convert"
 )
 
@@ -66,10 +65,7 @@ func (s *Server) handleTcpConnection(ctx context.Context, conn net.Conn) error {
 			return err
 		}
 
-		rp, err := NewPacket(convert.BytesToUint32(bType), sequence, header, body, []PacketPlugin{
-			&plugins.Decryption{},
-			&plugins.Debug{Sender: false},
-		})
+		rp, err := NewPacket(convert.BytesToUint32(bType), sequence, header, body, s.config.Receiver)
 
 		if err != nil {
 			return err
@@ -84,7 +80,7 @@ func (s *Server) handleTcpPacket(ctx context.Context, conn net.Conn, receivePack
 	for {
 		select {
 		case p := <-receivePackets:
-			c = NewContextTcp(conn, p.Operator, p.Sequence, s.config.ContentType, p.Header, p.Body)
+			c = NewContextTcp(conn, p.Operator, p.Sequence, p.Header, p.Body, s.config)
 			if p.Operator == OPERATOR_HEARTBEAT && s.pingHandler != nil {
 				go func() {
 					s.pingHandler.Handle(c)

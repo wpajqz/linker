@@ -21,7 +21,6 @@ type (
 	Context interface {
 		WithValue(key interface{}, value interface{}) Context
 		Value(key interface{}) interface{}
-		SetContentType(contentType string)
 		ParseParam(data interface{}) error
 		Success(body interface{})
 		Error(code int, message string)
@@ -35,10 +34,10 @@ type (
 	}
 
 	ContextTcp struct {
+		config            Config
 		operateType       uint32
 		sequence          int64
 		body              []byte
-		contentType       string
 		Context           context.Context
 		Conn              net.Conn
 		Request, Response struct {
@@ -47,10 +46,10 @@ type (
 	}
 
 	ContextWebsocket struct {
+		config            Config
 		operateType       uint32
 		sequence          int64
 		body              []byte
-		contentType       string
 		Context           context.Context
 		Conn              *websocket.Conn
 		Request, Response struct {
@@ -59,13 +58,13 @@ type (
 	}
 )
 
-func NewContextTcp(conn net.Conn, OperateType uint32, Sequence int64, contentType string, Header, Body []byte) *ContextTcp {
+func NewContextTcp(conn net.Conn, OperateType uint32, Sequence int64, Header, Body []byte, config Config) *ContextTcp {
 	return &ContextTcp{
 		Context:     context.Background(),
 		Conn:        conn,
 		operateType: OperateType,
 		sequence:    Sequence,
-		contentType: contentType,
+		config:      config,
 		Request:     struct{ Header, Body []byte }{Header: Header, Body: Body},
 		body:        Body,
 	}
@@ -80,13 +79,8 @@ func (c *ContextTcp) Value(key interface{}) interface{} {
 	return c.Context.Value(key)
 }
 
-// 设置单个请求可以处理的序列化数据类型，还可以在中间件中更改
-func (c *ContextTcp) SetContentType(contentType string) {
-	c.contentType = contentType
-}
-
 func (c *ContextTcp) ParseParam(data interface{}) error {
-	r, err := codec.NewCoder(c.contentType)
+	r, err := codec.NewCoder(c.config.ContentType)
 	if err != nil {
 		return err
 	}
@@ -96,7 +90,7 @@ func (c *ContextTcp) ParseParam(data interface{}) error {
 
 // 响应请求成功的数据包
 func (c *ContextTcp) Success(body interface{}) {
-	r, err := codec.NewCoder(c.contentType)
+	r, err := codec.NewCoder(c.config.ContentType)
 	if err != nil {
 		panic(err)
 	}
@@ -141,7 +135,7 @@ func (c *ContextTcp) Error(code int, message string) {
 
 // 向客户端发送数据
 func (c *ContextTcp) Write(operator string, body interface{}) (int, error) {
-	r, err := codec.NewCoder(c.contentType)
+	r, err := codec.NewCoder(c.config.ContentType)
 	if err != nil {
 		return 0, err
 	}
@@ -214,13 +208,13 @@ func (c *ContextTcp) RemoteAddr() string {
 	return c.Conn.RemoteAddr().String()
 }
 
-func NewContextWebsocket(conn *websocket.Conn, OperateType uint32, Sequence int64, contentType string, Header, Body []byte) *ContextWebsocket {
+func NewContextWebsocket(conn *websocket.Conn, OperateType uint32, Sequence int64, Header, Body []byte, config Config) *ContextWebsocket {
 	return &ContextWebsocket{
 		Context:     context.Background(),
 		Conn:        conn,
 		operateType: OperateType,
 		sequence:    Sequence,
-		contentType: contentType,
+		config:      config,
 		Request:     struct{ Header, Body []byte }{Header: Header, Body: Body},
 		body:        Body,
 	}
@@ -235,13 +229,8 @@ func (c *ContextWebsocket) Value(key interface{}) interface{} {
 	return c.Context.Value(key)
 }
 
-// 设置单个请求可以处理的序列化数据类型，还可以在中间件中更改
-func (c *ContextWebsocket) SetContentType(contentType string) {
-	c.contentType = contentType
-}
-
 func (c *ContextWebsocket) ParseParam(data interface{}) error {
-	r, err := codec.NewCoder(c.contentType)
+	r, err := codec.NewCoder(c.config.ContentType)
 	if err != nil {
 		return err
 	}
@@ -251,7 +240,7 @@ func (c *ContextWebsocket) ParseParam(data interface{}) error {
 
 // 响应请求成功的数据包
 func (c *ContextWebsocket) Success(body interface{}) {
-	r, err := codec.NewCoder(c.contentType)
+	r, err := codec.NewCoder(c.config.ContentType)
 	if err != nil {
 		panic(err)
 	}
@@ -296,7 +285,7 @@ func (c *ContextWebsocket) Error(code int, message string) {
 
 // 向客户端发送数据
 func (c *ContextWebsocket) Write(operator string, body interface{}) (int, error) {
-	r, err := codec.NewCoder(c.contentType)
+	r, err := codec.NewCoder(c.config.ContentType)
 	if err != nil {
 		return 0, err
 	}

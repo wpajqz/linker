@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	"github.com/wpajqz/linker/plugins"
 	"github.com/wpajqz/linker/utils/convert"
 )
 
@@ -74,10 +73,7 @@ func (s *Server) handleWebSocketConnection(ctx context.Context, conn *websocket.
 			return err
 		}
 
-		rp, err := NewPacket(convert.BytesToUint32(bType), sequence, header, body, []PacketPlugin{
-			&plugins.Decryption{},
-			&plugins.Debug{Sender: false},
-		})
+		rp, err := NewPacket(convert.BytesToUint32(bType), sequence, header, body, s.config.Receiver)
 
 		if err != nil {
 			return err
@@ -92,7 +88,7 @@ func (s *Server) handleWebSocketPacket(ctx context.Context, conn *websocket.Conn
 	for {
 		select {
 		case p := <-receivePackets:
-			c = NewContextWebsocket(conn, p.Operator, p.Sequence, s.config.ContentType, p.Header, p.Body)
+			c = NewContextWebsocket(conn, p.Operator, p.Sequence, p.Header, p.Body, s.config)
 			if p.Operator == OPERATOR_HEARTBEAT && s.pingHandler != nil {
 				go func() {
 					s.pingHandler.Handle(c)

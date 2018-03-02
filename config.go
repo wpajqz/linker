@@ -7,4 +7,6 @@ type Config struct {
 	Timeout     time.Duration
 	MaxPayload  uint32
 	ContentType string
+	Sender      []PacketPlugin
+	Receiver    []PacketPlugin
 }

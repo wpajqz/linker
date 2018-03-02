@@ -3,7 +3,6 @@ package linker
 import (
 	"io"
 	"log"
-	"time"
 
 	"github.com/wpajqz/linker/codec"
 )
@@ -15,11 +14,8 @@ type (
 	HandlerFunc  func(Context)
 	ErrorHandler func(error)
 	Server       struct {
+		config           Config
 		router           *Router
-		debug            bool
-		contentType      string
-		timeout          time.Duration
-		maxPayload       uint32
 		errorHandler     ErrorHandler
 		constructHandler Handler
 		destructHandler  Handler
@@ -27,37 +23,27 @@ type (
 	}
 )
 
-func NewServer() *Server {
+func NewServer(config Config) *Server {
+	if config.ContentType == "" {
+		config.ContentType = codec.JSON
+	}
+
+	if config.MaxPayload == 0 {
+		config.MaxPayload = MaxPayload
+	}
+
+	if config.Timeout == 0 {
+		config.Timeout = TIMEOUT
+	}
+
 	return &Server{
-		contentType: codec.JSON,
-		timeout:     TIMEOUT,
-		maxPayload:  MaxPayload,
+		config: config,
 		errorHandler: func(err error) {
 			if err != io.EOF {
 				log.Println(err.Error())
 			}
 		},
 	}
-}
-
-// 设置所有请求的序列化数据类型
-func (s *Server) SetDebug(bool bool) {
-	s.debug = bool
-}
-
-// 设置所有请求的序列化数据类型
-func (s *Server) SetContentType(contentType string) {
-	s.contentType = contentType
-}
-
-// 设置默认超时时间
-func (s *Server) SetTimeout(timeout time.Duration) {
-	s.timeout = timeout
-}
-
-// 设置可处理的数据包的最大长度
-func (s *Server) SetMaxPayload(maxPayload uint32) {
-	s.maxPayload = maxPayload
 }
 
 // 设置默认错误处理方法

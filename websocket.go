@@ -29,7 +29,7 @@ func (s *Server) handleWebSocketConnection(ctx context.Context, conn *websocket.
 	)
 
 	conn.SetReadLimit(MaxPayload)
-	conn.SetReadDeadline(time.Now().Add(s.timeout))
+	conn.SetReadDeadline(time.Now().Add(s.config.Timeout))
 
 	for {
 		_, r, err := conn.NextReader()
@@ -58,7 +58,7 @@ func (s *Server) handleWebSocketConnection(ctx context.Context, conn *websocket.
 		bodyLength = convert.BytesToUint32(bBodyLength)
 		pacLen := headerLength + bodyLength + uint32(20)
 
-		if pacLen > s.maxPayload {
+		if pacLen > s.config.MaxPayload {
 			_, file, line, _ := runtime.Caller(1)
 			return SystemError{time.Now(), file, line, "packet larger than MaxPayload"}
 		}
@@ -92,7 +92,7 @@ func (s *Server) handleWebSocketPacket(ctx context.Context, conn *websocket.Conn
 	for {
 		select {
 		case p := <-receivePackets:
-			c = NewContextWebsocket(conn, p.Operator, p.Sequence, s.contentType, p.Header, p.Body)
+			c = NewContextWebsocket(conn, p.Operator, p.Sequence, s.config.ContentType, p.Header, p.Body)
 			if p.Operator == OPERATOR_HEARTBEAT && s.pingHandler != nil {
 				go func() {
 					s.pingHandler.Handle(c)
@@ -139,9 +139,9 @@ func (s *Server) handleWebSocketPacket(ctx context.Context, conn *websocket.Conn
 func (s *Server) RunWebSocket(address string) error {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		var upgrade = websocket.Upgrader{
-			HandshakeTimeout:  s.timeout,
-			ReadBufferSize:    int(s.maxPayload),
-			WriteBufferSize:   int(s.maxPayload),
+			HandshakeTimeout:  s.config.Timeout,
+			ReadBufferSize:    int(s.config.MaxPayload),
+			WriteBufferSize:   int(s.config.MaxPayload),
 			EnableCompression: true,
 			CheckOrigin: func(r *http.Request) bool {
 				return true

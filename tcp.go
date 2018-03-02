@@ -28,7 +28,7 @@ func (s *Server) handleTcpConnection(ctx context.Context, conn net.Conn) error {
 	)
 
 	for {
-		conn.SetDeadline(time.Now().Add(s.timeout))
+		conn.SetDeadline(time.Now().Add(s.config.Timeout))
 
 		if n, err := io.ReadFull(conn, bType); err != nil && n != 4 {
 			return err
@@ -51,7 +51,7 @@ func (s *Server) handleTcpConnection(ctx context.Context, conn net.Conn) error {
 		bodyLength = convert.BytesToUint32(bBodyLength)
 		pacLen := headerLength + bodyLength + uint32(20)
 
-		if pacLen > s.maxPayload {
+		if pacLen > s.config.MaxPayload {
 			_, file, line, _ := runtime.Caller(1)
 			return SystemError{time.Now(), file, line, "packet larger than MaxPayload"}
 		}
@@ -84,7 +84,7 @@ func (s *Server) handleTcpPacket(ctx context.Context, conn net.Conn, receivePack
 	for {
 		select {
 		case p := <-receivePackets:
-			c = NewContextTcp(conn, p.Operator, p.Sequence, s.contentType, p.Header, p.Body)
+			c = NewContextTcp(conn, p.Operator, p.Sequence, s.config.ContentType, p.Header, p.Body)
 			if p.Operator == OPERATOR_HEARTBEAT && s.pingHandler != nil {
 				go func() {
 					s.pingHandler.Handle(c)

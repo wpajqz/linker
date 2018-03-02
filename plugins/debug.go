@@ -2,12 +2,12 @@ package plugins
 
 import (
 	"fmt"
+
 	"github.com/wpajqz/linker/utils/encrypt"
 )
 
 type Debug struct {
-	Sender   bool
-	Operator uint32
+	Sender bool
 }
 
 func (d *Debug) Handle(header, body []byte) (h, b []byte) {
@@ -15,9 +15,9 @@ func (d *Debug) Handle(header, body []byte) (h, b []byte) {
 		th, _ := encrypt.Decrypt(header)
 		tb, _ := encrypt.Decrypt(body)
 
-		fmt.Println("[send packet]", "operator:", d.Operator, "header:", string(th), "body:", string(tb))
+		fmt.Println("[send packet]", "header:", string(th), "body:", string(tb))
 	} else {
-		fmt.Println("[receive packet]", "operator:", d.Operator, "header:", string(header), "body:", string(body))
+		fmt.Println("[receive packet]", "header:", string(header), "body:", string(body))
 	}
 
 	return header, body

@@ -99,7 +99,7 @@ func (c *ContextTcp) Success(body interface{}) {
 		panic(err)
 	}
 
-	p, err := NewPacket(c.operateType, c.sequence, c.Response.Header, data, c.config.PacketSender)
+	p, err := NewPacket(c.operateType, c.sequence, c.Response.Header, data, c.config.PluginForPacketSender)
 
 	if err != nil {
 		panic(err)
@@ -115,7 +115,7 @@ func (c *ContextTcp) Error(code int, message string) {
 	c.SetResponseProperty("code", strconv.Itoa(code))
 	c.SetResponseProperty("message", message)
 
-	p, err := NewPacket(c.operateType, c.sequence, c.Response.Header, nil, c.config.PacketSender)
+	p, err := NewPacket(c.operateType, c.sequence, c.Response.Header, nil, c.config.PluginForPacketSender)
 
 	if err != nil {
 		panic(err)
@@ -138,7 +138,7 @@ func (c *ContextTcp) Write(operator string, body interface{}) (int, error) {
 		return 0, err
 	}
 
-	p, err := NewPacket(crc32.ChecksumIEEE([]byte(operator)), 0, c.Response.Header, data, c.config.PacketSender)
+	p, err := NewPacket(crc32.ChecksumIEEE([]byte(operator)), 0, c.Response.Header, data, c.config.PluginForPacketSender)
 
 	if err != nil {
 		panic(err)
@@ -239,7 +239,7 @@ func (c *ContextWebsocket) Success(body interface{}) {
 		panic(err)
 	}
 
-	p, err := NewPacket(c.operateType, c.sequence, c.Response.Header, data, c.config.PacketSender)
+	p, err := NewPacket(c.operateType, c.sequence, c.Response.Header, data, c.config.PluginForPacketSender)
 
 	if err != nil {
 		panic(err)
@@ -255,7 +255,7 @@ func (c *ContextWebsocket) Error(code int, message string) {
 	c.SetResponseProperty("code", strconv.Itoa(code))
 	c.SetResponseProperty("message", message)
 
-	p, err := NewPacket(c.operateType, c.sequence, c.Response.Header, nil, c.config.PacketSender)
+	p, err := NewPacket(c.operateType, c.sequence, c.Response.Header, nil, c.config.PluginForPacketSender)
 
 	if err != nil {
 		panic(err)
@@ -278,7 +278,7 @@ func (c *ContextWebsocket) Write(operator string, body interface{}) (int, error)
 		return 0, err
 	}
 
-	p, err := NewPacket(crc32.ChecksumIEEE([]byte(operator)), 0, c.Response.Header, data, c.config.PacketSender)
+	p, err := NewPacket(crc32.ChecksumIEEE([]byte(operator)), 0, c.Response.Header, data, c.config.PluginForPacketSender)
 
 	if err != nil {
 		panic(err)

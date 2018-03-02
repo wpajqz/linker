@@ -3,10 +3,10 @@ package linker
 import "time"
 
 type Config struct {
-	Debug          bool
-	Timeout        time.Duration
-	MaxPayload     uint32
-	ContentType    string
-	PacketSender   []PacketPlugin
-	PacketReceiver []PacketPlugin
+	Debug                   bool
+	Timeout                 time.Duration
+	MaxPayload              uint32
+	ContentType             string
+	PluginForPacketSender   []PacketPlugin
+	PluginForPacketReceiver []PacketPlugin
 }

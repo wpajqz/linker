@@ -73,7 +73,7 @@ func (s *Server) handleWebSocketConnection(ctx context.Context, conn *websocket.
 			return err
 		}
 
-		rp, err := NewPacket(convert.BytesToUint32(bType), sequence, header, body, s.config.PacketReceiver)
+		rp, err := NewPacket(convert.BytesToUint32(bType), sequence, header, body, s.config.PluginForPacketReceiver)
 
 		if err != nil {
 			return err

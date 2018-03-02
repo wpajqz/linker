@@ -65,7 +65,7 @@ func (s *Server) handleTcpConnection(ctx context.Context, conn net.Conn) error {
 			return err
 		}
 
-		rp, err := NewPacket(convert.BytesToUint32(bType), sequence, header, body, s.config.PacketReceiver)
+		rp, err := NewPacket(convert.BytesToUint32(bType), sequence, header, body, s.config.PluginForPacketReceiver)
 
 		if err != nil {
 			return err

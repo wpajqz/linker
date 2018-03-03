@@ -125,7 +125,12 @@ func (s *Server) handleTcpPacket(ctx context.Context, conn net.Conn, receivePack
 
 // 开始运行Tcp服务
 func (s *Server) RunTcp(name, address string) error {
-	listener, err := net.Listen(name, address)
+	tcpAddr, err := net.ResolveTCPAddr(name, address)
+	if err != nil {
+		return err
+	}
+
+	listener, err := net.ListenTCP(name, tcpAddr)
 	if err != nil {
 		return err
 	}
@@ -134,7 +139,7 @@ func (s *Server) RunTcp(name, address string) error {
 
 	fmt.Printf("tcp server running on %s\n", address)
 	for {
-		conn, err := listener.Accept()
+		conn, err := listener.AcceptTCP()
 		if err != nil {
 			continue
 		}

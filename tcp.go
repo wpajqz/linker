@@ -144,6 +144,14 @@ func (s *Server) RunTcp(name, address string) error {
 			continue
 		}
 
+		if s.config.ReadBufferSize > 0 {
+			conn.SetReadBuffer(s.config.ReadBufferSize)
+		}
+
+		if s.config.WriteBufferSize > 0 {
+			conn.SetWriteBuffer(s.config.WriteBufferSize)
+		}
+
 		go func(conn net.Conn) {
 			ctx, cancel := context.WithCancel(context.Background())
 			defer func() {

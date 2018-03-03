@@ -136,8 +136,8 @@ func (s *Server) RunWebSocket(address string) error {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		var upgrade = websocket.Upgrader{
 			HandshakeTimeout:  s.config.Timeout,
-			ReadBufferSize:    int(s.config.MaxPayload),
-			WriteBufferSize:   int(s.config.MaxPayload),
+			ReadBufferSize:    s.config.ReadBufferSize,
+			WriteBufferSize:   s.config.WriteBufferSize,
 			EnableCompression: true,
 			CheckOrigin: func(r *http.Request) bool {
 				return true

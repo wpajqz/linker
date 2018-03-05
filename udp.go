@@ -93,7 +93,7 @@ func (s *Server) RunUdp(name, address string) error {
 		data := make([]byte, MaxPayload)
 		n, remote, err := conn.ReadFromUDP(data)
 		if err != nil {
-			continue
+			return err
 		}
 
 		if n > 0 {

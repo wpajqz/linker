@@ -3,7 +3,6 @@ package linker
 import (
 	"fmt"
 	"net"
-	"time"
 
 	"github.com/wpajqz/linker/utils/convert"
 )
@@ -64,16 +63,9 @@ func (s *Server) RunUdp(name, address string) error {
 		return err
 	}
 
+	defer conn.Close()
+
 	fmt.Printf("udp server running on %s\n", address)
-
-	c := &ContextUdp{Conn: conn}
-	defer func() {
-		if s.destructHandler != nil {
-			s.destructHandler.Handle(c)
-		}
-
-		conn.Close()
-	}()
 
 	if s.config.ReadBufferSize > 0 {
 		conn.SetReadBuffer(s.config.ReadBufferSize)
@@ -87,17 +79,14 @@ func (s *Server) RunUdp(name, address string) error {
 		s.constructHandler.Handle(nil)
 	}
 
+	c := &ContextUdp{Conn: conn}
 	for {
-		conn.SetDeadline(time.Now().Add(s.config.Timeout))
-
 		data := make([]byte, MaxPayload)
 		n, remote, err := conn.ReadFromUDP(data)
 		if err != nil {
-			return err
+			continue
 		}
 
-		if n > 0 {
-			go s.handleUdpData(c, conn, remote, data, n)
-		}
+		go s.handleUdpData(c, conn, remote, data, n)
 	}
 }

@@ -7,7 +7,7 @@ import (
 	"github.com/wpajqz/linker/utils/convert"
 )
 
-func (s *Server) handleUdpData(ctx Context, conn *net.UDPConn, remote *net.UDPAddr, data []byte, length int) {
+func (s *Server) handleUdpData(conn *net.UDPConn, remote *net.UDPAddr, data []byte, length int) {
 	bType := data[0:4]
 	bSequence := data[4:12]
 	bHeaderLength := data[12:16]
@@ -23,7 +23,7 @@ func (s *Server) handleUdpData(ctx Context, conn *net.UDPConn, remote *net.UDPAd
 		return
 	}
 
-	ctx = NewContextUdp(conn, remote, rp.Operator, rp.Sequence, rp.Header, rp.Body, s.config)
+	var ctx Context = NewContextUdp(conn, remote, rp.Operator, rp.Sequence, rp.Header, rp.Body, s.config)
 	if rp.Operator == OPERATOR_HEARTBEAT && s.pingHandler != nil {
 		s.pingHandler.Handle(ctx)
 		ctx.Success(nil)
@@ -79,7 +79,6 @@ func (s *Server) RunUdp(name, address string) error {
 		s.constructHandler.Handle(nil)
 	}
 
-	c := &ContextUdp{Conn: conn}
 	for {
 		data := make([]byte, MaxPayload)
 		n, remote, err := conn.ReadFromUDP(data)
@@ -87,6 +86,6 @@ func (s *Server) RunUdp(name, address string) error {
 			continue
 		}
 
-		go s.handleUdpData(c, conn, remote, data, n)
+		go s.handleUdpData(conn, remote, data, n)
 	}
 }

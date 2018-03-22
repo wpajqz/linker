@@ -28,9 +28,10 @@ func (s *Server) handleWebSocketConnection(ctx context.Context, conn *websocket.
 	)
 
 	conn.SetReadLimit(MaxPayload)
-	conn.SetReadDeadline(time.Now().Add(s.config.Timeout))
 
 	for {
+		conn.SetReadDeadline(time.Now().Add(s.config.Timeout))
+
 		_, r, err := conn.NextReader()
 		if err != nil {
 			return err

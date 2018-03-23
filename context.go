@@ -50,7 +50,7 @@ type (
 		sequence          int64
 		body              []byte
 		Context           context.Context
-		Conn              *websocket.Conn
+		Conn              *webSocketConn
 		Request, Response struct {
 			Header, Body []byte
 		}
@@ -210,7 +210,7 @@ func (c *ContextTcp) RemoteAddr() string {
 	return c.Conn.RemoteAddr().String()
 }
 
-func NewContextWebsocket(conn *websocket.Conn, OperateType uint32, Sequence int64, Header, Body []byte, config Config) *ContextWebsocket {
+func NewContextWebsocket(conn *webSocketConn, OperateType uint32, Sequence int64, Header, Body []byte, config Config) *ContextWebsocket {
 	return &ContextWebsocket{
 		Context:     context.Background(),
 		Conn:        conn,
@@ -259,6 +259,8 @@ func (c *ContextWebsocket) Success(body interface{}) {
 	}
 
 	c.Conn.WriteMessage(websocket.BinaryMessage, p.Bytes())
+
+	runtime.Goexit()
 }
 
 // 响应请求失败的数据包
@@ -273,6 +275,8 @@ func (c *ContextWebsocket) Error(code int, message string) {
 	}
 
 	c.Conn.WriteMessage(websocket.BinaryMessage, p.Bytes())
+
+	runtime.Goexit()
 }
 
 // 向客户端发送数据

@@ -9,6 +9,8 @@ import (
 	"runtime"
 	"time"
 
+	"sync"
+
 	"github.com/gorilla/websocket"
 	"github.com/wpajqz/linker/utils/convert"
 )
@@ -85,13 +87,14 @@ func (s *Server) handleWebSocketConnection(ctx context.Context, conn *websocket.
 }
 
 func (s *Server) handleWebSocketPacket(ctx context.Context, conn *websocket.Conn, receivePackets <-chan Packet) {
-	var c Context = &ContextWebsocket{Conn: conn}
+	wsn := &webSocketConn{mutex: sync.Mutex{}, conn: conn}
+	var c Context = &ContextWebsocket{Conn: wsn}
 	for {
 		select {
 		case p := <-receivePackets:
-			c = NewContextWebsocket(conn, p.Operator, p.Sequence, p.Header, p.Body, s.config)
+			c = NewContextWebsocket(wsn, p.Operator, p.Sequence, p.Header, p.Body, s.config)
 			if p.Operator == OPERATOR_HEARTBEAT && s.pingHandler != nil {
-				func() {
+				go func() {
 					s.pingHandler.Handle(c)
 					c.Success(nil)
 				}()
@@ -104,7 +107,7 @@ func (s *Server) handleWebSocketPacket(ctx context.Context, conn *websocket.Conn
 				continue
 			}
 
-			func(c Context, handler Handler) {
+			go func(c Context, handler Handler) {
 				if rm, ok := s.router.routerMiddleware[p.Operator]; ok {
 					for _, v := range rm {
 						c = v.Handle(c)

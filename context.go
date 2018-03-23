@@ -259,8 +259,6 @@ func (c *ContextWebsocket) Success(body interface{}) {
 	}
 
 	c.Conn.WriteMessage(websocket.BinaryMessage, p.Bytes())
-
-	runtime.Goexit()
 }
 
 // 响应请求失败的数据包
@@ -275,8 +273,6 @@ func (c *ContextWebsocket) Error(code int, message string) {
 	}
 
 	c.Conn.WriteMessage(websocket.BinaryMessage, p.Bytes())
-
-	runtime.Goexit()
 }
 
 // 向客户端发送数据

@@ -91,7 +91,7 @@ func (s *Server) handleWebSocketPacket(ctx context.Context, conn *websocket.Conn
 		case p := <-receivePackets:
 			c = NewContextWebsocket(conn, p.Operator, p.Sequence, p.Header, p.Body, s.config)
 			if p.Operator == OPERATOR_HEARTBEAT && s.pingHandler != nil {
-				go func() {
+				func() {
 					s.pingHandler.Handle(c)
 					c.Success(nil)
 				}()
@@ -104,7 +104,7 @@ func (s *Server) handleWebSocketPacket(ctx context.Context, conn *websocket.Conn
 				continue
 			}
 
-			go func(c Context, handler Handler) {
+			func(c Context, handler Handler) {
 				if rm, ok := s.router.routerMiddleware[p.Operator]; ok {
 					for _, v := range rm {
 						c = v.Handle(c)

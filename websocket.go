@@ -151,33 +151,35 @@ func (s *Server) RunWebSocket(address string) error {
 			return
 		}
 
-		ctx, cancel := context.WithCancel(context.Background())
-		defer func() {
-			if r := recover(); r != nil {
-				if s.errorHandler != nil {
-					switch v := r.(type) {
-					case error:
-						s.errorHandler(v)
-					case string:
-						s.errorHandler(errors.New(v))
+		go func(conn *websocket.Conn) {
+			ctx, cancel := context.WithCancel(context.Background())
+			defer func() {
+				if r := recover(); r != nil {
+					if s.errorHandler != nil {
+						switch v := r.(type) {
+						case error:
+							s.errorHandler(v)
+						case string:
+							s.errorHandler(errors.New(v))
+						}
 					}
 				}
+
+				cancel()
+				conn.Close()
+			}()
+
+			if s.constructHandler != nil {
+				s.constructHandler.Handle(nil)
 			}
 
-			cancel()
-			conn.Close()
-		}()
-
-		if s.constructHandler != nil {
-			s.constructHandler.Handle(nil)
-		}
-
-		err = s.handleWebSocketConnection(ctx, conn)
-		if err != nil {
-			if s.errorHandler != nil {
-				s.errorHandler(err)
+			err = s.handleWebSocketConnection(ctx, conn)
+			if err != nil {
+				if s.errorHandler != nil {
+					s.errorHandler(err)
+				}
 			}
-		}
+		}(conn)
 	})
 
 	fmt.Printf("websocket server running on %s\n", address)

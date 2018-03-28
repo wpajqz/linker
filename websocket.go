@@ -1,12 +1,13 @@
 package linker
 
 import (
-	"context"
 	"fmt"
 	"io"
 	"net/http"
 	"runtime"
 	"time"
+
+	"errors"
 
 	"sync"
 
@@ -14,9 +15,21 @@ import (
 	"github.com/wpajqz/linker/utils/convert"
 )
 
-func (s *Server) handleWebSocketConnection(ctx context.Context, conn *websocket.Conn) error {
-	receivePackets := make(chan Packet, 100)
-	go s.handleWebSocketPacket(ctx, conn, receivePackets)
+func (s *Server) handleWebSocketConnection(conn *websocket.Conn) error {
+	wsn := &webSocketConn{mutex: sync.Mutex{}, conn: conn}
+	var ctx Context = &ContextWebsocket{Conn: wsn}
+
+	if s.constructHandler != nil {
+		s.constructHandler.Handle(ctx)
+	}
+
+	defer func() {
+		if s.destructHandler != nil {
+			s.destructHandler.Handle(ctx)
+		}
+
+		conn.Close()
+	}()
 
 	var (
 		bType         = make([]byte, 4)
@@ -81,57 +94,47 @@ func (s *Server) handleWebSocketConnection(ctx context.Context, conn *websocket.
 			return err
 		}
 
-		receivePackets <- rp
+		ctx = NewContextWebsocket(wsn, rp.Operator, rp.Sequence, rp.Header, rp.Body, s.config)
+		go s.handleWebSocketPacket(ctx, conn, rp)
 	}
 }
 
-func (s *Server) handleWebSocketPacket(ctx context.Context, conn *websocket.Conn, receivePackets <-chan Packet) {
-	wsn := &webSocketConn{mutex: sync.Mutex{}, conn: conn}
-	var c Context = &ContextWebsocket{Conn: wsn}
-	for {
-		select {
-		case p := <-receivePackets:
-			c = NewContextWebsocket(wsn, p.Operator, p.Sequence, p.Header, p.Body, s.config)
-			if p.Operator == OPERATOR_HEARTBEAT && s.pingHandler != nil {
-				go func() {
-					s.pingHandler.Handle(c)
-					c.Success(nil)
-				}()
-
-				continue
+func (s *Server) handleWebSocketPacket(ctx Context, conn *websocket.Conn, rp Packet) {
+	defer func() {
+		if r := recover(); r != nil {
+			if s.errorHandler != nil {
+				buf := make([]byte, 1<<12)
+				n := runtime.Stack(buf, false)
+				s.errorHandler(errors.New(string(buf[:n])))
 			}
+		}
+	}()
 
-			handler, ok := s.router.handlerContainer[p.Operator]
-			if !ok {
-				continue
-			}
+	if rp.Operator == OPERATOR_HEARTBEAT && s.pingHandler != nil {
+		s.pingHandler.Handle(ctx)
+		ctx.Success(nil)
+	}
 
-			go func(c Context, handler Handler) {
-				if rm, ok := s.router.routerMiddleware[p.Operator]; ok {
-					for _, v := range rm {
-						c = v.Handle(c)
-					}
-				}
+	handler, ok := s.router.handlerContainer[rp.Operator]
+	if !ok {
+		ctx.Error(StatusInternalServerError, "server don't register your request.")
+	}
 
-				for _, v := range s.router.middleware {
-					c = v.Handle(c)
-					if tm, ok := v.(TerminateMiddleware); ok {
-						tm.Terminate(c)
-					}
-				}
-
-				handler.Handle(c)
-				c.Success(nil) // If it don't call the function of Success or Error, deal it by default
-			}(c, handler)
-		case <-ctx.Done():
-			// 执行链接退出以后回收操作
-			if s.destructHandler != nil {
-				s.destructHandler.Handle(c)
-			}
-
-			return
+	if rm, ok := s.router.routerMiddleware[rp.Operator]; ok {
+		for _, v := range rm {
+			ctx = v.Handle(ctx)
 		}
 	}
+
+	for _, v := range s.router.middleware {
+		ctx = v.Handle(ctx)
+		if tm, ok := v.(TerminateMiddleware); ok {
+			tm.Terminate(ctx)
+		}
+	}
+
+	handler.Handle(ctx)
+	ctx.Success(nil) // If it don't call the function of Success or Error, deal it by default
 }
 
 // 开始运行webocket服务
@@ -153,22 +156,7 @@ func (s *Server) RunWebSocket(address string) error {
 			return
 		}
 
-		go func(conn *websocket.Conn) {
-			if s.constructHandler != nil {
-				s.constructHandler.Handle(nil)
-			}
-
-			ctx, cancel := context.WithCancel(context.Background())
-			err = s.handleWebSocketConnection(ctx, conn)
-			if err != nil {
-				if s.errorHandler != nil {
-					s.errorHandler(err)
-				}
-
-				cancel()
-				conn.Close()
-			}
-		}(conn)
+		go s.handleWebSocketConnection(conn)
 	})
 
 	fmt.Printf("websocket server running on %s\n", address)

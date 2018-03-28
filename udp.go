@@ -31,7 +31,7 @@ func (s *Server) handleUdpData(conn *net.UDPConn, remote *net.UDPAddr, data []by
 
 	handler, ok := s.router.handlerContainer[rp.Operator]
 	if !ok {
-		return
+		ctx.Error(StatusInternalServerError, "server don't register your request.")
 	}
 
 	if rm, ok := s.router.routerMiddleware[rp.Operator]; ok {

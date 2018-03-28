@@ -2,7 +2,6 @@ package linker
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -153,32 +152,19 @@ func (s *Server) RunTcp(name, address string) error {
 		}
 
 		go func(conn net.Conn) {
-			ctx, cancel := context.WithCancel(context.Background())
-			defer func() {
-				if r := recover(); r != nil {
-					if s.errorHandler != nil {
-						switch v := r.(type) {
-						case error:
-							s.errorHandler(v)
-						case string:
-							s.errorHandler(errors.New(v))
-						}
-					}
-				}
-
-				cancel()
-				conn.Close()
-			}()
-
 			if s.constructHandler != nil {
 				s.constructHandler.Handle(nil)
 			}
 
+			ctx, cancel := context.WithCancel(context.Background())
 			err := s.handleTcpConnection(ctx, conn)
 			if err != nil {
 				if s.errorHandler != nil {
 					s.errorHandler(err)
 				}
+
+				cancel()
+				conn.Close()
 			}
 		}(conn)
 	}

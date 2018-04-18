@@ -46,19 +46,19 @@ func (s *Server) handleTcpConnection(conn *net.TCPConn) error {
 	for {
 		conn.SetDeadline(time.Now().Add(s.config.Timeout))
 
-		if n, err := io.ReadFull(conn, bType); err != nil && n != 4 {
+		if _, err := io.ReadFull(conn, bType); err != nil {
 			return err
 		}
 
-		if n, err := io.ReadFull(conn, bSequence); err != nil && n != 8 {
+		if _, err := io.ReadFull(conn, bSequence); err != nil {
 			return err
 		}
 
-		if n, err := io.ReadFull(conn, bHeaderLength); err != nil && n != 4 {
+		if _, err := io.ReadFull(conn, bHeaderLength); err != nil {
 			return err
 		}
 
-		if n, err := io.ReadFull(conn, bBodyLength); err != nil && n != 4 {
+		if _, err := io.ReadFull(conn, bBodyLength); err != nil {
 			return err
 		}
 
@@ -73,12 +73,12 @@ func (s *Server) handleTcpConnection(conn *net.TCPConn) error {
 		}
 
 		header := make([]byte, headerLength)
-		if n, err := io.ReadFull(conn, header); err != nil && n != int(headerLength) {
+		if _, err := io.ReadFull(conn, header); err != nil {
 			return err
 		}
 
 		body := make([]byte, bodyLength)
-		if n, err := io.ReadFull(conn, body); err != nil && n != int(bodyLength) {
+		if _, err := io.ReadFull(conn, body); err != nil {
 			return err
 		}
 

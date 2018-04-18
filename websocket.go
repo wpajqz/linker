@@ -51,19 +51,19 @@ func (s *Server) handleWebSocketConnection(conn *websocket.Conn) error {
 			return err
 		}
 
-		if n, err := io.ReadFull(r, bType); err != nil && n != 4 {
+		if _, err := io.ReadFull(r, bType); err != nil {
 			return err
 		}
 
-		if n, err := io.ReadFull(r, bSequence); err != nil && n != 8 {
+		if _, err := io.ReadFull(r, bSequence); err != nil {
 			return err
 		}
 
-		if n, err := io.ReadFull(r, bHeaderLength); err != nil && n != 4 {
+		if _, err := io.ReadFull(r, bHeaderLength); err != nil {
 			return err
 		}
 
-		if n, err := io.ReadFull(r, bBodyLength); err != nil && n != 4 {
+		if _, err := io.ReadFull(r, bBodyLength); err != nil {
 			return err
 		}
 
@@ -78,13 +78,13 @@ func (s *Server) handleWebSocketConnection(conn *websocket.Conn) error {
 		}
 
 		header := make([]byte, headerLength)
-		if n, err := io.ReadFull(r, header); err != nil && n != int(headerLength) {
+		if _, err := io.ReadFull(r, header); err != nil {
 			return err
 
 		}
 
 		body := make([]byte, bodyLength)
-		if n, err := io.ReadFull(r, body); err != nil && n != int(bodyLength) {
+		if _, err := io.ReadFull(r, body); err != nil {
 			return err
 		}
 

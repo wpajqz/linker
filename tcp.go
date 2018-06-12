@@ -89,11 +89,11 @@ func (s *Server) handleTCPConnection(conn *net.TCPConn) error {
 		}
 
 		ctx = NewContextTcp(conn, rp.Operator, rp.Sequence, rp.Header, rp.Body, s.config)
-		go s.handleTcpPacket(ctx, conn, rp)
+		go s.handleTCPPacket(ctx, conn, rp)
 	}
 }
 
-func (s *Server) handleTcpPacket(ctx Context, conn net.Conn, rp Packet) {
+func (s *Server) handleTCPPacket(ctx Context, conn net.Conn, rp Packet) {
 	defer func() {
 		if r := recover(); r != nil {
 			if s.errorHandler != nil {

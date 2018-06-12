@@ -52,7 +52,7 @@ func (s *Server) handleUDPData(conn *net.UDPConn, remote *net.UDPAddr, data []by
 }
 
 // 开始运行Tcp服务
-func (s *Server) RunUdp(name, address string) error {
+func (s *Server) RunUDP(name, address string) error {
 	udpAddr, err := net.ResolveUDPAddr(name, address)
 	if err != nil {
 		return err

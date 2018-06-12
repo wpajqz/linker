@@ -2,6 +2,7 @@ package linker
 
 import "time"
 
+// Config for socket server
 type Config struct {
 	Debug                   bool
 	ReadBufferSize          int

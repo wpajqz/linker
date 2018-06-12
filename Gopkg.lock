@@ -5,13 +5,13 @@
   branch = "master"
   name = "github.com/golang/protobuf"
   packages = ["proto"]
-  revision = "1e59b77b52bf8e4b449a57e6f79f21226d571845"
+  revision = "05f48f4eaf0e05663b562bab533cdd472238ce29"
 
 [[projects]]
   branch = "master"
   name = "github.com/gorilla/websocket"
   packages = ["."]
-  revision = "c55883f97322b4bcbf48f734e23d6ab3af1ea488"
+  revision = "5ed622c449da6d44c3c8329331ff47a9e5844f71"
 
 [[projects]]
   name = "github.com/inconshreveable/mousetrap"
@@ -23,13 +23,13 @@
   branch = "master"
   name = "github.com/spf13/cobra"
   packages = ["."]
-  revision = "19e54c4a2b8a78c9d54b2bed61b1a6c5e1bfcf6f"
+  revision = "1e58aa3361fd650121dceeedc399e7189c05674a"
 
 [[projects]]
   name = "github.com/spf13/pflag"
   packages = ["."]
-  revision = "e57e3eeb33f795204c1ca35f56c44f83227c6e66"
-  version = "v1.0.0"
+  revision = "583c0c0531f06d5278b7d917446061adc344b5cd"
+  version = "v1.0.1"
 
 [solve-meta]
   analyzer-name = "dep"

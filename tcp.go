@@ -11,7 +11,7 @@ import (
 	"github.com/wpajqz/linker/utils/convert"
 )
 
-func (s *Server) handleTcpConnection(conn *net.TCPConn) error {
+func (s *Server) handleTCPConnection(conn *net.TCPConn) error {
 	var ctx Context = &ContextTcp{Conn: conn}
 	if s.constructHandler != nil {
 		s.constructHandler.Handle(ctx)
@@ -132,7 +132,7 @@ func (s *Server) handleTcpPacket(ctx Context, conn net.Conn, rp Packet) {
 }
 
 // 开始运行Tcp服务
-func (s *Server) RunTcp(name, address string) error {
+func (s *Server) RunTCP(name, address string) error {
 	tcpAddr, err := net.ResolveTCPAddr(name, address)
 	if err != nil {
 		return err
@@ -152,6 +152,6 @@ func (s *Server) RunTcp(name, address string) error {
 			continue
 		}
 
-		go s.handleTcpConnection(conn)
+		go s.handleTCPConnection(conn)
 	}
 }

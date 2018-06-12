@@ -7,7 +7,7 @@ import (
 	"github.com/wpajqz/linker/utils/convert"
 )
 
-func (s *Server) handleUdpData(conn *net.UDPConn, remote *net.UDPAddr, data []byte, length int) {
+func (s *Server) handleUDPData(conn *net.UDPConn, remote *net.UDPAddr, data []byte, length int) {
 	bType := data[0:4]
 	bSequence := data[4:12]
 	bHeaderLength := data[12:16]
@@ -86,6 +86,6 @@ func (s *Server) RunUdp(name, address string) error {
 			continue
 		}
 
-		go s.handleUdpData(conn, remote, data, n)
+		go s.handleUDPData(conn, remote, data, n)
 	}
 }

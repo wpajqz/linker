@@ -32,10 +32,6 @@ func NewServer(config Config) *Server {
 		config.MaxPayload = MaxPayload
 	}
 
-	if config.Timeout == 0 {
-		config.Timeout = TIMEOUT
-	}
-
 	return &Server{
 		config: config,
 		errorHandler: func(err error) {

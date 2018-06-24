@@ -44,7 +44,9 @@ func (s *Server) handleTCPConnection(conn *net.TCPConn) error {
 	)
 
 	for {
-		conn.SetDeadline(time.Now().Add(s.config.Timeout))
+		if s.config.Timeout != 0 {
+			conn.SetDeadline(time.Now().Add(s.config.Timeout))
+		}
 
 		if _, err := io.ReadFull(conn, bType); err != nil {
 			return err

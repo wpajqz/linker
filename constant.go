@@ -2,7 +2,6 @@ package linker
 
 const (
 	MaxPayload = 1024 * 1024
-	TIMEOUT    = 30
 )
 
 const (

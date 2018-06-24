@@ -44,7 +44,9 @@ func (s *Server) handleWebSocketConnection(conn *websocket.Conn) error {
 	conn.SetReadLimit(MaxPayload)
 
 	for {
-		conn.SetReadDeadline(time.Now().Add(s.config.Timeout))
+		if s.config.Timeout != 0 {
+			conn.SetReadDeadline(time.Now().Add(s.config.Timeout))
+		}
 
 		_, r, err := conn.NextReader()
 		if err != nil {

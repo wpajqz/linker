@@ -72,7 +72,6 @@ func NewClient(server string, port int, readyStateCallback ReadyStateCallback) *
 			readyState:       CONNECTING,
 			mutex:            new(sync.Mutex),
 			rwMutex:          new(sync.RWMutex),
-			timeout:          60 * 6 * time.Second,
 			retryInterval:    5 * time.Second,
 			packet:           make(chan linker.Packet, 1024),
 			handlerContainer: sync.Map{},

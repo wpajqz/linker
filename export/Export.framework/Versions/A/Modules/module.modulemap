@@ -1,8 +1,0 @@
-framework module "Export" {
-	header "ref.h"
-    header "Export.objc.h"
-    header "universe.objc.h"
-    header "Export.h"
-
-    export *
-}

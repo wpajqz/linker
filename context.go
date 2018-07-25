@@ -70,9 +70,9 @@ type (
 	}
 )
 
-func NewContextTcp(conn net.Conn, OperateType uint32, Sequence int64, Header, Body []byte, config Config) *ContextTcp {
+func NewContextTcp(ctx context.Context, conn net.Conn, OperateType uint32, Sequence int64, Header, Body []byte, config Config) *ContextTcp {
 	return &ContextTcp{
-		Context:     context.Background(),
+		Context:     ctx,
 		Conn:        conn,
 		operateType: OperateType,
 		sequence:    Sequence,

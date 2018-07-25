@@ -5,7 +5,7 @@
   branch = "master"
   name = "github.com/golang/protobuf"
   packages = ["proto"]
-  revision = "05f48f4eaf0e05663b562bab533cdd472238ce29"
+  revision = "93b26e6a70e37abb14f2f88194949312b0592a84"
 
 [[projects]]
   branch = "master"
@@ -13,9 +13,20 @@
   packages = ["."]
   revision = "5ed622c449da6d44c3c8329331ff47a9e5844f71"
 
+[[projects]]
+  branch = "master"
+  name = "github.com/wpajqz/linker"
+  packages = [
+    ".",
+    "codec",
+    "utils/convert",
+    "utils/encrypt"
+  ]
+  revision = "6112fb8aebca49e7e62f0ec21e64bb20c8891736"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "722dc7c98f56ff4ce0cc28f2d34b4ca2216de90390a8df51a3aeb6390631ccce"
+  inputs-digest = "1b662a903809aeee17b2ef8d1b1f893dd5cf094551d987f9a6d3f959ecfef4ba"
   solver-name = "gps-cdcl"
   solver-version = 1

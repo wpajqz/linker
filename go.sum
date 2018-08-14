@@ -1,0 +1,6 @@
+github.com/golang/protobuf v0.0.0-20180606202630-05f48f4eaf0e h1:btUagvBsZJctWusH64ZXt0j/VdovFcB29jjh0sBFQy4=
+github.com/golang/protobuf v0.0.0-20180606202630-05f48f4eaf0e/go.mod h1:6lQm79b+lXiMfvg/cZm0SGofjICqVBUtrP5yJMmIC1U=
+github.com/gorilla/websocket v0.0.0-20180605202552-5ed622c449da h1:b5fma7aUP2fn6+tdKKCJ0TxXYzY/5wDiqUxNdyi5VF4=
+github.com/gorilla/websocket v0.0.0-20180605202552-5ed622c449da/go.mod h1:E7qHFY5m1UJ88s3WnNqhKjPHQ0heANvMoAMk2YaljkQ=
+github.com/wpajqz/linker v0.0.0-20180716113047-6112fb8aebca h1:vGoFX2+jMQayHi9ST981OZgVedS+tcnyOC7HxkQZCEI=
+github.com/wpajqz/linker v0.0.0-20180716113047-6112fb8aebca/go.mod h1:M4OHWOTEAQGVYPjRS7e//DuaV3RcQeiD8cxzgPK4Bh4=

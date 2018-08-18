@@ -23,6 +23,7 @@ type (
 	Session struct {
 		Status string
 		Ctx    linker.Context
+		Ext    map[string]interface{}
 	}
 )
 

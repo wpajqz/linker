@@ -13,13 +13,13 @@ import (
 var _ Context = new(ContextTcp)
 
 type ContextTcp struct {
-	defaultContext
+	common
 	Conn net.Conn
 }
 
 func NewContextTcp(conn net.Conn, OperateType uint32, Sequence int64, Header, Body []byte, config Config) *ContextTcp {
 	return &ContextTcp{
-		defaultContext: defaultContext{
+		common: common{
 			config:      config,
 			operateType: OperateType,
 			sequence:    Sequence,

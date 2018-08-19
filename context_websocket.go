@@ -13,13 +13,13 @@ import (
 var _ Context = new(ContextWebsocket)
 
 type ContextWebsocket struct {
-	defaultContext
+	common
 	Conn *webSocketConn
 }
 
 func NewContextWebsocket(conn *webSocketConn, OperateType uint32, Sequence int64, Header, Body []byte, config Config) *ContextWebsocket {
 	return &ContextWebsocket{
-		defaultContext: defaultContext{
+		common: common{
 			Context:     context.Background(),
 			operateType: OperateType,
 			sequence:    Sequence,

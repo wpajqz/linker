@@ -13,14 +13,14 @@ import (
 var _ Context = new(ContextUdp)
 
 type ContextUdp struct {
-	defaultContext
+	common
 	remote *net.UDPAddr
 	Conn   *net.UDPConn
 }
 
 func NewContextUdp(conn *net.UDPConn, remote *net.UDPAddr, OperateType uint32, Sequence int64, Header, Body []byte, config Config) *ContextUdp {
 	return &ContextUdp{
-		defaultContext: defaultContext{
+		common: common{
 			config:      config,
 			operateType: OperateType,
 			sequence:    Sequence,

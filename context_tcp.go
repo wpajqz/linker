@@ -17,13 +17,13 @@ type ContextTcp struct {
 	Conn net.Conn
 }
 
-func NewContextTcp(conn net.Conn, OperateType uint32, Sequence int64, Header, Body []byte, config Config) *ContextTcp {
+func NewContextTcp(ctx context.Context, conn net.Conn, OperateType uint32, Sequence int64, Header, Body []byte, config Config) *ContextTcp {
 	return &ContextTcp{
 		common: common{
 			config:      config,
 			operateType: OperateType,
 			sequence:    Sequence,
-			Context:     context.Background(),
+			Context:     ctx,
 			Request:     struct{ Header, Body []byte }{Header: Header, Body: Body},
 			body:        Body,
 		},

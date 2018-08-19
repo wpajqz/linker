@@ -8,11 +8,12 @@ import (
 	"runtime"
 	"time"
 
+	"context"
 	"github.com/wpajqz/linker/utils/convert"
 )
 
 func (s *Server) handleTCPConnection(conn *net.TCPConn) error {
-	var ctx Context = &ContextTcp{Conn: conn}
+	ctx := &ContextTcp{common: common{Context: context.Background()}, Conn: conn}
 	if s.constructHandler != nil {
 		s.constructHandler.Handle(ctx)
 	}
@@ -90,12 +91,12 @@ func (s *Server) handleTCPConnection(conn *net.TCPConn) error {
 			return err
 		}
 
-		ctx = NewContextTcp(conn, rp.Operator, rp.Sequence, rp.Header, rp.Body, s.config)
-		go s.handleTCPPacket(ctx, conn, rp)
+		ctx = NewContextTcp(ctx.Context, conn, rp.Operator, rp.Sequence, rp.Header, rp.Body, s.config)
+		go s.handleTCPPacket(ctx, rp)
 	}
 }
 
-func (s *Server) handleTCPPacket(ctx Context, conn net.Conn, rp Packet) {
+func (s *Server) handleTCPPacket(ctx Context, rp Packet) {
 	defer func() {
 		if r := recover(); r != nil {
 			if s.errorHandler != nil {
@@ -133,7 +134,7 @@ func (s *Server) handleTCPPacket(ctx Context, conn net.Conn, rp Packet) {
 	ctx.Success(nil) // If it don't call the function of Success or Error, deal it by default
 }
 
-// 开始运行Tcp服务
+// RunTCP 开始运行Tcp服务
 func (s *Server) RunTCP(name, address string) error {
 	tcpAddr, err := net.ResolveTCPAddr(name, address)
 	if err != nil {

@@ -6,12 +6,23 @@ import (
 	"strings"
 
 	"github.com/wpajqz/linker/codec"
+	"time"
 )
 
 type (
 	Context interface {
-		WithValue(key interface{}, value interface{})
-		Value(key interface{}) interface{}
+		Set(key string, value interface{})
+		Get(key string) interface{}
+		MustGet(key string) interface{}
+		GetString(key string) (s string)
+		GetBool(key string) (b bool)
+		GetInt(key string) (i int)
+		GetInt64(key string) (i64 int64)
+		GetFloat64(key string) (f64 float64)
+		GetTime(key string) (t time.Time)
+		GetDuration(key string) (d time.Duration)
+		GetStringSlice(key string) (ss []string)
+		GetStringMap(key string) (sm map[string]interface{})
 		ParseParam(data interface{}) error
 		Success(body interface{})
 		Error(code int, message string)
@@ -36,12 +47,114 @@ type (
 	}
 )
 
-func (dc *common) WithValue(key interface{}, value interface{}) {
+// Set is used to store a new key/value pair exclusively for this context.
+func (dc *common) Set(key string, value interface{}) {
 	dc.Context = context.WithValue(dc.Context, key, value)
 }
 
-func (dc *common) Value(key interface{}) interface{} {
+// Get returns the value for the given key
+func (dc *common) Get(key string) interface{} {
 	return dc.Context.Value(key)
+}
+
+// Get returns the value for the given key
+func (dc *common) MustGet(key string) interface{} {
+	v := dc.Context.Value(key)
+	if v != nil {
+		return v
+	}
+
+	panic("Key \"" + key + "\" does not exist")
+}
+
+// GetString returns the value associated with the key as a string.
+func (dc *common) GetString(key string) (s string) {
+	v := dc.Context.Value(key)
+	if v != nil {
+		s, _ = v.(string)
+	}
+
+	return
+}
+
+// GetBool returns the value associated with the key as a boolean.
+func (dc *common) GetBool(key string) (b bool) {
+	v := dc.Context.Value(key)
+	if v != nil {
+		b, _ = v.(bool)
+	}
+
+	return
+}
+
+// GetInt returns the value associated with the key as an integer.
+func (dc *common) GetInt(key string) (i int) {
+	v := dc.Context.Value(key)
+	if v != nil {
+		i, _ = v.(int)
+	}
+
+	return
+}
+
+// GetInt64 returns the value associated with the key as an integer.
+func (dc *common) GetInt64(key string) (i64 int64) {
+	v := dc.Context.Value(key)
+	if v != nil {
+		i64, _ = v.(int64)
+	}
+
+	return
+}
+
+// GetFloat64 returns the value associated with the key as a float64.
+func (dc *common) GetFloat64(key string) (f64 float64) {
+	v := dc.Context.Value(key)
+	if v != nil {
+		f64, _ = v.(float64)
+	}
+
+	return
+}
+
+// GetTime returns the value associated with the key as time.
+func (dc *common) GetTime(key string) (t time.Time) {
+	v := dc.Context.Value(key)
+	if v != nil {
+		t, _ = v.(time.Time)
+	}
+
+	return
+}
+
+// GetDuration returns the value associated with the key as a duration.
+func (dc *common) GetDuration(key string) (d time.Duration) {
+	v := dc.Context.Value(key)
+	if v != nil {
+		d, _ = v.(time.Duration)
+	}
+
+	return
+}
+
+// GetStringSlice returns the value associated with the key as a slice of strings.
+func (dc *common) GetStringSlice(key string) (ss []string) {
+	v := dc.Context.Value(key)
+	if v != nil {
+		ss, _ = v.([]string)
+	}
+
+	return
+}
+
+// GetStringMap returns the value associated with the key as a map of interfaces.
+func (dc *common) GetStringMap(key string) (sm map[string]interface{}) {
+	v := dc.Context.Value(key)
+	if v != nil {
+		sm, _ = v.(map[string]interface{})
+	}
+
+	return
 }
 
 func (dc *common) ParseParam(data interface{}) error {

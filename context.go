@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"context"
 	"strings"
+	"time"
 
 	"github.com/wpajqz/linker/codec"
-	"time"
 )
 
 type (

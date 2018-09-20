@@ -30,4 +30,3 @@ _testmain.go
 /.idea/
 /linker.iml
 /vendor/
-/go.sum

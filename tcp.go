@@ -1,6 +1,7 @@
 package linker
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -8,7 +9,6 @@ import (
 	"runtime"
 	"time"
 
-	"context"
 	"github.com/wpajqz/linker/utils/convert"
 )
 
@@ -107,8 +107,11 @@ func (s *Server) handleTCPPacket(ctx Context, rp Packet) {
 		}
 	}()
 
-	if rp.Operator == OPERATOR_HEARTBEAT && s.pingHandler != nil {
-		s.pingHandler.Handle(ctx)
+	if rp.Operator == OPERATOR_HEARTBEAT {
+		if s.pingHandler != nil {
+			s.pingHandler.Handle(ctx)
+		}
+
 		ctx.Success(nil)
 	}
 

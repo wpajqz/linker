@@ -1,15 +1,13 @@
 package linker
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"runtime"
-	"time"
-
-	"errors"
-
 	"sync"
+	"time"
 
 	"github.com/gorilla/websocket"
 	"github.com/wpajqz/linker/utils/convert"
@@ -112,8 +110,11 @@ func (s *Server) handleWebSocketPacket(ctx Context, conn *websocket.Conn, rp Pac
 		}
 	}()
 
-	if rp.Operator == OPERATOR_HEARTBEAT && s.pingHandler != nil {
-		s.pingHandler.Handle(ctx)
+	if rp.Operator == OPERATOR_HEARTBEAT {
+		if s.pingHandler != nil {
+			s.pingHandler.Handle(ctx)
+		}
+
 		ctx.Success(nil)
 	}
 
@@ -139,7 +140,7 @@ func (s *Server) handleWebSocketPacket(ctx Context, conn *websocket.Conn, rp Pac
 	ctx.Success(nil) // If it don't call the function of Success or Error, deal it by default
 }
 
-// 开始运行webocket服务
+// RunWebSocket 开始运行webocket服务
 func (s *Server) RunWebSocket(address string) error {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		var upgrade = websocket.Upgrader{

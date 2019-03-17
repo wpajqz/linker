@@ -47,8 +47,8 @@ func (r *Router) NSRoute(pattern string, handler Handler, middleware ...Middlewa
 // 注册路由，路由中间件
 func (r *Router) Route(pattern string, handler Handler, middleware ...Middleware) *Router {
 	operator := crc32.ChecksumIEEE([]byte(pattern))
-	if operator <= OPERATOR_MAX {
-		panic("Unavailable operator, the value of crc32 need less than " + strconv.Itoa(OPERATOR_MAX))
+	if operator <= OperatorMax {
+		panic("Unavailable operator, the value of crc32 need less than " + strconv.Itoa(OperatorMax))
 	}
 
 	r.routerMiddleware[operator] = append(r.routerMiddleware[operator], middleware...)

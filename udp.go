@@ -24,7 +24,7 @@ func (s *Server) handleUDPData(conn *net.UDPConn, remote *net.UDPAddr, data []by
 	}
 
 	var ctx Context = NewContextUdp(conn, remote, rp.Operator, rp.Sequence, rp.Header, rp.Body, s.config)
-	if rp.Operator == OPERATOR_HEARTBEAT {
+	if rp.Operator == OperatorHeartbeat {
 		if s.pingHandler != nil {
 			s.pingHandler.Handle(ctx)
 		}

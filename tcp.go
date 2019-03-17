@@ -107,7 +107,7 @@ func (s *Server) handleTCPPacket(ctx Context, rp Packet) {
 		}
 	}()
 
-	if rp.Operator == OPERATOR_HEARTBEAT {
+	if rp.Operator == OperatorHeartbeat {
 		if s.pingHandler != nil {
 			s.pingHandler.Handle(ctx)
 		}

@@ -111,7 +111,7 @@ func (s *Server) handleWebSocketPacket(ctx Context, conn *websocket.Conn, rp Pac
 		}
 	}()
 
-	if rp.Operator == OPERATOR_HEARTBEAT {
+	if rp.Operator == OperatorHeartbeat {
 		if s.pingHandler != nil {
 			s.pingHandler.Handle(ctx)
 		}

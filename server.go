@@ -7,6 +7,15 @@ import (
 	"github.com/wpajqz/linker/codec"
 )
 
+const (
+	MaxPayload = 1024 * 1024
+)
+
+const (
+	OperatorHeartbeat = iota
+	OperatorMax       = 1024
+)
+
 type (
 	Handler interface {
 		Handle(Context)

@@ -18,6 +18,7 @@ type ReTry struct {
 type Item struct {
 	Channel string
 	Ctx     Context
+	Header  map[string]string
 	Value   interface{}
 }
 
@@ -36,6 +37,10 @@ func (rt *ReTry) Put(key interface{}, value *Item) {
 		<-time.NewTimer(rt.timeout).C
 		if v, ok := rt.items.Load(key); ok {
 			if i, ok := v.(*Item); ok {
+				for k, v := range i.Header {
+					i.Ctx.SetRequestProperty(k, v)
+				}
+
 				i.Ctx.Write(i.Channel, i.Value)
 				rt.Delete(key)
 			}

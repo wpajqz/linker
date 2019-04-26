@@ -168,10 +168,10 @@ func (dc *common) ParseParam(data interface{}) error {
 
 func (dc *common) SetRequestProperty(key, value string) {
 	v := dc.GetRequestProperty(key)
-	if v != "" {
-		dc.Request.Header = bytes.Trim(dc.Request.Header, key+"="+value+";")
-	}
+	old := []byte(key + "=" + v +";")
+	new := []byte("")
 
+	dc.Request.Header = bytes.ReplaceAll(dc.Request.Header, old, new)
 	dc.Request.Header = append(dc.Request.Header, []byte(key+"="+value+";")...)
 }
 
@@ -189,10 +189,10 @@ func (dc *common) GetRequestProperty(key string) string {
 
 func (dc *common) SetResponseProperty(key, value string) {
 	v := dc.GetResponseProperty(key)
-	if v != "" {
-		dc.Response.Header = bytes.Trim(dc.Response.Header, key+"="+value+";")
-	}
+	old := []byte(key + "=" + v + ";")
+	new := []byte("")
 
+	dc.Response.Header = bytes.ReplaceAll(dc.Response.Header, old, new)
 	dc.Response.Header = append(dc.Response.Header, []byte(key+"="+value+";")...)
 }
 

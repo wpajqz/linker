@@ -1,9 +1,6 @@
 package linker
 
 import (
-	"io"
-	"log"
-
 	"github.com/wpajqz/linker/codec"
 )
 
@@ -21,11 +18,10 @@ type (
 		Handle(Context)
 	}
 	HandlerFunc  func(Context)
-	ErrorHandler func(error)
 	Server       struct {
 		config           Config
 		router           *Router
-		errorHandler     ErrorHandler
+		errorHandler     Handler
 		constructHandler Handler
 		destructHandler  Handler
 		pingHandler      Handler
@@ -43,16 +39,22 @@ func NewServer(config Config) *Server {
 
 	return &Server{
 		config: config,
-		errorHandler: func(err error) {
-			if err != io.EOF {
-				log.Println(err.Error())
+		errorHandler: HandlerFunc(func(ctx Context) {
+			r := ctx.Get("recovery")
+			switch v := r.(type) {
+			case string:
+				ctx.Error(StatusInternalServerError, v)
+			case error:
+				ctx.Error(StatusInternalServerError, v.Error())
+			default:
+				ctx.Error(StatusInternalServerError, "unknown error from linker")
 			}
-		},
+		}),
 	}
 }
 
 // 设置默认错误处理方法
-func (s *Server) OnError(errorHandler ErrorHandler) {
+func (s *Server) OnError(errorHandler Handler) {
 	s.errorHandler = errorHandler
 }
 

@@ -1,9 +1,9 @@
 package linker
 
 import (
-	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"runtime"
 	"sync"
@@ -103,17 +103,13 @@ func (s *Server) handleWebSocketConnection(conn *websocket.Conn) error {
 func (s *Server) handleWebSocketPacket(ctx Context, conn *websocket.Conn, rp Packet) {
 	defer func() {
 		if r := recover(); r != nil {
-			if s.errorHandler != nil {
-				buf := make([]byte, 1<<12)
-				n := runtime.Stack(buf, false)
-				s.errorHandler(errors.New(string(buf[:n])))
-			}
+			buf := make([]byte, 1<<12)
+			n := runtime.Stack(buf, false)
+			log.Println(string(buf[:n]))
 
-			switch v := r.(type) {
-			case string:
-				ctx.Error(StatusInternalServerError, v)
-			case error:
-				ctx.Error(StatusInternalServerError, v.Error())
+			if s.errorHandler != nil {
+				ctx.Set("recovery", r)
+				s.errorHandler.Handle(ctx)
 			}
 		}
 	}()

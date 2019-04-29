@@ -1,8 +1,10 @@
 package linker
 
 import (
+	"errors"
 	"fmt"
 	"net"
+	"runtime"
 
 	"github.com/wpajqz/linker/utils/convert"
 )
@@ -24,6 +26,24 @@ func (s *Server) handleUDPData(conn *net.UDPConn, remote *net.UDPAddr, data []by
 	}
 
 	var ctx Context = NewContextUdp(conn, remote, rp.Operator, rp.Sequence, rp.Header, rp.Body, s.config)
+
+	defer func() {
+		if r := recover(); r != nil {
+			if s.errorHandler != nil {
+				buf := make([]byte, 1<<12)
+				n := runtime.Stack(buf, false)
+				s.errorHandler(errors.New(string(buf[:n])))
+			}
+
+			switch v := r.(type) {
+			case string:
+				ctx.Error(StatusInternalServerError, v)
+			case error:
+				ctx.Error(StatusInternalServerError, v.Error())
+			}
+		}
+	}()
+
 	if rp.Operator == OperatorHeartbeat {
 		if s.pingHandler != nil {
 			s.pingHandler.Handle(ctx)

@@ -104,6 +104,13 @@ func (s *Server) handleTCPPacket(ctx Context, rp Packet) {
 				n := runtime.Stack(buf, false)
 				s.errorHandler(errors.New(string(buf[:n])))
 			}
+
+			switch v := r.(type) {
+			case string:
+				ctx.Error(StatusInternalServerError, v)
+			case error:
+				ctx.Error(StatusInternalServerError, v.Error())
+			}
 		}
 	}()
 

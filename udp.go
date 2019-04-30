@@ -87,11 +87,17 @@ func (s *Server) RunUDP(name, address string) error {
 	fmt.Printf("udp server running on %s\n", address)
 
 	if s.config.ReadBufferSize > 0 {
-		conn.SetReadBuffer(s.config.ReadBufferSize)
+		err := conn.SetReadBuffer(s.config.ReadBufferSize)
+		if err != nil {
+			return err
+		}
 	}
 
 	if s.config.WriteBufferSize > 0 {
-		conn.SetWriteBuffer(s.config.WriteBufferSize)
+		err := conn.SetWriteBuffer(s.config.WriteBufferSize)
+		if err != nil {
+			return err
+		}
 	}
 
 	if s.constructHandler != nil {

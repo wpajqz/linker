@@ -27,11 +27,17 @@ func (s *Server) handleTCPConnection(conn *net.TCPConn) error {
 	}()
 
 	if s.config.ReadBufferSize > 0 {
-		conn.SetReadBuffer(s.config.ReadBufferSize)
+		err := conn.SetReadBuffer(s.config.ReadBufferSize)
+		if err != nil {
+			return err
+		}
 	}
 
 	if s.config.WriteBufferSize > 0 {
-		conn.SetWriteBuffer(s.config.WriteBufferSize)
+		err := conn.SetWriteBuffer(s.config.WriteBufferSize)
+		if err != nil {
+			return err
+		}
 	}
 
 	var (
@@ -46,7 +52,10 @@ func (s *Server) handleTCPConnection(conn *net.TCPConn) error {
 
 	for {
 		if s.config.Timeout != 0 {
-			conn.SetDeadline(time.Now().Add(s.config.Timeout))
+			err := conn.SetDeadline(time.Now().Add(s.config.Timeout))
+			if err != nil {
+				return err
+			}
 		}
 
 		if _, err := io.ReadFull(conn, bType); err != nil {

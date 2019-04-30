@@ -43,8 +43,15 @@ func (s *Server) handleWebSocketConnection(conn *websocket.Conn) error {
 
 	for {
 		if s.config.Timeout != 0 {
-			conn.SetReadDeadline(time.Now().Add(s.config.Timeout))
-			conn.SetWriteDeadline(time.Now().Add(s.config.Timeout))
+			err := conn.SetReadDeadline(time.Now().Add(s.config.Timeout))
+			if err != nil {
+				return err
+			}
+
+			err = conn.SetWriteDeadline(time.Now().Add(s.config.Timeout))
+			if err != nil {
+				return err
+			}
 		}
 
 		_, r, err := conn.NextReader()

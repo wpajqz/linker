@@ -49,7 +49,10 @@ func (c *ContextTcp) Success(body interface{}) {
 		panic(err)
 	}
 
-	c.Conn.Write(p.Bytes())
+	_, err = c.Conn.Write(p.Bytes())
+	if err != nil {
+		panic(err)
+	}
 
 	runtime.Goexit()
 }
@@ -65,7 +68,10 @@ func (c *ContextTcp) Error(code int, message string) {
 		panic(err)
 	}
 
-	c.Conn.Write(p.Bytes())
+	_, err = c.Conn.Write(p.Bytes())
+	if err != nil {
+		panic(err)
+	}
 
 	runtime.Goexit()
 }

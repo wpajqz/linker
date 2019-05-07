@@ -37,5 +37,12 @@ func main() {
 	)
 
 	server.BindRouter(router)
+	go func() {
+		err := server.RunWebSocket("127.0.0.1:8081")
+		if err != nil {
+			panic(err)
+		}
+	}()
+
 	log.Fatal(server.RunTCP("tcp", "127.0.0.1:8080"))
 }

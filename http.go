@@ -151,8 +151,8 @@ func (s *Server) handleWebSocketPacket(ctx Context, conn *websocket.Conn, rp Pac
 	ctx.Success(nil) // If it don't call the function of Success or Error, deal it by default
 }
 
-// RunWebSocket 开始运行webocket服务
-func (s *Server) RunWebSocket(address string, handler http.Handler) error {
+// RunHTTP 开始运行HTTP服务
+func (s *Server) RunHTTP(address string, handler http.Handler) error {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		var upgrade = websocket.Upgrader{
 			HandshakeTimeout:  s.config.Timeout,
@@ -173,7 +173,7 @@ func (s *Server) RunWebSocket(address string, handler http.Handler) error {
 		go s.handleWebSocketConnection(conn)
 	})
 
-	fmt.Printf("Listening and serving websocket on %s\n", address)
+	fmt.Printf("Listening and serving HTTP on %s\n", address)
 
 	return http.ListenAndServe(address, handler)
 }

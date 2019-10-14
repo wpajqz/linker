@@ -5,6 +5,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/wpajqz/linker"
 	"github.com/wpajqz/linker/plugins"
 )
@@ -38,7 +39,8 @@ func main() {
 
 	server.BindRouter(router)
 	go func() {
-		err := server.RunHTTP("127.0.0.1:8081", nil)
+		r := gin.Default()
+		err := server.RunHTTP("127.0.0.1:8081", r)
 		if err != nil {
 			panic(err)
 		}

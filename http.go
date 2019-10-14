@@ -1,7 +1,9 @@
 package linker
 
 import (
+	"errors"
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"io"
 	"log"
 	"net/http"
@@ -153,25 +155,50 @@ func (s *Server) handleWebSocketPacket(ctx Context, conn *websocket.Conn, rp Pac
 
 // RunHTTP 开始运行HTTP服务
 func (s *Server) RunHTTP(address string, handler http.Handler) error {
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		var upgrade = websocket.Upgrader{
-			HandshakeTimeout:  s.config.Timeout,
-			ReadBufferSize:    s.config.ReadBufferSize,
-			WriteBufferSize:   s.config.WriteBufferSize,
-			EnableCompression: true,
-			CheckOrigin: func(r *http.Request) bool {
-				return true
-			},
-		}
+	switch r := handler.(type) {
+	case *gin.Engine:
+		r.GET("/", func(ctx *gin.Context) {
+			var upgrade = websocket.Upgrader{
+				HandshakeTimeout:  s.config.Timeout,
+				ReadBufferSize:    s.config.ReadBufferSize,
+				WriteBufferSize:   s.config.WriteBufferSize,
+				EnableCompression: true,
+				CheckOrigin: func(r *http.Request) bool {
+					return true
+				},
+			}
 
-		conn, err := upgrade.Upgrade(w, r, nil)
-		if err != nil {
-			w.Write([]byte(err.Error()))
-			return
-		}
+			conn, err := upgrade.Upgrade(ctx.Writer, ctx.Request, nil)
+			if err != nil {
+				ctx.String(http.StatusBadRequest, err.Error())
+				return
+			}
 
-		go s.handleWebSocketConnection(conn)
-	})
+			go s.handleWebSocketConnection(conn)
+		})
+	case nil:
+		http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+			var upgrade = websocket.Upgrader{
+				HandshakeTimeout:  s.config.Timeout,
+				ReadBufferSize:    s.config.ReadBufferSize,
+				WriteBufferSize:   s.config.WriteBufferSize,
+				EnableCompression: true,
+				CheckOrigin: func(r *http.Request) bool {
+					return true
+				},
+			}
+
+			conn, err := upgrade.Upgrade(w, r, nil)
+			if err != nil {
+				w.Write([]byte(err.Error()))
+				return
+			}
+
+			go s.handleWebSocketConnection(conn)
+		})
+	default:
+		return errors.New("unsupported http's handler")
+	}
 
 	fmt.Printf("Listening and serving HTTP on %s\n", address)
 

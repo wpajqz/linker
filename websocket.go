@@ -173,7 +173,7 @@ func (s *Server) RunWebSocket(address string) error {
 		go s.handleWebSocketConnection(conn)
 	})
 
-	fmt.Printf("websocket server running on %s\n", address)
+	fmt.Printf("Listening and serving websocket on %s\n", address)
 
 	return http.ListenAndServe(address, nil)
 }

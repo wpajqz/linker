@@ -163,7 +163,7 @@ func (s *Server) RunTCP(name, address string) error {
 
 	defer listener.Close()
 
-	fmt.Printf("tcp server running on %s\n", address)
+	fmt.Printf("Listening and serving TCP on %s\n", address)
 	for {
 		conn, err := listener.AcceptTCP()
 		if err != nil {

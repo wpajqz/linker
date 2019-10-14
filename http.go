@@ -154,10 +154,10 @@ func (s *Server) handleWebSocketPacket(ctx Context, conn *websocket.Conn, rp Pac
 }
 
 // RunHTTP 开始运行HTTP服务
-func (s *Server) RunHTTP(address string, handler http.Handler) error {
+func (s *Server) RunHTTP(address, wsRoute string, handler http.Handler) error {
 	switch r := handler.(type) {
 	case *gin.Engine:
-		r.GET("/", func(ctx *gin.Context) {
+		r.GET(wsRoute, func(ctx *gin.Context) {
 			var upgrade = websocket.Upgrader{
 				HandshakeTimeout:  s.config.Timeout,
 				ReadBufferSize:    s.config.ReadBufferSize,
@@ -177,7 +177,7 @@ func (s *Server) RunHTTP(address string, handler http.Handler) error {
 			go s.handleWebSocketConnection(conn)
 		})
 	case nil:
-		http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		http.HandleFunc(wsRoute, func(w http.ResponseWriter, r *http.Request) {
 			var upgrade = websocket.Upgrader{
 				HandshakeTimeout:  s.config.Timeout,
 				ReadBufferSize:    s.config.ReadBufferSize,

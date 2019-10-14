@@ -152,7 +152,7 @@ func (s *Server) handleWebSocketPacket(ctx Context, conn *websocket.Conn, rp Pac
 }
 
 // RunWebSocket 开始运行webocket服务
-func (s *Server) RunWebSocket(address string) error {
+func (s *Server) RunWebSocket(address string, handler http.Handler) error {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		var upgrade = websocket.Upgrader{
 			HandshakeTimeout:  s.config.Timeout,
@@ -175,5 +175,5 @@ func (s *Server) RunWebSocket(address string) error {
 
 	fmt.Printf("Listening and serving websocket on %s\n", address)
 
-	return http.ListenAndServe(address, nil)
+	return http.ListenAndServe(address, handler)
 }

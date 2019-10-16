@@ -176,6 +176,27 @@ func (s *Server) RunHTTP(address, wsRoute string, handler http.Handler) error {
 
 			go s.handleWebSocketConnection(conn)
 		})
+
+		//	match old version
+		r.GET(wsRoute + "/websocket", func(ctx *gin.Context) {
+			var upgrade = websocket.Upgrader{
+				HandshakeTimeout:  s.config.Timeout,
+				ReadBufferSize:    s.config.ReadBufferSize,
+				WriteBufferSize:   s.config.WriteBufferSize,
+				EnableCompression: true,
+				CheckOrigin: func(r *http.Request) bool {
+					return true
+				},
+			}
+
+			conn, err := upgrade.Upgrade(ctx.Writer, ctx.Request, nil)
+			if err != nil {
+				ctx.String(http.StatusBadRequest, err.Error())
+				return
+			}
+
+			go s.handleWebSocketConnection(conn)
+		})
 	case nil:
 		http.HandleFunc(wsRoute, func(w http.ResponseWriter, r *http.Request) {
 			var upgrade = websocket.Upgrader{

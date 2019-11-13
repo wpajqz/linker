@@ -169,11 +169,11 @@ func (s *Server) RunTCP(name, address string) error {
 			continue
 		}
 
-		go func() {
+		go func(conn *net.TCPConn) {
 			err := s.handleTCPConnection(conn)
 			if err != nil && err != io.EOF{
-				fmt.Printf("handle tcp connection error: %s\n", err.Error())
+				fmt.Printf("tcp connection error: %s\n", err.Error())
 			}
-		}()
+		}(conn)
 	}
 }

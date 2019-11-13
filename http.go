@@ -3,13 +3,14 @@ package linker
 import (
 	"errors"
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"io"
 	"log"
 	"net/http"
 	"runtime"
 	"sync"
 	"time"
+
+	"github.com/gin-gonic/gin"
 
 	"github.com/gorilla/websocket"
 	"github.com/wpajqz/linker/utils/convert"
@@ -174,7 +175,12 @@ func (s *Server) RunHTTP(address, wsRoute string, handler http.Handler) error {
 				return
 			}
 
-			go s.handleWebSocketConnection(conn)
+			go func(conn *websocket.Conn) {
+				err := s.handleWebSocketConnection(conn)
+				if err != nil && err != io.EOF{
+					fmt.Printf("websocket connection error: %s\n", err.Error())
+				}
+			}(conn)
 		})
 
 		//	match old version
@@ -195,7 +201,12 @@ func (s *Server) RunHTTP(address, wsRoute string, handler http.Handler) error {
 				return
 			}
 
-			go s.handleWebSocketConnection(conn)
+			go func(conn *websocket.Conn) {
+				err := s.handleWebSocketConnection(conn)
+				if err != nil && err != io.EOF{
+					fmt.Printf("websocket connection error: %s\n", err.Error())
+				}
+			}(conn)
 		})
 	case nil:
 		http.HandleFunc(wsRoute, func(w http.ResponseWriter, r *http.Request) {
@@ -215,7 +226,12 @@ func (s *Server) RunHTTP(address, wsRoute string, handler http.Handler) error {
 				return
 			}
 
-			go s.handleWebSocketConnection(conn)
+			go func(conn *websocket.Conn) {
+				err := s.handleWebSocketConnection(conn)
+				if err != nil && err != io.EOF{
+					fmt.Printf("websocket connection error: %s\n", err.Error())
+				}
+			}(conn)
 		})
 	default:
 		return errors.New("unsupported http's handler")

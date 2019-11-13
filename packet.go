@@ -1,6 +1,8 @@
 package linker
 
 import (
+	"fmt"
+
 	"github.com/wpajqz/linker/utils/convert"
 )
 
@@ -20,19 +22,28 @@ type (
 	}
 )
 
-func NewPacket(operator uint32, sequence int64, header, body []byte, plugins []PacketPlugin) (Packet, error) {
+func NewPacket(operator uint32, sequence int64, header, body []byte, plugins []PacketPlugin) (p Packet, err error) {
+	defer func() {
+		if r := recover(); r !=nil {
+			p = Packet{}
+			err = fmt.Errorf("[packet error] operator:%d sequence:%d header:%s body:%s detail:%#v", operator, sequence, string(header), string(body), r)
+		}
+	}()
+
 	for _, plugin := range plugins {
 		header, body = plugin.Handle(header, body)
 	}
 
-	return Packet{
+	p = Packet{
 		Operator:     operator,
 		Sequence:     sequence,
 		HeaderLength: uint32(len(header)),
 		BodyLength:   uint32(len(body)),
 		Header:       header,
 		Body:         body,
-	}, nil
+	}
+
+	return p, err
 }
 
 // 得到序列化后的Packet

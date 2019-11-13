@@ -95,7 +95,6 @@ func (s *Server) handleTCPConnection(conn *net.TCPConn) error {
 		}
 
 		rp, err := NewPacket(convert.BytesToUint32(bType), sequence, header, body, s.config.PluginForPacketReceiver)
-
 		if err != nil {
 			return err
 		}
@@ -170,6 +169,11 @@ func (s *Server) RunTCP(name, address string) error {
 			continue
 		}
 
-		go s.handleTCPConnection(conn)
+		go func() {
+			err := s.handleTCPConnection(conn)
+			if err != nil && err != io.EOF{
+				fmt.Printf("handle tcp connection error: %s\n", err.Error())
+			}
+		}()
 	}
 }

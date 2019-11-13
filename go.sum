@@ -38,6 +38,8 @@ github.com/wpajqz/go-sdk v0.0.0-20190430092725-187f0783f547 h1:11CEyyXcK5/MYAn5U
 github.com/wpajqz/go-sdk v0.0.0-20190430092725-187f0783f547/go.mod h1:CQh89Ajwxm2yaQOr+2ADy3Fu/qSCtP5cBS3xhN9AhNk=
 github.com/wpajqz/go-sdk v0.0.0-20190430152109-f8971e24a1f8 h1:K3ltBLVQgD35hZp/ueFlCtvHhHr0XKdORHjPIRc10bo=
 github.com/wpajqz/go-sdk v0.0.0-20190430152109-f8971e24a1f8/go.mod h1:CQh89Ajwxm2yaQOr+2ADy3Fu/qSCtP5cBS3xhN9AhNk=
+github.com/wpajqz/go-sdk v0.0.0-20191113134711-5482aa353fb2 h1:Ti3ANsm8XD9TT9rp8YK8iPjZVTKBrR17jwc/v8URlxc=
+github.com/wpajqz/go-sdk v0.0.0-20191113134711-5482aa353fb2/go.mod h1:nczWMGp+LzRqA06Bc9UJ8p68NB3BsNavN4yEtxOVqRM=
 github.com/wpajqz/linker v0.0.0-20180818151004-5d64412a1130/go.mod h1:1LpNSex7lqvQi8t5uj9LBLKsvxfm3HK2j6o5Ht3BGmQ=
 github.com/wpajqz/linker v0.0.0-20190317025435-9875d02710d3/go.mod h1:qDGjG+ES9GK54nkt/8PE3SbGtKyZI0U0XSU7B8hvhqM=
 github.com/wpajqz/linker v0.0.0-20190430083411-81adae7c1420/go.mod h1:HaTcJp28dfK2znN16yz/EWAYveeaHDF9a/A/zi04qOE=

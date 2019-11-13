@@ -1,6 +1,11 @@
 package main
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/wpajqz/linker"
+	"github.com/wpajqz/linker/plugins"
+)
 import (
 	"fmt"
 
@@ -18,6 +23,14 @@ func TestServer(t *testing.T) {
 		Error: func(err string) {
 			fmt.Println(err)
 		},
+	})
+
+	client.SetPluginForPacketSender([]linker.PacketPlugin{
+		&plugins.Encryption{},
+	})
+
+	client.SetPluginForPacketReceiver([]linker.PacketPlugin{
+		&plugins.Decryption{},
 	})
 
 	for {

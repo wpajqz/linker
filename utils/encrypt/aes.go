@@ -54,6 +54,10 @@ func PKCS5Padding(plaintext []byte, blockSize int) []byte {
 
 func PKCS5UnPadding(plaintext []byte) []byte {
 	length := len(plaintext)
+	if length == 0 {
+		return plaintext
+	}
+
 	// 去掉最后一个字节 unpadding 次
 	unpadding := int(plaintext[length-1])
 	return plaintext[:(length - unpadding)]

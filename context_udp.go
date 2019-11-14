@@ -51,10 +51,7 @@ func (c *ContextUdp) Success(body interface{}) {
 		panic(err)
 	}
 
-	_, err = c.Conn.WriteToUDP(p.Bytes(), c.remote)
-	if err != nil {
-		panic(err)
-	}
+	_, _ = c.Conn.WriteToUDP(p.Bytes(), c.remote)
 
 	runtime.Goexit()
 }
@@ -70,10 +67,7 @@ func (c *ContextUdp) Error(code int, message string) {
 		panic(err)
 	}
 
-	_, err = c.Conn.WriteToUDP(p.Bytes(), c.remote)
-	if err != nil {
-		panic(err)
-	}
+	_, _ = c.Conn.WriteToUDP(p.Bytes(), c.remote)
 
 	runtime.Goexit()
 }

@@ -49,10 +49,7 @@ func (c *ContextWebsocket) Success(body interface{}) {
 		panic(err)
 	}
 
-	err = c.Conn.WriteMessage(websocket.BinaryMessage, p.Bytes())
-	if err != nil {
-		panic(err)
-	}
+	_ = c.Conn.WriteMessage(websocket.BinaryMessage, p.Bytes())
 
 	runtime.Goexit()
 }
@@ -68,10 +65,7 @@ func (c *ContextWebsocket) Error(code int, message string) {
 		panic(err)
 	}
 
-	err = c.Conn.WriteMessage(websocket.BinaryMessage, p.Bytes())
-	if err != nil {
-		panic(err)
-	}
+	_ = c.Conn.WriteMessage(websocket.BinaryMessage, p.Bytes())
 
 	runtime.Goexit()
 }

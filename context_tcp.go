@@ -44,15 +44,11 @@ func (c *ContextTcp) Success(body interface{}) {
 	}
 
 	p, err := NewPacket(c.operateType, c.sequence, c.Response.Header, data, c.config.PluginForPacketSender)
-
 	if err != nil {
 		panic(err)
 	}
 
-	_, err = c.Conn.Write(p.Bytes())
-	if err != nil {
-		panic(err)
-	}
+	_, _ = c.Conn.Write(p.Bytes())
 
 	runtime.Goexit()
 }
@@ -68,10 +64,7 @@ func (c *ContextTcp) Error(code int, message string) {
 		panic(err)
 	}
 
-	_, err = c.Conn.Write(p.Bytes())
-	if err != nil {
-		panic(err)
-	}
+	_, _ = c.Conn.Write(p.Bytes())
 
 	runtime.Goexit()
 }
@@ -89,7 +82,6 @@ func (c *ContextTcp) Write(operator string, body interface{}) (int, error) {
 	}
 
 	p, err := NewPacket(crc32.ChecksumIEEE([]byte(operator)), 0, c.Response.Header, data, c.config.PluginForPacketSender)
-
 	if err != nil {
 		panic(err)
 	}

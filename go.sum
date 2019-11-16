@@ -34,6 +34,8 @@ github.com/ugorji/go/codec v1.1.7 h1:2SvQaVZ1ouYrrKKwoSk2pzd4A9evlKJb9oTL+OaLUSs
 github.com/ugorji/go/codec v1.1.7/go.mod h1:Ax+UKWsSmolVDwsd+7N3ZtXu+yMGCf907BLYF3GoBXY=
 github.com/wpajqz/brpc v1.0.2-0.20191116084246-a21d6644b097 h1:OcMt/FMBgGV3PHoyhZKI89g6A6wN5OWJaoutRdwMqNA=
 github.com/wpajqz/brpc v1.0.2-0.20191116084246-a21d6644b097/go.mod h1:Yt04GHDqybKUPChqlVmzEUyaWly7QFPW26AD/kIU4OE=
+github.com/wpajqz/brpc v1.0.2 h1:vcGUflwYCW4INVxLj2st+WVfAnQoVYkHk6/l+o+KFWg=
+github.com/wpajqz/brpc v1.0.2/go.mod h1:Yt04GHDqybKUPChqlVmzEUyaWly7QFPW26AD/kIU4OE=
 github.com/wpajqz/go-sdk v0.0.0-20180819022515-c5611acbd333/go.mod h1:8Z5OwaDGrREAqXYMHp9WVhDIkZdeJFfNbUyjYQGRg8U=
 github.com/wpajqz/go-sdk v0.0.0-20190321152117-6ce15f5cc56d/go.mod h1:HsPWvN7xFLZHyUU6O8A+e9RJuxz4jqBrjnbufBHIw5Y=
 github.com/wpajqz/go-sdk v0.0.0-20191113134711-5482aa353fb2/go.mod h1:nczWMGp+LzRqA06Bc9UJ8p68NB3BsNavN4yEtxOVqRM=

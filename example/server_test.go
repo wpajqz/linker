@@ -10,20 +10,19 @@ import (
 )
 
 func TestServer(t *testing.T) {
-	client , err := brpc.NewClient("127.0.0.1", 8080, brpc.Options{
-		InitialCap:  5,
-		MaxCap:      15,
-		IdleTimeout: 0,
-		OnOpen: func() {
-			fmt.Println("open connection")
-		},
-		OnClose: func() {
-			fmt.Println("close connection")
-		},
-		OnError: func(e error) {
-			fmt.Printf("connection error: %s", e.Error())
-		},
-	})
+	var (
+		addr = "127.0.0.1"
+		port = 8080
+	)
+
+	client, err := brpc.NewClient(
+		addr,
+		port,
+		brpc.WithOnOpen(func() { fmt.Println("open connection") }),
+		brpc.WithOnClose(func() { fmt.Println("close connection") }),
+		brpc.WithOnError(func(err error) { fmt.Printf("connection error: %s", err.Error()) }),
+	)
+
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -1,62 +1,61 @@
 package main
 
 import (
-	"testing"
-
-	"github.com/wpajqz/linker"
-	"github.com/wpajqz/linker/plugins"
-)
-import (
 	"fmt"
+	"testing"
+	"time"
 
-	"github.com/wpajqz/go-sdk/export"
+	"github.com/wpajqz/brpc"
+	"github.com/wpajqz/brpc/export"
 )
 
 func TestServer(t *testing.T) {
-	client := export.NewClient("127.0.0.1", 8080, &ReadyStateCallback{
-		Open: func() {
+	client , err := brpc.NewClient("127.0.0.1", 8080, brpc.Options{
+		InitialCap:  5,
+		MaxCap:      15,
+		IdleTimeout: 0,
+		OnOpen: func() {
 			fmt.Println("open connection")
 		},
-		Close: func() {
+		OnClose: func() {
 			fmt.Println("close connection")
 		},
-		Error: func(err string) {
-			fmt.Println(err)
+		OnError: func(e error) {
+			fmt.Printf("connection error: %s", e.Error())
 		},
 	})
-
-	client.SetPluginForPacketSender([]linker.PacketPlugin{
-		&plugins.Encryption{},
-	})
-
-	client.SetPluginForPacketReceiver([]linker.PacketPlugin{
-		&plugins.Decryption{},
-	})
-
-	for {
-		if err := client.Ping(nil, RequestStatusCallback{}); err == nil {
-			break
-		}
+	if err != nil {
+		t.Fatal(err)
 	}
 
-	client.SetRequestProperty("sid", "go")
+	for {
+		session, err := client.Session()
+		if err != nil {
+			fmt.Printf(err.Error())
+			continue
+		}
 
-	err := client.SyncSend("/v1/healthy", nil, RequestStatusCallback{
-		Start: func() {
-			fmt.Println("start request")
-		},
-		End: func() {
-			fmt.Println("end request")
-		},
-		Success: func(header, body []byte) {
-			fmt.Println(string(body))
-		},
-		Error: func(code int, message string) {
-			fmt.Println(code, message)
-		},
-	})
+		time.Sleep(1 * time.Second)
 
-	if err != nil {
-		t.Error(err)
+		go func(session *export.Client) {
+			session.SetRequestProperty("sid", "go")
+			err = session.SyncSend("/v1/healthy", nil, brpc.RequestStatusCallback{
+				Start: func() {
+					fmt.Println("start request")
+				},
+				End: func() {
+					fmt.Println("end request")
+				},
+				Success: func(header, body []byte) {
+					fmt.Println(string(body))
+				},
+				Error: func(code int, message string) {
+					fmt.Println(code, message)
+				},
+			})
+			if err != nil {
+				t.Error(err)
+			}
+		}(session)
 	}
 }

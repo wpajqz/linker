@@ -36,6 +36,8 @@ github.com/wpajqz/brpc v1.0.2-0.20191116084246-a21d6644b097 h1:OcMt/FMBgGV3PHoyh
 github.com/wpajqz/brpc v1.0.2-0.20191116084246-a21d6644b097/go.mod h1:Yt04GHDqybKUPChqlVmzEUyaWly7QFPW26AD/kIU4OE=
 github.com/wpajqz/brpc v1.0.2 h1:vcGUflwYCW4INVxLj2st+WVfAnQoVYkHk6/l+o+KFWg=
 github.com/wpajqz/brpc v1.0.2/go.mod h1:Yt04GHDqybKUPChqlVmzEUyaWly7QFPW26AD/kIU4OE=
+github.com/wpajqz/brpc v1.0.6 h1:c+Er1YYSK/C/mBJioYjQJa+MSrWU5Av5IvdFXLuw4fQ=
+github.com/wpajqz/brpc v1.0.6/go.mod h1:HwD9ZK1lwGPRDz9MSKPoi2CI9c6nvt8f6Ep+RbI74p0=
 github.com/wpajqz/go-sdk v0.0.0-20180819022515-c5611acbd333/go.mod h1:8Z5OwaDGrREAqXYMHp9WVhDIkZdeJFfNbUyjYQGRg8U=
 github.com/wpajqz/go-sdk v0.0.0-20190321152117-6ce15f5cc56d/go.mod h1:HsPWvN7xFLZHyUU6O8A+e9RJuxz4jqBrjnbufBHIw5Y=
 github.com/wpajqz/go-sdk v0.0.0-20191113134711-5482aa353fb2/go.mod h1:nczWMGp+LzRqA06Bc9UJ8p68NB3BsNavN4yEtxOVqRM=
@@ -48,6 +50,7 @@ golang.org/x/net v0.0.0-20180906233101-161cd47e91fd/go.mod h1:mL1N/T3taQHkDXs73r
 golang.org/x/net v0.0.0-20190503192946-f4e77d36d62c h1:uOCk1iQW6Vc18bnC13MfzScl+wdKBmM9Y9kU7Z83/lw=
 golang.org/x/net v0.0.0-20190503192946-f4e77d36d62c/go.mod h1:t9HGtf8HONx5eT2rtn7q6eTqICYqUVnKs3thJo3Qplg=
 golang.org/x/sync v0.0.0-20180314180146-1d60e4601c6f/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
+golang.org/x/sync v0.0.0-20190227155943-e225da77a7e6 h1:bjcUS9ztw9kFmmIxJInhon/0Is3p+EHBKNgquIzo1OI=
 golang.org/x/sync v0.0.0-20190227155943-e225da77a7e6/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
 golang.org/x/sys v0.0.0-20190215142949-d0b11bdaac8a/go.mod h1:STP8DvDyc/dI5b8T5hshtkjS+E42TnysNCUPdjciGhY=
 golang.org/x/sys v0.0.0-20190222072716-a9d3bda3a223 h1:DH4skfRX4EBpamg7iV4ZlCpblAHI6s6TDM39bFZumv8=

@@ -10,14 +10,10 @@ import (
 )
 
 func TestServer(t *testing.T) {
-	var (
-		addr = "127.0.0.1"
-		port = 8080
-	)
+	var address = []string{"127.0.0.1:8080", "127.0.0.1:8082"}
 
 	client, err := brpc.NewClient(
-		addr,
-		port,
+		address,
 		brpc.WithOnOpen(func() { fmt.Println("open connection") }),
 		brpc.WithOnClose(func() { fmt.Println("close connection") }),
 		brpc.WithOnError(func(err error) { fmt.Printf("connection error: %s", err.Error()) }),

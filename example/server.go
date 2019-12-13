@@ -40,7 +40,7 @@ func main() {
 	server.BindRouter(router)
 	go func() {
 		r := gin.Default()
-		err := server.RunHTTP("127.0.0.1:8081","/websocket", r)
+		err := server.RunHTTP("127.0.0.1:8081", "/websocket", r)
 		if err != nil {
 			panic(err)
 		}

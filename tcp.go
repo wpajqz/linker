@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"log"
 	"net"
 	"runtime"
 	"time"
@@ -107,14 +106,24 @@ func (s *Server) handleTCPConnection(conn *net.TCPConn) error {
 func (s *Server) handleTCPPacket(ctx Context, rp Packet) {
 	defer func() {
 		if r := recover(); r != nil {
-			buf := make([]byte, 1<<12)
-			n := runtime.Stack(buf, false)
-			log.Println(string(buf[:n]))
+			var errMsg string
+
+			switch v := r.(type) {
+			case string:
+				errMsg = v
+			case error:
+				errMsg = v.Error()
+			default:
+				errMsg = StatusText(StatusInternalServerError)
+			}
+
+			ctx.Set(errorTag, errMsg)
 
 			if s.errorHandler != nil {
-				ctx.Set("recovery", r)
 				s.errorHandler.Handle(ctx)
 			}
+
+			ctx.Error(StatusInternalServerError, errMsg)
 		}
 	}()
 
@@ -171,7 +180,7 @@ func (s *Server) RunTCP(name, address string) error {
 
 		go func(conn *net.TCPConn) {
 			err := s.handleTCPConnection(conn)
-			if err != nil && err != io.EOF{
+			if err != nil && err != io.EOF {
 				fmt.Printf("tcp connection error: %s\n", err.Error())
 			}
 		}(conn)

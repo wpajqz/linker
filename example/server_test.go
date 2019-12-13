@@ -10,7 +10,7 @@ import (
 )
 
 func TestServer(t *testing.T) {
-	var address = []string{"127.0.0.1:8080", "127.0.0.1:8082"}
+	var address = []string{"127.0.0.1:8080"}
 
 	client, err := brpc.NewClient(
 		address,

@@ -13,12 +13,14 @@ const (
 	OperatorMax       = 1024
 )
 
+const errorTag = "error"
+
 type (
 	Handler interface {
 		Handle(Context)
 	}
-	HandlerFunc  func(Context)
-	Server       struct {
+	HandlerFunc func(Context)
+	Server      struct {
 		config           Config
 		router           *Router
 		errorHandler     Handler
@@ -37,20 +39,7 @@ func NewServer(config Config) *Server {
 		config.MaxPayload = MaxPayload
 	}
 
-	return &Server{
-		config: config,
-		errorHandler: HandlerFunc(func(ctx Context) {
-			r := ctx.Get("recovery")
-			switch v := r.(type) {
-			case string:
-				ctx.Error(StatusInternalServerError, v)
-			case error:
-				ctx.Error(StatusInternalServerError, v.Error())
-			default:
-				ctx.Error(StatusInternalServerError, "unknown error from linker")
-			}
-		}),
-	}
+	return &Server{config: config}
 }
 
 // 设置默认错误处理方法

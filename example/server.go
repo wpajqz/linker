@@ -37,6 +37,13 @@ func main() {
 		),
 	)
 
+	server.OnError(linker.HandlerFunc(func(ctx linker.Context) {
+		ie := ctx.InternalError()
+		if ie != "" {
+			ctx.Error(linker.StatusInternalServerError, ctx.InternalError())
+		}
+	}))
+
 	server.BindRouter(router)
 	go func() {
 		r := gin.Default()

@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"runtime"
 	"sync"
@@ -113,14 +112,24 @@ func (s *Server) handleWebSocketConnection(conn *websocket.Conn) error {
 func (s *Server) handleWebSocketPacket(ctx Context, conn *websocket.Conn, rp Packet) {
 	defer func() {
 		if r := recover(); r != nil {
-			buf := make([]byte, 1<<12)
-			n := runtime.Stack(buf, false)
-			log.Println(string(buf[:n]))
+			var errMsg string
+
+			switch v := r.(type) {
+			case string:
+				errMsg = v
+			case error:
+				errMsg = v.Error()
+			default:
+				errMsg = StatusText(StatusInternalServerError)
+			}
+
+			ctx.Set(errorTag, errMsg)
 
 			if s.errorHandler != nil {
-				ctx.Set("recovery", r)
 				s.errorHandler.Handle(ctx)
 			}
+
+			ctx.Error(StatusInternalServerError, errMsg)
 		}
 	}()
 
@@ -177,14 +186,14 @@ func (s *Server) RunHTTP(address, wsRoute string, handler http.Handler) error {
 
 			go func(conn *websocket.Conn) {
 				err := s.handleWebSocketConnection(conn)
-				if err != nil && err != io.EOF{
+				if err != nil && err != io.EOF {
 					fmt.Printf("websocket connection error: %s\n", err.Error())
 				}
 			}(conn)
 		})
 
 		//	match old version
-		r.GET(wsRoute + "/websocket", func(ctx *gin.Context) {
+		r.GET(wsRoute+"/websocket", func(ctx *gin.Context) {
 			var upgrade = websocket.Upgrader{
 				HandshakeTimeout:  s.config.Timeout,
 				ReadBufferSize:    s.config.ReadBufferSize,
@@ -203,7 +212,7 @@ func (s *Server) RunHTTP(address, wsRoute string, handler http.Handler) error {
 
 			go func(conn *websocket.Conn) {
 				err := s.handleWebSocketConnection(conn)
-				if err != nil && err != io.EOF{
+				if err != nil && err != io.EOF {
 					fmt.Printf("websocket connection error: %s\n", err.Error())
 				}
 			}(conn)
@@ -228,7 +237,7 @@ func (s *Server) RunHTTP(address, wsRoute string, handler http.Handler) error {
 
 			go func(conn *websocket.Conn) {
 				err := s.handleWebSocketConnection(conn)
-				if err != nil && err != io.EOF{
+				if err != nil && err != io.EOF {
 					fmt.Printf("websocket connection error: %s\n", err.Error())
 				}
 			}(conn)

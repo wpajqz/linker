@@ -33,6 +33,7 @@ type (
 		GetResponseProperty(key string) string
 		LocalAddr() string
 		RemoteAddr() string
+		InternalError() string
 	}
 
 	common struct {
@@ -168,7 +169,7 @@ func (dc *common) ParseParam(data interface{}) error {
 
 func (dc *common) SetRequestProperty(key, value string) {
 	v := dc.GetRequestProperty(key)
-	old := []byte(key + "=" + v +";")
+	old := []byte(key + "=" + v + ";")
 	new := []byte("")
 
 	dc.Request.Header = bytes.ReplaceAll(dc.Request.Header, old, new)
@@ -206,4 +207,8 @@ func (dc *common) GetResponseProperty(key string) string {
 	}
 
 	return ""
+}
+
+func (dc *common) InternalError() string {
+	return dc.GetString(errorTag)
 }

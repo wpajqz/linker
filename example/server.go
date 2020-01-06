@@ -24,6 +24,12 @@ func main() {
 			&plugins.Decryption{},
 			&plugins.Debug{Sender: false},
 		}),
+		linker.WithOnError(linker.HandlerFunc(func(ctx linker.Context) {
+			ie := ctx.InternalError()
+			if ie != "" {
+				ctx.Error(linker.StatusInternalServerError, ctx.InternalError())
+			}
+		})),
 	)
 
 	router := linker.NewRouter()
@@ -36,13 +42,6 @@ func main() {
 			}),
 		),
 	)
-
-	server.OnError(linker.HandlerFunc(func(ctx linker.Context) {
-		ie := ctx.InternalError()
-		if ie != "" {
-			ctx.Error(linker.StatusInternalServerError, ctx.InternalError())
-		}
-	}))
 
 	server.BindRouter(router)
 	go func() {

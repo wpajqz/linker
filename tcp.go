@@ -13,13 +13,13 @@ import (
 
 func (s *Server) handleTCPConnection(conn *net.TCPConn) error {
 	ctx := &ContextTcp{common: common{Context: context.Background()}, Conn: conn}
-	if s.constructHandler != nil {
-		s.constructHandler.Handle(ctx)
+	if s.options.constructHandler != nil {
+		s.options.constructHandler.Handle(ctx)
 	}
 
 	defer func() {
-		if s.destructHandler != nil {
-			s.destructHandler.Handle(ctx)
+		if s.options.destructHandler != nil {
+			s.options.destructHandler.Handle(ctx)
 		}
 
 		conn.Close()
@@ -119,8 +119,8 @@ func (s *Server) handleTCPPacket(ctx Context, rp Packet) {
 
 			ctx.Set(errorTag, errMsg)
 
-			if s.errorHandler != nil {
-				s.errorHandler.Handle(ctx)
+			if s.options.errorHandler != nil {
+				s.options.errorHandler.Handle(ctx)
 			}
 
 			ctx.Error(StatusInternalServerError, errMsg)
@@ -128,8 +128,8 @@ func (s *Server) handleTCPPacket(ctx Context, rp Packet) {
 	}()
 
 	if rp.Operator == OperatorHeartbeat {
-		if s.pingHandler != nil {
-			s.pingHandler.Handle(ctx)
+		if s.options.pingHandler != nil {
+			s.options.pingHandler.Handle(ctx)
 		}
 
 		ctx.Success(nil)

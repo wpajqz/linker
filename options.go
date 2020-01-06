@@ -4,14 +4,15 @@ import "time"
 
 type (
 	Options struct {
-		Debug                   bool
-		ReadBufferSize          int
-		WriteBufferSize         int
-		Timeout                 time.Duration
-		MaxPayload              uint32
-		ContentType             string
-		PluginForPacketSender   []PacketPlugin
-		PluginForPacketReceiver []PacketPlugin
+		Debug                                                        bool
+		ReadBufferSize                                               int
+		WriteBufferSize                                              int
+		Timeout                                                      time.Duration
+		MaxPayload                                                   uint32
+		ContentType                                                  string
+		PluginForPacketSender                                        []PacketPlugin
+		PluginForPacketReceiver                                      []PacketPlugin
+		errorHandler, constructHandler, destructHandler, pingHandler Handler
 	}
 
 	Option func(o *Options)
@@ -62,5 +63,29 @@ func PluginForPacketSender(plugins []PacketPlugin) Option {
 func PluginForPacketReceiver(plugins []PacketPlugin) Option {
 	return func(o *Options) {
 		o.PluginForPacketReceiver = plugins
+	}
+}
+
+func WithOnError(handler Handler) Option {
+	return func(o *Options) {
+		o.errorHandler = handler
+	}
+}
+
+func WithOnClose(handler Handler) Option {
+	return func(o *Options) {
+		o.destructHandler = handler
+	}
+}
+
+func WithOnOpen(handler Handler) Option {
+	return func(o *Options) {
+		o.constructHandler = handler
+	}
+}
+
+func WithOnPing(handler Handler) Option {
+	return func(o *Options) {
+		o.pingHandler = handler
 	}
 }

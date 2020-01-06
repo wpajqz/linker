@@ -40,8 +40,8 @@ func (s *Server) handleUDPData(conn *net.UDPConn, remote *net.UDPAddr, data []by
 
 			ctx.Set(errorTag, errMsg)
 
-			if s.errorHandler != nil {
-				s.errorHandler.Handle(ctx)
+			if s.options.errorHandler != nil {
+				s.options.errorHandler.Handle(ctx)
 			}
 
 			ctx.Error(StatusInternalServerError, errMsg)
@@ -49,8 +49,8 @@ func (s *Server) handleUDPData(conn *net.UDPConn, remote *net.UDPAddr, data []by
 	}()
 
 	if rp.Operator == OperatorHeartbeat {
-		if s.pingHandler != nil {
-			s.pingHandler.Handle(ctx)
+		if s.options.pingHandler != nil {
+			s.options.pingHandler.Handle(ctx)
 		}
 
 		ctx.Success(nil)
@@ -108,8 +108,8 @@ func (s *Server) RunUDP(name, address string) error {
 		}
 	}
 
-	if s.constructHandler != nil {
-		s.constructHandler.Handle(nil)
+	if s.options.constructHandler != nil {
+		s.options.constructHandler.Handle(nil)
 	}
 
 	for {

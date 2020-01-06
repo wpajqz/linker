@@ -19,13 +19,13 @@ func (s *Server) handleWebSocketConnection(conn *websocket.Conn) error {
 	wsn := &webSocketConn{mutex: sync.Mutex{}, conn: conn}
 	var ctx Context = &ContextWebsocket{Conn: wsn}
 
-	if s.constructHandler != nil {
-		s.constructHandler.Handle(ctx)
+	if s.options.constructHandler != nil {
+		s.options.constructHandler.Handle(ctx)
 	}
 
 	defer func() {
-		if s.destructHandler != nil {
-			s.destructHandler.Handle(ctx)
+		if s.options.destructHandler != nil {
+			s.options.destructHandler.Handle(ctx)
 		}
 
 		conn.Close()
@@ -125,8 +125,8 @@ func (s *Server) handleWebSocketPacket(ctx Context, conn *websocket.Conn, rp Pac
 
 			ctx.Set(errorTag, errMsg)
 
-			if s.errorHandler != nil {
-				s.errorHandler.Handle(ctx)
+			if s.options.errorHandler != nil {
+				s.options.errorHandler.Handle(ctx)
 			}
 
 			ctx.Error(StatusInternalServerError, errMsg)
@@ -134,8 +134,8 @@ func (s *Server) handleWebSocketPacket(ctx Context, conn *websocket.Conn, rp Pac
 	}()
 
 	if rp.Operator == OperatorHeartbeat {
-		if s.pingHandler != nil {
-			s.pingHandler.Handle(ctx)
+		if s.options.pingHandler != nil {
+			s.options.pingHandler.Handle(ctx)
 		}
 
 		ctx.Success(nil)

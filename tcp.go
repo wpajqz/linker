@@ -25,15 +25,15 @@ func (s *Server) handleTCPConnection(conn *net.TCPConn) error {
 		conn.Close()
 	}()
 
-	if s.config.ReadBufferSize > 0 {
-		err := conn.SetReadBuffer(s.config.ReadBufferSize)
+	if s.options.ReadBufferSize > 0 {
+		err := conn.SetReadBuffer(s.options.ReadBufferSize)
 		if err != nil {
 			return err
 		}
 	}
 
-	if s.config.WriteBufferSize > 0 {
-		err := conn.SetWriteBuffer(s.config.WriteBufferSize)
+	if s.options.WriteBufferSize > 0 {
+		err := conn.SetWriteBuffer(s.options.WriteBufferSize)
 		if err != nil {
 			return err
 		}
@@ -50,8 +50,8 @@ func (s *Server) handleTCPConnection(conn *net.TCPConn) error {
 	)
 
 	for {
-		if s.config.Timeout != 0 {
-			err := conn.SetDeadline(time.Now().Add(s.config.Timeout))
+		if s.options.Timeout != 0 {
+			err := conn.SetDeadline(time.Now().Add(s.options.Timeout))
 			if err != nil {
 				return err
 			}
@@ -78,7 +78,7 @@ func (s *Server) handleTCPConnection(conn *net.TCPConn) error {
 		bodyLength = convert.BytesToUint32(bBodyLength)
 		pacLen := headerLength + bodyLength + uint32(20)
 
-		if pacLen > s.config.MaxPayload {
+		if pacLen > s.options.MaxPayload {
 			_, file, line, _ := runtime.Caller(1)
 			return SystemError{time.Now(), file, line, "packet larger than MaxPayload"}
 		}
@@ -93,12 +93,12 @@ func (s *Server) handleTCPConnection(conn *net.TCPConn) error {
 			return err
 		}
 
-		rp, err := NewPacket(convert.BytesToUint32(bType), sequence, header, body, s.config.PluginForPacketReceiver)
+		rp, err := NewPacket(convert.BytesToUint32(bType), sequence, header, body, s.options.PluginForPacketReceiver)
 		if err != nil {
 			return err
 		}
 
-		ctx = NewContextTcp(ctx.Context, conn, rp.Operator, rp.Sequence, rp.Header, rp.Body, s.config)
+		ctx = NewContextTcp(ctx.Context, conn, rp.Operator, rp.Sequence, rp.Header, rp.Body, s.options)
 		go s.handleTCPPacket(ctx, rp)
 	}
 }

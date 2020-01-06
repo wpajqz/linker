@@ -14,17 +14,17 @@ const timeout = 60 * 6 * time.Second
 
 func main() {
 	server := linker.NewServer(
-		linker.Config{
-			Timeout: timeout,
-			PluginForPacketSender: []linker.PacketPlugin{
-				&plugins.Encryption{},
-				&plugins.Debug{Sender: true},
-			},
-			PluginForPacketReceiver: []linker.PacketPlugin{
-				&plugins.Decryption{},
-				&plugins.Debug{Sender: false},
-			},
-		})
+		linker.Debug(),
+		linker.Timeout(timeout),
+		linker.PluginForPacketSender([]linker.PacketPlugin{
+			&plugins.Encryption{},
+			&plugins.Debug{Sender: true},
+		}),
+		linker.PluginForPacketReceiver([]linker.PacketPlugin{
+			&plugins.Decryption{},
+			&plugins.Debug{Sender: false},
+		}),
+	)
 
 	router := linker.NewRouter()
 	router.NSRouter("/v1",

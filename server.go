@@ -5,10 +5,6 @@ import (
 )
 
 const (
-	MaxPayload = 1024 * 1024
-)
-
-const (
 	OperatorHeartbeat = iota
 	OperatorMax       = 1024
 )
@@ -21,7 +17,7 @@ type (
 	}
 	HandlerFunc func(Context)
 	Server      struct {
-		config           Config
+		options          Options
 		router           *Router
 		errorHandler     Handler
 		constructHandler Handler
@@ -30,16 +26,18 @@ type (
 	}
 )
 
-func NewServer(config Config) *Server {
-	if config.ContentType == "" {
-		config.ContentType = codec.JSON
+func NewServer(opts ...Option) *Server {
+	options := Options{
+		Debug:       false,
+		MaxPayload:  1024 * 1024,
+		ContentType: codec.JSON,
 	}
 
-	if config.MaxPayload == 0 {
-		config.MaxPayload = MaxPayload
+	for _, o := range opts {
+		o(&options)
 	}
 
-	return &Server{config: config}
+	return &Server{options: options}
 }
 
 // 设置默认错误处理方法

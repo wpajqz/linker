@@ -18,12 +18,12 @@ func (s *Server) handleUDPData(conn *net.UDPConn, remote *net.UDPAddr, data []by
 	header := data[20 : 20+headerLength]
 	body := data[20+headerLength : length]
 
-	rp, err := NewPacket(convert.BytesToUint32(bType), sequence, header, body, s.config.PluginForPacketReceiver)
+	rp, err := NewPacket(convert.BytesToUint32(bType), sequence, header, body, s.options.PluginForPacketReceiver)
 	if err != nil {
 		return
 	}
 
-	var ctx Context = NewContextUdp(conn, remote, rp.Operator, rp.Sequence, rp.Header, rp.Body, s.config)
+	var ctx Context = NewContextUdp(conn, remote, rp.Operator, rp.Sequence, rp.Header, rp.Body, s.options)
 
 	defer func() {
 		if r := recover(); r != nil {
@@ -94,15 +94,15 @@ func (s *Server) RunUDP(name, address string) error {
 
 	fmt.Printf("Listening and serving UDP on %s\n", address)
 
-	if s.config.ReadBufferSize > 0 {
-		err := conn.SetReadBuffer(s.config.ReadBufferSize)
+	if s.options.ReadBufferSize > 0 {
+		err := conn.SetReadBuffer(s.options.ReadBufferSize)
 		if err != nil {
 			return err
 		}
 	}
 
-	if s.config.WriteBufferSize > 0 {
-		err := conn.SetWriteBuffer(s.config.WriteBufferSize)
+	if s.options.WriteBufferSize > 0 {
+		err := conn.SetWriteBuffer(s.options.WriteBufferSize)
 		if err != nil {
 			return err
 		}
@@ -113,7 +113,7 @@ func (s *Server) RunUDP(name, address string) error {
 	}
 
 	for {
-		data := make([]byte, MaxPayload)
+		data := make([]byte, s.options.MaxPayload)
 		n, remote, err := conn.ReadFromUDP(data)
 		if err != nil {
 			continue

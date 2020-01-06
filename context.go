@@ -37,7 +37,7 @@ type (
 	}
 
 	common struct {
-		config            Config
+		options           Options
 		operateType       uint32
 		sequence          int64
 		body              []byte
@@ -159,7 +159,7 @@ func (dc *common) GetStringMap(key string) (sm map[string]interface{}) {
 }
 
 func (dc *common) ParseParam(data interface{}) error {
-	r, err := codec.NewCoder(dc.config.ContentType)
+	r, err := codec.NewCoder(dc.options.ContentType)
 	if err != nil {
 		return err
 	}

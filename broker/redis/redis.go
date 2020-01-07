@@ -1,6 +1,8 @@
 package redis
 
 import (
+	"fmt"
+
 	"github.com/go-redis/redis"
 	"github.com/wpajqz/linker/broker"
 )
@@ -10,11 +12,12 @@ type redisBroker struct {
 }
 
 func (rb *redisBroker) Publish(topic string, message interface{}) error {
-	_, err := rb.client.Publish(topic, message).Result()
+	count, err := rb.client.Publish(topic, message).Result()
 	if err != nil {
 		return err
 	}
 
+	fmt.Println("Subscribe count", count)
 	return nil
 }
 
@@ -22,12 +25,7 @@ func (rb *redisBroker) Subscribe(topic string, process func([]byte)) {
 	ps := rb.client.Subscribe(topic)
 	ch := ps.Channel()
 	go func() {
-		for {
-			msg, ok := <-ch
-			if !ok {
-				continue
-			}
-
+		for msg := range ch {
 			go process([]byte(msg.Payload))
 		}
 	}()

@@ -39,19 +39,17 @@ func TestServer(t *testing.T) {
 			continue
 		}
 
-		func(session *export.Client) {
-			session.SetRequestProperty("sid", "go")
-			err = session.SyncSend("/v1/healthy", nil, brpc.RequestStatusCallback{
-				Success: func(header, body []byte) {
-					fmt.Println("operator", string(body))
-				},
-				Error: func(code int, message string) {
-					fmt.Println("operator", code, message)
-				},
-			})
-			if err != nil {
-				t.Error(err)
-			}
-		}(session)
+		session.SetRequestProperty("sid", "go")
+		err = session.SyncSend("/v1/healthy", nil, brpc.RequestStatusCallback{
+			Success: func(header, body []byte) {
+				fmt.Println("operator", string(body))
+			},
+			Error: func(code int, message string) {
+				fmt.Println("operator", code, message)
+			},
+		})
+		if err != nil {
+			t.Error(err)
+		}
 	}
 }

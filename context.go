@@ -27,6 +27,7 @@ type (
 		Success(body interface{})
 		Error(code int, message string)
 		Publish(topic string, message interface{}) error
+		Subscribe(topic string, process func([]byte))
 		SetRequestProperty(key, value string)
 		GetRequestProperty(key string) string
 		SetResponseProperty(key, value string)
@@ -181,6 +182,10 @@ func (dc *common) Publish(topic string, message interface{}) error {
 	}
 
 	return dc.options.Broker.Publish(topic, data)
+}
+
+func (dc *common) Subscribe(topic string, process func([]byte)) {
+	dc.options.Broker.Subscribe(topic, process)
 }
 
 func (dc *common) SetRequestProperty(key, value string) {

@@ -45,7 +45,7 @@ func NewBroker(opts ...Option) broker.Broker {
 	rc := redis.NewClient(&redis.Options{
 		Addr:     options.Address,
 		Password: options.Password,
-		PoolSize: options.PoolSize,
+		DB:       options.DB,
 	})
 
 	return &redisBroker{client: rc}

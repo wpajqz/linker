@@ -4,7 +4,7 @@ type (
 	Options struct {
 		Address  string
 		Password string
-		PoolSize int
+		DB       int
 	}
 
 	Option func(o *Options)
@@ -22,8 +22,8 @@ func Password(password string) Option {
 	}
 }
 
-func PoolSize(size int) Option {
+func DB(db int) Option {
 	return func(o *Options) {
-		o.PoolSize = size
+		o.DB = db
 	}
 }

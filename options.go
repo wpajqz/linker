@@ -1,6 +1,10 @@
 package linker
 
-import "time"
+import (
+	"time"
+
+	"github.com/wpajqz/linker/broker"
+)
 
 type (
 	Options struct {
@@ -10,6 +14,7 @@ type (
 		Timeout                                                      time.Duration
 		MaxPayload                                                   uint32
 		ContentType                                                  string
+		Broker                                                       broker.Broker
 		PluginForPacketSender                                        []PacketPlugin
 		PluginForPacketReceiver                                      []PacketPlugin
 		errorHandler, constructHandler, destructHandler, pingHandler Handler
@@ -51,6 +56,12 @@ func MaxPayload(maxPayload uint32) Option {
 func ContentType(mime string) Option {
 	return func(o *Options) {
 		o.ContentType = mime
+	}
+}
+
+func Broker(broker broker.Broker) Option {
+	return func(o *Options) {
+		o.Broker = broker
 	}
 }
 

@@ -71,21 +71,10 @@ func (c *ContextWebsocket) Error(code int, message string) {
 }
 
 // 向客户端发送数据
-func (c *ContextWebsocket) Write(operator string, body interface{}) (int, error) {
-	r, err := codec.NewCoder(c.options.ContentType)
+func (c *ContextWebsocket) write(operator string, body []byte) (int, error) {
+	p, err := NewPacket(crc32.ChecksumIEEE([]byte(operator)), 0, c.Response.Header, body, c.options.PluginForPacketSender)
 	if err != nil {
 		return 0, err
-	}
-
-	data, err := r.Encoder(body)
-	if err != nil {
-		return 0, err
-	}
-
-	p, err := NewPacket(crc32.ChecksumIEEE([]byte(operator)), 0, c.Response.Header, data, c.options.PluginForPacketSender)
-
-	if err != nil {
-		panic(err)
 	}
 
 	return 0, c.Conn.WriteMessage(websocket.BinaryMessage, p.Bytes())

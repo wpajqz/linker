@@ -3,8 +3,6 @@ package linker
 import (
 	"hash/crc32"
 	"strconv"
-
-	"github.com/wpajqz/linker/codec"
 )
 
 type (
@@ -65,28 +63,6 @@ func (r *Router) Route(pattern string, handler Handler, middleware ...Middleware
 // 添加请求需要进行处理的中间件
 func (r *Router) Use(middleware ...Middleware) *Router {
 	r.middleware = append(r.middleware, middleware...)
-
-	return r
-}
-
-// 注册内部路由
-func (r *Router) registerInternalRouter() *Router {
-	r.handlerContainer[OperatorRegisterListener] = HandlerFunc(func(ctx Context) {
-		var topic string
-
-		coder, err := codec.NewCoder(codec.String)
-		if err != nil {
-			ctx.Error(StatusInternalServerError, err.Error())
-		}
-
-		if err := coder.Decoder(ctx.RawBody(), &topic); err != nil {
-			ctx.Error(StatusInternalServerError, err.Error())
-		}
-
-		if _, err := ctx.Write(topic, "todo"); err != nil {
-			ctx.Error(StatusInternalServerError, err.Error())
-		}
-	})
 
 	return r
 }

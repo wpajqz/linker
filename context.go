@@ -26,7 +26,7 @@ type (
 		ParseParam(data interface{}) error
 		Success(body interface{})
 		Error(code int, message string)
-		Write(operator string, body interface{}) (int, error)
+		Publish(topic string, message interface{}) error
 		SetRequestProperty(key, value string)
 		GetRequestProperty(key string) string
 		SetResponseProperty(key, value string)
@@ -35,6 +35,7 @@ type (
 		RemoteAddr() string
 		InternalError() string
 		RawBody() []byte
+		write(operator string, body []byte) (int, error)
 	}
 
 	common struct {
@@ -166,6 +167,20 @@ func (dc *common) ParseParam(data interface{}) error {
 	}
 
 	return r.Decoder(dc.body, data)
+}
+
+func (dc *common) Publish(topic string, message interface{}) error {
+	r, err := codec.NewCoder(dc.options.ContentType)
+	if err != nil {
+		return err
+	}
+
+	data, err := r.Encoder(message)
+	if err != nil {
+		return err
+	}
+
+	return dc.options.Broker.Publish(topic, data)
 }
 
 func (dc *common) SetRequestProperty(key, value string) {

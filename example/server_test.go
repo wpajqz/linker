@@ -14,7 +14,6 @@ func TestServer(t *testing.T) {
 
 	client, err := brpc.NewClient(
 		address,
-		brpc.WithOnOpen(func() { fmt.Println("open connection") }),
 		brpc.WithOnClose(func() { fmt.Println("close connection") }),
 		brpc.WithOnError(func(err error) { fmt.Printf("connection error: %s", err.Error()) }),
 	)
@@ -31,29 +30,23 @@ func TestServer(t *testing.T) {
 		}
 
 		time.Sleep(1 * time.Second)
-		err = session.AddMessageListener("/v1/my/message", export.HandlerFunc(func(header, body []byte) {
-			fmt.Println(string(header), string(body))
+		err = session.AddMessageListener(topic, export.HandlerFunc(func(header, body []byte) {
+			fmt.Println("topic: ", string(body))
 		}))
 
 		if err != nil {
-			fmt.Printf(err.Error())
+			fmt.Println("topic", err.Error())
 			continue
 		}
 
-		go func(session *export.Client) {
+		func(session *export.Client) {
 			session.SetRequestProperty("sid", "go")
 			err = session.SyncSend("/v1/healthy", nil, brpc.RequestStatusCallback{
-				Start: func() {
-					fmt.Println("start request")
-				},
-				End: func() {
-					fmt.Println("end request")
-				},
 				Success: func(header, body []byte) {
-					fmt.Println(string(body))
+					fmt.Println("operator", string(body))
 				},
 				Error: func(code int, message string) {
-					fmt.Println(code, message)
+					fmt.Println("operator", code, message)
 				},
 			})
 			if err != nil {

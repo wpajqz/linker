@@ -31,6 +31,14 @@ func TestServer(t *testing.T) {
 		}
 
 		time.Sleep(1 * time.Second)
+		err = session.AddMessageListener("/v1/my/message", export.HandlerFunc(func(header, body []byte) {
+			fmt.Println(string(header), string(body))
+		}))
+
+		if err != nil {
+			fmt.Printf(err.Error())
+			continue
+		}
 
 		go func(session *export.Client) {
 			session.SetRequestProperty("sid", "go")

@@ -34,6 +34,7 @@ type (
 		LocalAddr() string
 		RemoteAddr() string
 		InternalError() string
+		RawBody() []byte
 	}
 
 	common struct {
@@ -211,4 +212,8 @@ func (dc *common) GetResponseProperty(key string) string {
 
 func (dc *common) InternalError() string {
 	return dc.GetString(errorTag)
+}
+
+func (dc *common) RawBody() []byte {
+	return dc.body
 }

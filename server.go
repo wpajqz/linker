@@ -6,7 +6,8 @@ import (
 
 const (
 	OperatorHeartbeat = iota
-	OperatorMax       = 1024
+	OperatorRegisterListener
+	OperatorMax = 1024
 )
 
 const errorTag = "error"
@@ -38,6 +39,8 @@ func NewServer(opts ...Option) *Server {
 
 // 绑定路由
 func (s *Server) BindRouter(r *Router) {
+	r.registerInternalRouter()
+
 	s.router = r
 }
 

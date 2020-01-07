@@ -73,12 +73,13 @@ func (r *Router) Use(middleware ...Middleware) *Router {
 func (r *Router) registerInternalRouter() *Router {
 	r.handlerContainer[OperatorRegisterListener] = HandlerFunc(func(ctx Context) {
 		var topic string
-		c, err := codec.NewCoder(codec.String)
+
+		coder, err := codec.NewCoder(codec.String)
 		if err != nil {
 			ctx.Error(StatusInternalServerError, err.Error())
 		}
 
-		if err := c.Decoder(ctx.RawBody(), &topic); err != nil {
+		if err := coder.Decoder(ctx.RawBody(), &topic); err != nil {
 			ctx.Error(StatusInternalServerError, err.Error())
 		}
 

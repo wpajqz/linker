@@ -10,7 +10,10 @@ const (
 	OperatorMax = 1024
 )
 
-const errorTag = "error"
+const (
+	errorTag = "error"
+	nodeID   = "node_id"
+)
 
 type (
 	Handler interface {
@@ -58,7 +61,7 @@ func (s *Server) registerInternalRouter(r *Router) *Router {
 			ctx.Error(StatusInternalServerError, err.Error())
 		}
 
-		ctx.Subscribe(topic, func(bytes []byte) {
+		ctx.subscribe(topic, func(bytes []byte) {
 			if _, err := ctx.write(topic, bytes); err != nil {
 				ctx.Error(StatusInternalServerError, err.Error())
 			}

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	uuid "github.com/satori/go.uuid"
 
 	"github.com/gorilla/websocket"
 	"github.com/wpajqz/linker/utils/convert"
@@ -23,12 +24,15 @@ func (s *Server) handleWebSocketConnection(conn *websocket.Conn) error {
 		s.options.constructHandler.Handle(ctx)
 	}
 
+	ctx.Set(nodeID, uuid.NewV4().String())
+
 	defer func() {
 		if s.options.destructHandler != nil {
 			s.options.destructHandler.Handle(ctx)
 		}
 
-		conn.Close()
+		_ = ctx.unSubscribe()
+		_ = conn.Close()
 	}()
 
 	var (

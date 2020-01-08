@@ -9,6 +9,7 @@ import (
 
 type redisBroker struct {
 	client *redis.Client
+	pb     map[string]*redis.PubSub
 }
 
 func (rb *redisBroker) Publish(topic string, message interface{}) error {
@@ -21,14 +22,20 @@ func (rb *redisBroker) Publish(topic string, message interface{}) error {
 	return nil
 }
 
-func (rb *redisBroker) Subscribe(topic string, process func([]byte)) {
+func (rb *redisBroker) Subscribe(nodeID, topic string, process func([]byte)) {
 	ps := rb.client.Subscribe(topic)
-	ch := ps.Channel()
+	rb.pb[nodeID] = ps
+
+	ch := rb.pb[nodeID].Channel()
 	go func() {
 		for msg := range ch {
 			go process([]byte(msg.Payload))
 		}
 	}()
+}
+
+func (rb *redisBroker) UnSubscribe(nodeID string) error {
+	return rb.pb[nodeID].Close()
 }
 
 func NewBroker(opts ...Option) broker.Broker {
@@ -46,5 +53,5 @@ func NewBroker(opts ...Option) broker.Broker {
 		DB:       options.DB,
 	})
 
-	return &redisBroker{client: rc}
+	return &redisBroker{client: rc, pb: make(map[string]*redis.PubSub)}
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 
+	uuid "github.com/satori/go.uuid"
 	"github.com/wpajqz/linker/utils/convert"
 )
 
@@ -25,6 +26,8 @@ func (s *Server) handleUDPData(conn *net.UDPConn, remote *net.UDPAddr, data []by
 
 	var ctx Context = NewContextUdp(conn, remote, rp.Operator, rp.Sequence, rp.Header, rp.Body, s.options)
 
+	ctx.Set(nodeID, uuid.NewV4().String())
+
 	defer func() {
 		if r := recover(); r != nil {
 			var errMsg string
@@ -45,6 +48,10 @@ func (s *Server) handleUDPData(conn *net.UDPConn, remote *net.UDPAddr, data []by
 			}
 
 			ctx.Error(StatusInternalServerError, errMsg)
+		}
+
+		if err := ctx.unSubscribe(); err != nil {
+			ctx.Error(StatusInternalServerError, err.Error())
 		}
 	}()
 

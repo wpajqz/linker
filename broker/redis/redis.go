@@ -1,6 +1,7 @@
 package redis
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/go-redis/redis"
@@ -35,7 +36,11 @@ func (rb *redisBroker) Subscribe(nodeID, topic string, process func([]byte)) {
 }
 
 func (rb *redisBroker) UnSubscribe(nodeID string) error {
-	return rb.pb[nodeID].Close()
+	if v, ok := rb.pb[nodeID]; ok {
+		return v.Close()
+	}
+
+	return errors.New("node's subscriber is not found")
 }
 
 func NewBroker(opts ...Option) broker.Broker {

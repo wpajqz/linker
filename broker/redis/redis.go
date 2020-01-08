@@ -3,6 +3,7 @@ package redis
 import (
 	"errors"
 	"fmt"
+	"sync"
 
 	"github.com/go-redis/redis"
 	"github.com/wpajqz/linker/broker"
@@ -10,7 +11,7 @@ import (
 
 type redisBroker struct {
 	client *redis.Client
-	pb     map[string]*redis.PubSub
+	pb     sync.Map
 }
 
 func (rb *redisBroker) Publish(topic string, message interface{}) error {
@@ -25,9 +26,9 @@ func (rb *redisBroker) Publish(topic string, message interface{}) error {
 
 func (rb *redisBroker) Subscribe(nodeID, topic string, process func([]byte)) {
 	ps := rb.client.Subscribe(topic)
-	rb.pb[nodeID] = ps
+	rb.pb.Store(nodeID, ps)
 
-	ch := rb.pb[nodeID].Channel()
+	ch := ps.Channel()
 	go func() {
 		for msg := range ch {
 			go process([]byte(msg.Payload))
@@ -36,8 +37,8 @@ func (rb *redisBroker) Subscribe(nodeID, topic string, process func([]byte)) {
 }
 
 func (rb *redisBroker) UnSubscribe(nodeID string) error {
-	if v, ok := rb.pb[nodeID]; ok {
-		return v.Close()
+	if v, ok := rb.pb.Load(nodeID); ok {
+		return v.(*redis.PubSub).Close()
 	}
 
 	return errors.New("node's subscriber is not found")
@@ -58,5 +59,5 @@ func NewBroker(opts ...Option) broker.Broker {
 		DB:       options.DB,
 	})
 
-	return &redisBroker{client: rc, pb: make(map[string]*redis.PubSub)}
+	return &redisBroker{client: rc, pb: sync.Map{}}
 }

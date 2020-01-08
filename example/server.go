@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/wpajqz/linker"
 	"github.com/wpajqz/linker/broker/redis"
-	"github.com/wpajqz/linker/plugins"
+	"github.com/wpajqz/linker/plugin"
 )
 
 const timeout = 60 * 6 * time.Second
@@ -19,12 +19,8 @@ func main() {
 		linker.Debug(),
 		linker.Broker(redis.NewBroker(redis.Address("127.0.0.1:6379"))),
 		linker.Timeout(timeout),
-		linker.PluginForPacketSender([]linker.PacketPlugin{
-			&plugins.Encryption{},
-		}),
-		linker.PluginForPacketReceiver([]linker.PacketPlugin{
-			&plugins.Decryption{},
-		}),
+		linker.PluginForPacketSender(&plugin.Encryption{}),
+		linker.PluginForPacketReceiver(&plugin.Decryption{}),
 		linker.WithOnError(linker.HandlerFunc(func(ctx linker.Context) {
 			ie := ctx.InternalError()
 			if ie != "" {

@@ -3,6 +3,7 @@ package linker
 import (
 	"fmt"
 
+	"github.com/wpajqz/linker/plugin"
 	"github.com/wpajqz/linker/utils/convert"
 )
 
@@ -15,16 +16,11 @@ type (
 		Header       []byte
 		Body         []byte
 	}
-
-	// Packet plugin, for example debug,gzip,encrypt,decrypt
-	PacketPlugin interface {
-		Handle(header, body []byte) (h, b []byte)
-	}
 )
 
-func NewPacket(operator uint32, sequence int64, header, body []byte, plugins []PacketPlugin) (p Packet, err error) {
+func NewPacket(operator uint32, sequence int64, header, body []byte, plugins []plugin.PacketPlugin) (p Packet, err error) {
 	defer func() {
-		if r := recover(); r !=nil {
+		if r := recover(); r != nil {
 			p = Packet{}
 			err = fmt.Errorf("[packet error] operator:%d sequence:%d header:%s body:%s detail:%#v", operator, sequence, string(header), string(body), r)
 		}

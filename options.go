@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/wpajqz/linker/broker"
+	"github.com/wpajqz/linker/plugin"
 )
 
 type (
@@ -15,8 +16,8 @@ type (
 		MaxPayload                                                   uint32
 		ContentType                                                  string
 		Broker                                                       broker.Broker
-		PluginForPacketSender                                        []PacketPlugin
-		PluginForPacketReceiver                                      []PacketPlugin
+		PluginForPacketSender                                        []plugin.PacketPlugin
+		PluginForPacketReceiver                                      []plugin.PacketPlugin
 		errorHandler, constructHandler, destructHandler, pingHandler Handler
 	}
 
@@ -65,13 +66,13 @@ func Broker(broker broker.Broker) Option {
 	}
 }
 
-func PluginForPacketSender(plugins []PacketPlugin) Option {
+func PluginForPacketSender(plugins ...plugin.PacketPlugin) Option {
 	return func(o *Options) {
 		o.PluginForPacketSender = plugins
 	}
 }
 
-func PluginForPacketReceiver(plugins []PacketPlugin) Option {
+func PluginForPacketReceiver(plugins ...plugin.PacketPlugin) Option {
 	return func(o *Options) {
 		o.PluginForPacketReceiver = plugins
 	}

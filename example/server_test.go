@@ -32,6 +32,8 @@ func TestServer(t *testing.T) {
 				fmt.Println("topic", err.Error())
 			}
 		}),
+		brpc.WithInitialCapacity(1),
+		brpc.WithMaxCapacity(1),
 		brpc.WithOnClose(func() { fmt.Println("close connection") }),
 		brpc.WithOnError(func(err error) { fmt.Printf("connection error: %s", err.Error()) }),
 	)

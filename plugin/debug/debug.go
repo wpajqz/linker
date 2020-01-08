@@ -1,4 +1,4 @@
-package plugin
+package debug
 
 import (
 	"fmt"
@@ -21,4 +21,8 @@ func (d *Debug) Handle(header, body []byte) (h, b []byte) {
 	}
 
 	return header, body
+}
+
+func NewPlugin() *Debug {
+	return &Debug{}
 }

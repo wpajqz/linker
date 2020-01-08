@@ -10,10 +10,28 @@ import (
 )
 
 func TestServer(t *testing.T) {
-	var address = []string{"127.0.0.1:8080"}
+	var (
+		address = []string{"127.0.0.1:8080"}
+		client  *brpc.Client
+		err     error
+	)
 
-	client, err := brpc.NewClient(
+	client, err = brpc.NewClient(
 		address,
+		brpc.WithOnOpen(func() {
+			session, err := client.Session()
+			if err != nil {
+				panic(err)
+			}
+
+			err = session.AddMessageListener(topic, export.HandlerFunc(func(header, body []byte) {
+				fmt.Println("topic: ", string(body))
+			}))
+
+			if err != nil {
+				fmt.Println("topic", err.Error())
+			}
+		}),
 		brpc.WithOnClose(func() { fmt.Println("close connection") }),
 		brpc.WithOnError(func(err error) { fmt.Printf("connection error: %s", err.Error()) }),
 	)
@@ -29,15 +47,7 @@ func TestServer(t *testing.T) {
 			continue
 		}
 
-		time.Sleep(1 * time.Second)
-		err = session.AddMessageListener(topic, export.HandlerFunc(func(header, body []byte) {
-			fmt.Println("topic: ", string(body))
-		}))
-
-		if err != nil {
-			fmt.Println("topic", err.Error())
-			continue
-		}
+		time.Sleep(2 * time.Second)
 
 		session.SetRequestProperty("sid", "go")
 		err = session.SyncSend("/v1/healthy", nil, brpc.RequestStatusCallback{

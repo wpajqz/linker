@@ -68,13 +68,13 @@ func Broker(broker broker.Broker) Option {
 
 func PluginForPacketSender(plugins ...plugin.PacketPlugin) Option {
 	return func(o *Options) {
-		o.PluginForPacketSender = plugins
+		o.PluginForPacketSender = append(o.PluginForPacketSender, plugins...)
 	}
 }
 
 func PluginForPacketReceiver(plugins ...plugin.PacketPlugin) Option {
 	return func(o *Options) {
-		o.PluginForPacketReceiver = plugins
+		o.PluginForPacketReceiver = append(o.PluginForPacketReceiver, plugins...)
 	}
 }
 

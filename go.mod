@@ -6,7 +6,9 @@ require (
 	github.com/golang/protobuf v1.3.1
 	github.com/gorilla/websocket v1.4.0
 	github.com/satori/go.uuid v1.2.0
-	github.com/wpajqz/brpc v1.0.6
+	github.com/silenceper/pool v0.0.0-20191105065223-1f4530b6ba17
+	github.com/ugorji/go v1.1.7 // indirect
+	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
 )
 
 go 1.13

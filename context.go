@@ -3,7 +3,6 @@ package linker
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"strings"
 	"time"
 
@@ -28,8 +27,6 @@ type (
 		Success(body interface{})
 		Error(code int, message string)
 		Publish(topic string, message interface{}) error
-		subscribe(topic string, process func([]byte))
-		unSubscribe() error
 		SetRequestProperty(key, value string)
 		GetRequestProperty(key string) string
 		SetResponseProperty(key, value string)
@@ -39,6 +36,8 @@ type (
 		InternalError() string
 		RawBody() []byte
 		write(operator string, body []byte) (int, error)
+		subscribe(topic string, process func([]byte))
+		unSubscribe() error
 	}
 
 	common struct {
@@ -187,7 +186,6 @@ func (dc *common) Publish(topic string, message interface{}) error {
 }
 
 func (dc *common) subscribe(topic string, process func([]byte)) {
-	fmt.Println(dc.GetString(nodeID))
 	dc.options.Broker.Subscribe(dc.GetString(nodeID), topic, process)
 }
 

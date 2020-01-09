@@ -28,9 +28,9 @@ type (
 
 func NewServer(opts ...Option) *Server {
 	options := Options{
-		Debug:       false,
-		MaxPayload:  1024 * 1024,
-		ContentType: codec.JSON,
+		debug:       false,
+		maxPayload:  1024 * 1024,
+		contentType: codec.JSON,
 	}
 
 	for _, o := range opts {

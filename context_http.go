@@ -33,7 +33,7 @@ func NewContextWebsocket(conn *webSocketConn, OperateType uint32, Sequence int64
 
 // 响应请求成功的数据包
 func (c *ContextWebsocket) Success(body interface{}) {
-	r, err := codec.NewCoder(c.options.ContentType)
+	r, err := codec.NewCoder(c.options.contentType)
 	if err != nil {
 		panic(err)
 	}
@@ -43,7 +43,7 @@ func (c *ContextWebsocket) Success(body interface{}) {
 		panic(err)
 	}
 
-	p, err := NewPacket(c.operateType, c.sequence, c.Response.Header, data, c.options.PluginForPacketSender)
+	p, err := NewPacket(c.operateType, c.sequence, c.Response.Header, data, c.options.pluginForPacketSender)
 
 	if err != nil {
 		panic(err)
@@ -59,7 +59,7 @@ func (c *ContextWebsocket) Error(code int, message string) {
 	c.SetResponseProperty("code", strconv.Itoa(code))
 	c.SetResponseProperty("message", message)
 
-	p, err := NewPacket(c.operateType, c.sequence, c.Response.Header, nil, c.options.PluginForPacketSender)
+	p, err := NewPacket(c.operateType, c.sequence, c.Response.Header, nil, c.options.pluginForPacketSender)
 
 	if err != nil {
 		panic(err)
@@ -72,7 +72,7 @@ func (c *ContextWebsocket) Error(code int, message string) {
 
 // 向客户端发送数据
 func (c *ContextWebsocket) write(operator string, body []byte) (int, error) {
-	p, err := NewPacket(crc32.ChecksumIEEE([]byte(operator)), 0, c.Response.Header, body, c.options.PluginForPacketSender)
+	p, err := NewPacket(crc32.ChecksumIEEE([]byte(operator)), 0, c.Response.Header, body, c.options.pluginForPacketSender)
 	if err != nil {
 		return 0, err
 	}

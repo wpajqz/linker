@@ -9,15 +9,15 @@ import (
 
 type (
 	Options struct {
-		Debug                                                        bool
-		ReadBufferSize                                               int
-		WriteBufferSize                                              int
-		Timeout                                                      time.Duration
-		MaxPayload                                                   uint32
-		ContentType                                                  string
-		Broker                                                       broker.Broker
-		PluginForPacketSender                                        []plugin.PacketPlugin
-		PluginForPacketReceiver                                      []plugin.PacketPlugin
+		debug                                                        bool
+		readBufferSize                                               int
+		writeBufferSize                                              int
+		timeout                                                      time.Duration
+		maxPayload                                                   uint32
+		contentType                                                  string
+		broker                                                       broker.Broker
+		pluginForPacketSender                                        []plugin.PacketPlugin
+		pluginForPacketReceiver                                      []plugin.PacketPlugin
 		errorHandler, constructHandler, destructHandler, pingHandler Handler
 	}
 
@@ -26,55 +26,55 @@ type (
 
 func Debug() Option {
 	return func(o *Options) {
-		o.Debug = true
+		o.debug = true
 	}
 }
 
 func ReadBufferSize(size int) Option {
 	return func(o *Options) {
-		o.ReadBufferSize = size
+		o.readBufferSize = size
 	}
 }
 
 func WriteBufferSize(size int) Option {
 	return func(o *Options) {
-		o.WriteBufferSize = size
+		o.writeBufferSize = size
 	}
 }
 
 func Timeout(d time.Duration) Option {
 	return func(o *Options) {
-		o.Timeout = d
+		o.timeout = d
 	}
 }
 
 func MaxPayload(maxPayload uint32) Option {
 	return func(o *Options) {
-		o.MaxPayload = maxPayload
+		o.maxPayload = maxPayload
 	}
 }
 
 func ContentType(mime string) Option {
 	return func(o *Options) {
-		o.ContentType = mime
+		o.contentType = mime
 	}
 }
 
 func Broker(broker broker.Broker) Option {
 	return func(o *Options) {
-		o.Broker = broker
+		o.broker = broker
 	}
 }
 
 func PluginForPacketSender(plugins ...plugin.PacketPlugin) Option {
 	return func(o *Options) {
-		o.PluginForPacketSender = append(o.PluginForPacketSender, plugins...)
+		o.pluginForPacketSender = append(o.pluginForPacketSender, plugins...)
 	}
 }
 
 func PluginForPacketReceiver(plugins ...plugin.PacketPlugin) Option {
 	return func(o *Options) {
-		o.PluginForPacketReceiver = append(o.PluginForPacketReceiver, plugins...)
+		o.pluginForPacketReceiver = append(o.pluginForPacketReceiver, plugins...)
 	}
 }
 

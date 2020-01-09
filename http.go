@@ -48,16 +48,16 @@ func (s *Server) handleWebSocketConnection(conn *websocket.Conn) error {
 		bodyLength    uint32
 	)
 
-	conn.SetReadLimit(int64(s.options.MaxPayload))
+	conn.SetReadLimit(int64(s.options.maxPayload))
 
 	for {
-		if s.options.Timeout != 0 {
-			err := conn.SetReadDeadline(time.Now().Add(s.options.Timeout))
+		if s.options.timeout != 0 {
+			err := conn.SetReadDeadline(time.Now().Add(s.options.timeout))
 			if err != nil {
 				return err
 			}
 
-			err = conn.SetWriteDeadline(time.Now().Add(s.options.Timeout))
+			err = conn.SetWriteDeadline(time.Now().Add(s.options.timeout))
 			if err != nil {
 				return err
 			}
@@ -89,9 +89,9 @@ func (s *Server) handleWebSocketConnection(conn *websocket.Conn) error {
 		bodyLength = convert.BytesToUint32(bBodyLength)
 		pacLen := headerLength + bodyLength + uint32(20)
 
-		if pacLen > s.options.MaxPayload {
+		if pacLen > s.options.maxPayload {
 			_, file, line, _ := runtime.Caller(1)
-			return SystemError{time.Now(), file, line, "packet larger than MaxPayload"}
+			return SystemError{time.Now(), file, line, "packet larger than maxPayload"}
 		}
 
 		header := make([]byte, headerLength)
@@ -105,7 +105,7 @@ func (s *Server) handleWebSocketConnection(conn *websocket.Conn) error {
 			return err
 		}
 
-		rp, err := NewPacket(convert.BytesToUint32(bType), sequence, header, body, s.options.PluginForPacketReceiver)
+		rp, err := NewPacket(convert.BytesToUint32(bType), sequence, header, body, s.options.pluginForPacketReceiver)
 
 		if err != nil {
 			return err
@@ -176,9 +176,9 @@ func (s *Server) RunHTTP(address, wsRoute string, handler http.Handler) error {
 	case *gin.Engine:
 		r.GET(wsRoute, func(ctx *gin.Context) {
 			var upgrade = websocket.Upgrader{
-				HandshakeTimeout:  s.options.Timeout,
-				ReadBufferSize:    s.options.ReadBufferSize,
-				WriteBufferSize:   s.options.WriteBufferSize,
+				HandshakeTimeout:  s.options.timeout,
+				ReadBufferSize:    s.options.readBufferSize,
+				WriteBufferSize:   s.options.writeBufferSize,
 				EnableCompression: true,
 				CheckOrigin: func(r *http.Request) bool {
 					return true
@@ -202,9 +202,9 @@ func (s *Server) RunHTTP(address, wsRoute string, handler http.Handler) error {
 		//	match old version
 		r.GET(wsRoute+"/websocket", func(ctx *gin.Context) {
 			var upgrade = websocket.Upgrader{
-				HandshakeTimeout:  s.options.Timeout,
-				ReadBufferSize:    s.options.ReadBufferSize,
-				WriteBufferSize:   s.options.WriteBufferSize,
+				HandshakeTimeout:  s.options.timeout,
+				ReadBufferSize:    s.options.readBufferSize,
+				WriteBufferSize:   s.options.writeBufferSize,
 				EnableCompression: true,
 				CheckOrigin: func(r *http.Request) bool {
 					return true
@@ -227,9 +227,9 @@ func (s *Server) RunHTTP(address, wsRoute string, handler http.Handler) error {
 	case nil:
 		http.HandleFunc(wsRoute, func(w http.ResponseWriter, r *http.Request) {
 			var upgrade = websocket.Upgrader{
-				HandshakeTimeout:  s.options.Timeout,
-				ReadBufferSize:    s.options.ReadBufferSize,
-				WriteBufferSize:   s.options.WriteBufferSize,
+				HandshakeTimeout:  s.options.timeout,
+				ReadBufferSize:    s.options.readBufferSize,
+				WriteBufferSize:   s.options.writeBufferSize,
 				EnableCompression: true,
 				CheckOrigin: func(r *http.Request) bool {
 					return true

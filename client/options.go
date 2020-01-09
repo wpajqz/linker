@@ -13,6 +13,7 @@ type (
 		maxPayload              int
 		initialCap              int
 		maxCap                  int
+		contentType             string
 		idleTimeout             time.Duration
 		onOpen, onClose         func()
 		onError                 func(error)
@@ -23,37 +24,43 @@ type (
 	Option func(*options)
 )
 
-func WithNetwork(n string) Option {
+func Network(n string) Option {
 	return Option(func(o *options) {
 		o.network = n
 	})
 }
 
-func WithDialTimeout(n time.Duration) Option {
+func DialTimeout(n time.Duration) Option {
 	return Option(func(o *options) {
 		o.dialTimeout = n
 	})
 }
 
-func WithMaxPayload(n int) Option {
+func MaxPayload(n int) Option {
 	return Option(func(o *options) {
 		o.maxPayload = n
 	})
 }
 
-func WithInitialCapacity(n int) Option {
+func ContentType(mime string) Option {
+	return func(o *options) {
+		o.contentType = mime
+	}
+}
+
+func InitialCapacity(n int) Option {
 	return Option(func(o *options) {
 		o.initialCap = n
 	})
 }
 
-func WithMaxCapacity(n int) Option {
+func MaxCapacity(n int) Option {
 	return Option(func(o *options) {
 		o.maxCap = n
 	})
 }
 
-func WithIdleTimeout(timeout time.Duration) Option {
+func IdleTimeout(timeout time.Duration) Option {
 	return Option(func(o *options) {
 		o.idleTimeout = timeout
 	})

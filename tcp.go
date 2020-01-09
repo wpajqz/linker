@@ -32,15 +32,15 @@ func (s *Server) handleTCPConnection(conn *net.TCPConn) error {
 		_ = conn.Close()
 	}()
 
-	if s.options.ReadBufferSize > 0 {
-		err := conn.SetReadBuffer(s.options.ReadBufferSize)
+	if s.options.readBufferSize > 0 {
+		err := conn.SetReadBuffer(s.options.readBufferSize)
 		if err != nil {
 			return err
 		}
 	}
 
-	if s.options.WriteBufferSize > 0 {
-		err := conn.SetWriteBuffer(s.options.WriteBufferSize)
+	if s.options.writeBufferSize > 0 {
+		err := conn.SetWriteBuffer(s.options.writeBufferSize)
 		if err != nil {
 			return err
 		}
@@ -57,8 +57,8 @@ func (s *Server) handleTCPConnection(conn *net.TCPConn) error {
 	)
 
 	for {
-		if s.options.Timeout != 0 {
-			err := conn.SetDeadline(time.Now().Add(s.options.Timeout))
+		if s.options.timeout != 0 {
+			err := conn.SetDeadline(time.Now().Add(s.options.timeout))
 			if err != nil {
 				return err
 			}
@@ -85,9 +85,9 @@ func (s *Server) handleTCPConnection(conn *net.TCPConn) error {
 		bodyLength = convert.BytesToUint32(bBodyLength)
 		pacLen := headerLength + bodyLength + uint32(20)
 
-		if pacLen > s.options.MaxPayload {
+		if pacLen > s.options.maxPayload {
 			_, file, line, _ := runtime.Caller(1)
-			return SystemError{time.Now(), file, line, "packet larger than MaxPayload"}
+			return SystemError{time.Now(), file, line, "packet larger than maxPayload"}
 		}
 
 		header := make([]byte, headerLength)
@@ -100,7 +100,7 @@ func (s *Server) handleTCPConnection(conn *net.TCPConn) error {
 			return err
 		}
 
-		rp, err := NewPacket(convert.BytesToUint32(bType), sequence, header, body, s.options.PluginForPacketReceiver)
+		rp, err := NewPacket(convert.BytesToUint32(bType), sequence, header, body, s.options.pluginForPacketReceiver)
 		if err != nil {
 			return err
 		}

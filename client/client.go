@@ -7,6 +7,7 @@ import (
 
 	"github.com/silenceper/pool"
 	"github.com/wpajqz/linker/client/export"
+	"github.com/wpajqz/linker/codec"
 )
 
 var (
@@ -26,6 +27,7 @@ type (
 func NewClient(address []string, opts ...Option) (*Client, error) {
 	options := options{
 		network:     defaultNetwork,
+		contentType: codec.JSON,
 		dialTimeout: 3 * time.Second,
 		maxPayload:  10 * 1024 * 1024,
 		initialCap:  10,

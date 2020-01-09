@@ -163,7 +163,7 @@ func (dc *common) GetStringMap(key string) (sm map[string]interface{}) {
 }
 
 func (dc *common) ParseParam(data interface{}) error {
-	r, err := codec.NewCoder(dc.options.ContentType)
+	r, err := codec.NewCoder(dc.options.contentType)
 	if err != nil {
 		return err
 	}
@@ -172,7 +172,7 @@ func (dc *common) ParseParam(data interface{}) error {
 }
 
 func (dc *common) Publish(topic string, message interface{}) error {
-	r, err := codec.NewCoder(dc.options.ContentType)
+	r, err := codec.NewCoder(dc.options.contentType)
 	if err != nil {
 		return err
 	}
@@ -182,16 +182,16 @@ func (dc *common) Publish(topic string, message interface{}) error {
 		return err
 	}
 
-	return dc.options.Broker.Publish(topic, data)
+	return dc.options.broker.Publish(topic, data)
 }
 
 func (dc *common) subscribe(topic string, process func([]byte)) {
-	dc.options.Broker.Subscribe(dc.GetString(nodeID), topic, process)
+	dc.options.broker.Subscribe(dc.GetString(nodeID), topic, process)
 }
 
 func (dc *common) unSubscribe() error {
-	if dc.options.Broker != nil {
-		return dc.options.Broker.UnSubscribe(dc.GetString(nodeID))
+	if dc.options.broker != nil {
+		return dc.options.broker.UnSubscribe(dc.GetString(nodeID))
 	}
 
 	return nil

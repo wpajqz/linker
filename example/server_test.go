@@ -32,8 +32,8 @@ func TestServer(t *testing.T) {
 				fmt.Println("topic", err.Error())
 			}
 		}),
-		client.WithInitialCapacity(1),
-		client.WithMaxCapacity(1),
+		client.InitialCapacity(1),
+		client.MaxCapacity(1),
 		client.WithOnClose(func() { fmt.Println("close connection") }),
 		client.WithOnError(func(err error) { fmt.Printf("connection error: %s", err.Error()) }),
 	)

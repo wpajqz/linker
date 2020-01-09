@@ -19,7 +19,7 @@ func (s *Server) handleUDPData(conn *net.UDPConn, remote *net.UDPAddr, data []by
 	header := data[20 : 20+headerLength]
 	body := data[20+headerLength : length]
 
-	rp, err := NewPacket(convert.BytesToUint32(bType), sequence, header, body, s.options.PluginForPacketReceiver)
+	rp, err := NewPacket(convert.BytesToUint32(bType), sequence, header, body, s.options.pluginForPacketReceiver)
 	if err != nil {
 		return
 	}
@@ -101,15 +101,15 @@ func (s *Server) RunUDP(name, address string) error {
 
 	fmt.Printf("Listening and serving UDP on %s\n", address)
 
-	if s.options.ReadBufferSize > 0 {
-		err := conn.SetReadBuffer(s.options.ReadBufferSize)
+	if s.options.readBufferSize > 0 {
+		err := conn.SetReadBuffer(s.options.readBufferSize)
 		if err != nil {
 			return err
 		}
 	}
 
-	if s.options.WriteBufferSize > 0 {
-		err := conn.SetWriteBuffer(s.options.WriteBufferSize)
+	if s.options.writeBufferSize > 0 {
+		err := conn.SetWriteBuffer(s.options.writeBufferSize)
 		if err != nil {
 			return err
 		}
@@ -120,7 +120,7 @@ func (s *Server) RunUDP(name, address string) error {
 	}
 
 	for {
-		data := make([]byte, s.options.MaxPayload)
+		data := make([]byte, s.options.maxPayload)
 		n, remote, err := conn.ReadFromUDP(data)
 		if err != nil {
 			continue

@@ -47,6 +47,7 @@ func (c *Client) newExportPool() (pool.Pool, error) {
 		}
 
 		exportClient.SetMaxPayload(c.options.maxPayload)
+		exportClient.SetContentType(c.options.contentType)
 		exportClient.SetPluginForPacketSender(c.options.pluginForPacketSender...)
 		exportClient.SetPluginForPacketReceiver(c.options.pluginForPacketReceiver...)
 

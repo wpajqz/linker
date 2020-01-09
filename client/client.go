@@ -7,7 +7,6 @@ import (
 
 	"github.com/silenceper/pool"
 	"github.com/wpajqz/linker/client/export"
-	"github.com/wpajqz/linker/plugin"
 )
 
 var (
@@ -17,19 +16,10 @@ var (
 
 type (
 	Client struct {
-		network                 string
-		dialTimeout             time.Duration
-		address                 []string
-		availableAddress        chan string
-		maxPayload              int
-		initialCap              int
-		maxCap                  int
-		idleTimeout             time.Duration
-		clientPool              pool.Pool
-		onOpen, onClose         func()
-		onError                 func(error)
-		pluginForPacketSender   []plugin.PacketPlugin
-		pluginForPacketReceiver []plugin.PacketPlugin
+		options          options
+		clientPool       pool.Pool
+		address          []string
+		availableAddress chan string
 	}
 )
 
@@ -47,17 +37,9 @@ func NewClient(address []string, opts ...Option) (*Client, error) {
 	}
 
 	defaultClient = &Client{
-		network:          options.network,
-		dialTimeout:      options.dialTimeout,
+		options:          options,
 		address:          address,
 		availableAddress: make(chan string, len(address)),
-		maxPayload:       options.maxPayload,
-		initialCap:       options.initialCap,
-		maxCap:           options.maxCap,
-		idleTimeout:      options.idleTimeout,
-		onOpen:           options.onOpen,
-		onClose:          options.onClose,
-		onError:          options.onError,
 	}
 
 	defaultClient.fillAddress(address)
@@ -93,7 +75,7 @@ func (c *Client) fillAddress(address []string) {
 }
 
 func (c *Client) getAddress() (string, error) {
-	ctx, _ := context.WithTimeout(context.Background(), c.dialTimeout)
+	ctx, _ := context.WithTimeout(context.Background(), c.options.dialTimeout)
 	for {
 		select {
 		case addr := <-c.availableAddress:

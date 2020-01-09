@@ -31,24 +31,24 @@ func (c *Client) newExportPool() (pool.Pool, error) {
 		address, err := c.getAddress()
 		if err != nil {
 			c.fillAddress(c.address)
-			if c.onError != nil {
-				c.onError(err)
+			if c.options.onError != nil {
+				c.options.onError(err)
 			}
 		}
 
-		if c.network == "tcp" {
-			exportClient, err = export.NewClient(address, &ReadyStateCallback{Open: c.onOpen, Close: c.onClose, Error: func(err string) { c.onError(errors.New(err)) }})
+		if c.options.network == "tcp" {
+			exportClient, err = export.NewClient(address, &ReadyStateCallback{Open: c.options.onOpen, Close: c.options.onClose, Error: func(err string) { c.options.onError(errors.New(err)) }})
 		} else {
-			exportClient, err = export.NewUDPClient(address, &ReadyStateCallback{Open: c.onOpen, Close: c.onClose, Error: func(err string) { c.onError(errors.New(err)) }})
+			exportClient, err = export.NewUDPClient(address, &ReadyStateCallback{Open: c.options.onOpen, Close: c.options.onClose, Error: func(err string) { c.options.onError(errors.New(err)) }})
 		}
 
 		if err != nil {
 			return nil, fmt.Errorf("brpc error: %s\n", err.Error())
 		}
 
-		exportClient.SetMaxPayload(c.maxPayload)
-		exportClient.SetPluginForPacketSender(c.pluginForPacketSender...)
-		exportClient.SetPluginForPacketReceiver(c.pluginForPacketReceiver...)
+		exportClient.SetMaxPayload(c.options.maxPayload)
+		exportClient.SetPluginForPacketSender(c.options.pluginForPacketSender...)
+		exportClient.SetPluginForPacketReceiver(c.options.pluginForPacketReceiver...)
 
 		go func(ec *export.Client) {
 			ticker := time.NewTicker(time.Duration(interval) * time.Second)
@@ -77,13 +77,13 @@ func (c *Client) newExportPool() (pool.Pool, error) {
 	}
 
 	pc := &pool.Config{
-		InitialCap: c.initialCap,
-		MaxCap:     c.maxCap,
+		InitialCap: c.options.initialCap,
+		MaxCap:     c.options.maxCap,
 		Factory:    factory,
 		Close:      close,
 		Ping:       ping,
 		//连接最大空闲时间，超过该时间的连接 将会关闭，可避免空闲时连接EOF，自动失效的问题
-		IdleTimeout: c.idleTimeout,
+		IdleTimeout: c.options.idleTimeout,
 	}
 
 	return pool.NewChannelPool(pc)

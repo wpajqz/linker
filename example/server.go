@@ -29,12 +29,17 @@ func main() {
 		router.NSRoute(
 			"/healthy",
 			linker.HandlerFunc(func(ctx linker.Context) {
-				err := ctx.Publish(topic, map[string]interface{}{"keepalive": true})
+				err := ctx.Publish(topic, map[string]interface{}{"subscribe": true})
 				if err != nil {
 					ctx.Error(linker.StatusInternalServerError, err.Error())
 				}
 
-				ctx.Success(map[string]interface{}{"operator": true})
+				var param map[string]interface{}
+				if err := ctx.ParseParam(&param); err != nil {
+					ctx.Error(linker.StatusInternalServerError, err.Error())
+				}
+
+				ctx.Success(param)
 			}),
 		),
 	)

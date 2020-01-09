@@ -52,12 +52,16 @@ func TestServer(t *testing.T) {
 		time.Sleep(2 * time.Second)
 
 		session.SetRequestProperty("sid", "go")
-		err = session.SyncSend("/v1/healthy", nil, client.RequestStatusCallback{
+
+		param := struct {
+			Ping bool `json:"ping"`
+		}{Ping: true}
+		err = session.SyncSend("/v1/healthy", param, client.RequestStatusCallback{
 			Success: func(header, body []byte) {
-				fmt.Println("operator", string(body))
+				fmt.Println("success", string(body))
 			},
 			Error: func(code int, message string) {
-				fmt.Println("operator", code, message)
+				fmt.Println("error", code, message)
 			},
 		})
 		if err != nil {

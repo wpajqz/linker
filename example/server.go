@@ -6,8 +6,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/wpajqz/linker"
-	"github.com/wpajqz/linker/broker/redis"
-	"github.com/wpajqz/linker/plugin/crypt"
 )
 
 const timeout = 60 * 6 * time.Second
@@ -17,10 +15,7 @@ var topic = "/v1/example/subscribe"
 func main() {
 	server := linker.NewServer(
 		linker.Debug(),
-		linker.Broker(redis.NewBroker(redis.Address("127.0.0.1:6379"))),
 		linker.Timeout(timeout),
-		linker.PluginForPacketSender(crypt.NewEncryptPlugin()),
-		linker.PluginForPacketReceiver(crypt.NewDecryptPlugin()),
 		linker.WithOnError(linker.HandlerFunc(func(ctx linker.Context) {
 			ie := ctx.InternalError()
 			if ie != "" {

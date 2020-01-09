@@ -8,7 +8,6 @@ import (
 
 	"github.com/silenceper/pool"
 	"github.com/wpajqz/linker/client/export"
-	"github.com/wpajqz/linker/plugin/crypt"
 )
 
 var interval int64 = 60
@@ -48,8 +47,8 @@ func (c *Client) newExportPool() (pool.Pool, error) {
 		}
 
 		exportClient.SetMaxPayload(c.maxPayload)
-		exportClient.SetPluginForPacketSender(crypt.NewEncryptPlugin())
-		exportClient.SetPluginForPacketReceiver(crypt.NewDecryptPlugin())
+		exportClient.SetPluginForPacketSender(c.pluginForPacketSender...)
+		exportClient.SetPluginForPacketReceiver(c.pluginForPacketReceiver...)
 
 		go func(ec *export.Client) {
 			ticker := time.NewTicker(time.Duration(interval) * time.Second)

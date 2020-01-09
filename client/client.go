@@ -7,6 +7,7 @@ import (
 
 	"github.com/silenceper/pool"
 	"github.com/wpajqz/linker/client/export"
+	"github.com/wpajqz/linker/plugin"
 )
 
 var (
@@ -16,17 +17,19 @@ var (
 
 type (
 	Client struct {
-		network          string
-		dialTimeout      time.Duration
-		address          []string
-		availableAddress chan string
-		maxPayload       int
-		initialCap       int
-		maxCap           int
-		idleTimeout      time.Duration
-		clientPool       pool.Pool
-		onOpen, onClose  func()
-		onError          func(error)
+		network                 string
+		dialTimeout             time.Duration
+		address                 []string
+		availableAddress        chan string
+		maxPayload              int
+		initialCap              int
+		maxCap                  int
+		idleTimeout             time.Duration
+		clientPool              pool.Pool
+		onOpen, onClose         func()
+		onError                 func(error)
+		pluginForPacketSender   []plugin.PacketPlugin
+		pluginForPacketReceiver []plugin.PacketPlugin
 	}
 )
 

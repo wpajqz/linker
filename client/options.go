@@ -1,17 +1,23 @@
 package client
 
-import "time"
+import (
+	"time"
+
+	"github.com/wpajqz/linker/plugin"
+)
 
 type (
 	options struct {
-		network         string
-		dialTimeout     time.Duration
-		maxPayload      int
-		initialCap      int
-		maxCap          int
-		idleTimeout     time.Duration
-		onOpen, onClose func()
-		onError         func(error)
+		network                 string
+		dialTimeout             time.Duration
+		maxPayload              int
+		initialCap              int
+		maxCap                  int
+		idleTimeout             time.Duration
+		onOpen, onClose         func()
+		onError                 func(error)
+		pluginForPacketSender   []plugin.PacketPlugin
+		pluginForPacketReceiver []plugin.PacketPlugin
 	}
 
 	Option func(*options)
@@ -69,4 +75,16 @@ func WithOnError(fn func(err error)) Option {
 	return Option(func(o *options) {
 		o.onError = fn
 	})
+}
+
+func PluginForPacketSender(plugins ...plugin.PacketPlugin) Option {
+	return func(o *options) {
+		o.pluginForPacketSender = append(o.pluginForPacketSender, plugins...)
+	}
+}
+
+func PluginForPacketReceiver(plugins ...plugin.PacketPlugin) Option {
+	return func(o *options) {
+		o.pluginForPacketSender = append(o.pluginForPacketSender, plugins...)
+	}
 }

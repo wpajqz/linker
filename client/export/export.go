@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/wpajqz/linker"
+	"github.com/wpajqz/linker/codec"
 	"github.com/wpajqz/linker/plugin"
 )
 
@@ -118,7 +119,7 @@ func (c *Client) GetReadyState() int {
 }
 
 // Ping 心跳处理，客户端与服务端保持长连接
-func (c *Client) Ping(param []byte, callback RequestStatusCallback) error {
+func (c *Client) Ping(param interface{}, callback RequestStatusCallback) error {
 	if callback == nil {
 		return errors.New("callback can't be nil")
 	}
@@ -143,8 +144,17 @@ func (c *Client) Ping(param []byte, callback RequestStatusCallback) error {
 		c.handlerContainer.Delete(listener)
 	}))
 
-	// 建立连接以后就发送心跳包建立会话信息，后面的定期发送
-	p, err := linker.NewPacket(linker.OperatorHeartbeat, sequence, c.request.Header, param, c.pluginForPacketSender)
+	coder, err := codec.NewCoder(c.contentType)
+	if err != nil {
+		return err
+	}
+
+	body, err := coder.Encoder(param)
+	if err != nil {
+		return err
+	}
+
+	p, err := linker.NewPacket(linker.OperatorHeartbeat, sequence, c.request.Header, body, c.pluginForPacketSender)
 	if err != nil {
 		return err
 	}
@@ -165,7 +175,7 @@ func (c *Client) Ping(param []byte, callback RequestStatusCallback) error {
 }
 
 // SyncSend 向服务端发送请求，同步处理服务端返回结果
-func (c *Client) SyncSend(operator string, param []byte, callback RequestStatusCallback) error {
+func (c *Client) SyncSend(operator string, param interface{}, callback RequestStatusCallback) error {
 	if callback == nil {
 		return errors.New("callback can't be nil")
 	}
@@ -200,8 +210,17 @@ func (c *Client) SyncSend(operator string, param []byte, callback RequestStatusC
 		quit <- true
 	}))
 
-	p, err := linker.NewPacket(nType, sequence, c.request.Header, param, c.pluginForPacketSender)
+	coder, err := codec.NewCoder(c.contentType)
+	if err != nil {
+		return err
+	}
 
+	body, err := coder.Encoder(param)
+	if err != nil {
+		return err
+	}
+
+	p, err := linker.NewPacket(nType, sequence, c.request.Header, body, c.pluginForPacketSender)
 	if err != nil {
 		return err
 	}
@@ -244,8 +263,17 @@ func (c *Client) AsyncSend(operator string, param []byte, callback RequestStatus
 		c.handlerContainer.Delete(listener)
 	}))
 
-	p, err := linker.NewPacket(nType, sequence, c.request.Header, param, c.pluginForPacketSender)
+	coder, err := codec.NewCoder(c.contentType)
+	if err != nil {
+		return err
+	}
 
+	body, err := coder.Encoder(param)
+	if err != nil {
+		return err
+	}
+
+	p, err := linker.NewPacket(nType, sequence, c.request.Header, body, c.pluginForPacketSender)
 	if err != nil {
 		return err
 	}

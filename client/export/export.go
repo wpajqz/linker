@@ -118,6 +118,10 @@ func (c *Client) GetReadyState() int {
 	return c.readyState
 }
 
+func (c *Client) GetContentType() string {
+	return c.contentType
+}
+
 // Ping 心跳处理，客户端与服务端保持长连接
 func (c *Client) Ping(param interface{}, callback RequestStatusCallback) error {
 	if callback == nil {

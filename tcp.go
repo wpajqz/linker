@@ -179,6 +179,11 @@ func (s *Server) RunTCP(name, address string) error {
 	defer listener.Close()
 
 	fmt.Printf("Listening and serving TCP on %s\n", address)
+
+	if s.options.api != nil {
+		go s.options.api.Run(s.options.debug)
+	}
+
 	for {
 		conn, err := listener.AcceptTCP()
 		if err != nil {

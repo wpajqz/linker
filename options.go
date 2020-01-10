@@ -3,6 +3,7 @@ package linker
 import (
 	"time"
 
+	"github.com/wpajqz/linker/api"
 	"github.com/wpajqz/linker/broker"
 	"github.com/wpajqz/linker/plugin"
 )
@@ -16,6 +17,7 @@ type (
 		maxPayload                                                   uint32
 		contentType                                                  string
 		broker                                                       broker.Broker
+		api                                                          api.API
 		pluginForPacketSender                                        []plugin.PacketPlugin
 		pluginForPacketReceiver                                      []plugin.PacketPlugin
 		errorHandler, constructHandler, destructHandler, pingHandler Handler
@@ -45,6 +47,12 @@ func WriteBufferSize(size int) Option {
 func Timeout(d time.Duration) Option {
 	return func(o *Options) {
 		o.timeout = d
+	}
+}
+
+func API(api api.API) Option {
+	return func(o *Options) {
+		o.api = api
 	}
 }
 

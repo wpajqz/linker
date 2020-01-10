@@ -16,6 +16,8 @@ func (c *StringCoder) Encoder(data interface{}) ([]byte, error) {
 		return t, nil
 	case *[]byte:
 		return *t, nil
+	case nil:
+		return []byte(nil), nil
 	default:
 		return nil, fmt.Errorf("%T can not be directly converted to []byte", t)
 	}

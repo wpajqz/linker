@@ -9,6 +9,10 @@ import (
 type ProtoBufCoder struct{}
 
 func (c *ProtoBufCoder) Encoder(data interface{}) ([]byte, error) {
+	if data == nil {
+		return []byte(nil), nil
+	}
+
 	v, ok := data.(proto.Message)
 	if !ok {
 		return nil, errors.New("unsupported data for protobuf")

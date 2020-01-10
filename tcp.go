@@ -181,7 +181,9 @@ func (s *Server) RunTCP(name, address string) error {
 	fmt.Printf("Listening and serving TCP on %s\n", address)
 
 	if s.options.api != nil {
-		go s.options.api.Run(s.options.debug)
+		if err := s.options.api.Dial(name, address); err != nil {
+			return err
+		}
 	}
 
 	for {

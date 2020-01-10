@@ -102,7 +102,9 @@ func (s *Server) RunUDP(name, address string) error {
 	fmt.Printf("Listening and serving UDP on %s\n", address)
 
 	if s.options.api != nil {
-		go s.options.api.Run(s.options.debug)
+		if err := s.options.api.Dial(name, address); err != nil {
+			return err
+		}
 	}
 
 	if s.options.readBufferSize > 0 {

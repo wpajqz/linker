@@ -1,5 +1,5 @@
 package api
 
 type API interface {
-	Run(debug bool) error
+	Dial(network, address string) error
 }

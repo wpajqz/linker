@@ -6,19 +6,14 @@ import (
 
 type Options struct {
 	address string
-	client  *client.Client
+
+	dialOptions []client.Option
 }
 
 type Option func(o *Options)
 
-func Address(address string) Option {
+func DialOptions(opts ...client.Option) Option {
 	return func(o *Options) {
-		o.address = address
-	}
-}
-
-func Client(client *client.Client) Option {
-	return func(o *Options) {
-		o.client = client
+		o.dialOptions = opts
 	}
 }

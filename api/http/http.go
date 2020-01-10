@@ -20,20 +20,17 @@ type (
 	}
 )
 
-func (ha *httpAPI) Run(debug bool) error {
-	if !debug {
-		gin.SetMode(gin.ReleaseMode)
+func (ha *httpAPI) Dial(network, address string) error {
+	ha.options.dialOptions = append(ha.options.dialOptions, client.Network(network))
+	brpc, err := client.NewClient([]string{address}, ha.options.dialOptions...)
+	if err != nil {
+		return err
 	}
 
 	app := gin.Default()
 
 	app.POST("/rpc", func(ctx *gin.Context) {
-		if ha.options.client == nil {
-			ctx.JSON(http.StatusInternalServerError, "api client is nil")
-			return
-		}
-
-		session, err := ha.options.client.Session()
+		session, err := brpc.Session()
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, err.Error())
 			return
@@ -64,12 +61,14 @@ func (ha *httpAPI) Run(debug bool) error {
 		return
 	})
 
-	return app.Run(ha.options.address)
+	go app.Run(ha.options.address)
+
+	return nil
 }
 
-func NewAPI(opts ...Option) api.API {
+func NewAPI(address string, opts ...Option) api.API {
 	options := Options{
-		address: "localhost:9090",
+		address: address,
 	}
 
 	for _, o := range opts {

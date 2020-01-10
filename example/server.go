@@ -6,6 +6,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/wpajqz/linker"
+	"github.com/wpajqz/linker/api/http"
+	"github.com/wpajqz/linker/broker/redis"
+	"github.com/wpajqz/linker/client"
 )
 
 const timeout = 60 * 6 * time.Second
@@ -15,6 +18,16 @@ var topic = "/v1/example/subscribe"
 func main() {
 	server := linker.NewServer(
 		linker.Debug(),
+		linker.API(
+			http.NewAPI(
+				"127.0.0.1:9090",
+				http.DialOptions(
+					client.InitialCapacity(1),
+					client.MaxCapacity(1),
+				),
+			),
+		),
+		linker.Broker(redis.NewBroker(redis.Address("127.0.0.1:6379"))),
 		linker.Timeout(timeout),
 		linker.WithOnError(linker.HandlerFunc(func(ctx linker.Context) {
 			ie := ctx.InternalError()

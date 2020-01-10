@@ -7,6 +7,7 @@ import (
 const (
 	OperatorHeartbeat = iota
 	OperatorRegisterListener
+	OperatorRemoveListener
 	OperatorMax = 1024
 )
 
@@ -66,6 +67,23 @@ func (s *Server) registerInternalRouter(r *Router) *Router {
 				ctx.Error(StatusInternalServerError, err.Error())
 			}
 		})
+	})
+
+	r.handlerContainer[OperatorRemoveListener] = HandlerFunc(func(ctx Context) {
+		var topic string
+
+		coder, err := codec.NewCoder(codec.String)
+		if err != nil {
+			ctx.Error(StatusInternalServerError, err.Error())
+		}
+
+		if err := coder.Decoder(ctx.RawBody(), &topic); err != nil {
+			ctx.Error(StatusInternalServerError, err.Error())
+		}
+
+		if err := ctx.unSubscribe(); err != nil {
+			ctx.Error(StatusInternalServerError, err.Error())
+		}
 	})
 
 	return r

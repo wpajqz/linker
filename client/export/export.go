@@ -355,8 +355,47 @@ func (c *Client) SetPluginForPacketReceiver(plugins ...plugin.PacketPlugin) {
 }
 
 // RemoveMessageListener 移除事件监听器
-func (c *Client) RemoveMessageListener(listener string) {
-	c.handlerContainer.Delete(int64(crc32.ChecksumIEEE([]byte(listener))))
+func (c *Client) RemoveMessageListener(topic string) error {
+	if c.readyState != OPEN {
+		return errors.New("ping getsockopt: connection refuse")
+	}
+
+	sequence := time.Now().UnixNano()
+	listener := int64(linker.OperatorRemoveListener) + sequence
+
+	// 对数据请求的返回状态进行处理,同步阻塞处理机制
+	c.mutex.Lock()
+	quit := make(chan bool)
+
+	var errRequest error
+	c.handlerContainer.Store(listener, HandlerFunc(func(header, body []byte) {
+		code := c.GetResponseProperty("code")
+		if code != "" {
+			message := c.GetResponseProperty("message")
+			errRequest = errors.New(message)
+		} else {
+			c.handlerContainer.Delete(int64(crc32.ChecksumIEEE([]byte(topic))))
+		}
+
+		c.handlerContainer.Delete(listener)
+		quit <- true
+	}))
+
+	p, err := linker.NewPacket(linker.OperatorRemoveListener, sequence, c.request.Header, []byte(topic), c.pluginForPacketSender)
+	if err != nil {
+		return err
+	}
+
+	c.packet <- p
+	<-quit
+
+	if errRequest != nil {
+		return errRequest
+	}
+
+	c.mutex.Unlock()
+
+	return nil
 }
 
 // SetRequestProperty 设置请求属性

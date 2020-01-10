@@ -10,7 +10,7 @@ import (
 )
 
 type (
-	Request struct {
+	request struct {
 		Method string `binding:"required"`
 		Param  interface{}
 	}
@@ -33,13 +33,13 @@ func (ha *httpAPI) Dial(network, address string) error {
 	app.POST("/rpc", func(ctx *gin.Context) {
 		session, err := brpc.Session()
 		if err != nil {
-			ctx.JSON(http.StatusInternalServerError, err.Error())
+			ctx.JSON(http.StatusInternalServerError, gin.H{"msg": err.Error()})
 			return
 		}
 
-		var req Request
+		var req request
 		if err := ctx.Bind(&req); err != nil {
-			ctx.JSON(http.StatusInternalServerError, err.Error())
+			ctx.JSON(http.StatusInternalServerError, gin.H{"msg": err.Error()})
 			return
 		}
 
@@ -47,6 +47,7 @@ func (ha *httpAPI) Dial(network, address string) error {
 			b           []byte
 			errCallback error
 		)
+
 		err = session.SyncSend(req.Method, req.Param, client.RequestStatusCallback{
 			Success: func(header, body []byte) {
 				b = body
@@ -57,11 +58,13 @@ func (ha *httpAPI) Dial(network, address string) error {
 		})
 
 		if err != nil {
-			ctx.JSON(http.StatusInternalServerError, err.Error())
+			ctx.JSON(http.StatusInternalServerError, gin.H{"msg": err.Error()})
+			return
 		}
 
 		if errCallback != nil {
-			ctx.JSON(http.StatusInternalServerError, errCallback.Error())
+			ctx.JSON(http.StatusInternalServerError, gin.H{"msg": errCallback.Error()})
+			return
 		}
 
 		ctx.Data(http.StatusOK, session.GetContentType(), b)

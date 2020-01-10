@@ -5,8 +5,7 @@ import (
 )
 
 type Options struct {
-	address string
-
+	address     string
 	dialOptions []client.Option
 }
 

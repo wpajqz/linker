@@ -22,6 +22,7 @@ type (
 
 func (ha *httpAPI) Dial(network, address string) error {
 	ha.options.dialOptions = append(ha.options.dialOptions, client.Network(network))
+
 	brpc, err := client.NewClient([]string{address}, ha.options.dialOptions...)
 	if err != nil {
 		return err
@@ -42,18 +43,25 @@ func (ha *httpAPI) Dial(network, address string) error {
 			return
 		}
 
-		var b []byte
+		var (
+			b           []byte
+			errCallback error
+		)
 		err = session.SyncSend(req.Method, req.Param, client.RequestStatusCallback{
 			Success: func(header, body []byte) {
 				b = body
 			},
 			Error: func(code int, message string) {
-				err = errors.New(message)
+				errCallback = errors.New(message)
 			},
 		})
 
 		if err != nil {
-			ctx.AbortWithStatusJSON(http.StatusInternalServerError, err.Error())
+			ctx.JSON(http.StatusInternalServerError, err.Error())
+		}
+
+		if errCallback != nil {
+			ctx.JSON(http.StatusInternalServerError, errCallback.Error())
 		}
 
 		ctx.Data(http.StatusOK, session.GetContentType(), b)

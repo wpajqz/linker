@@ -3,6 +3,7 @@ package http
 import (
 	"errors"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/wpajqz/linker/api"
@@ -48,8 +49,21 @@ func (ha *httpAPI) Dial(network, address string) error {
 			errCallback error
 		)
 
+		for k, v := range ctx.Request.Header {
+			session.SetRequestProperty(k, strings.Join(v, ","))
+		}
+
 		err = session.SyncSend(req.Method, req.Param, client.RequestStatusCallback{
 			Success: func(header, body []byte) {
+				for _, v := range strings.Split(string(header), ";") {
+					if len(v) > 0 {
+						ss := strings.Split(v, "=")
+						if len(ss) > 1 {
+							ctx.Writer.Header().Set(ss[0], ss[1])
+						}
+					}
+				}
+
 				b = body
 			},
 			Error: func(code int, message string) {

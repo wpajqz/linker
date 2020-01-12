@@ -199,7 +199,11 @@ func (dc *common) unSubscribe(topic string) error {
 }
 
 func (dc *common) unSubscribeAll() error {
-	return dc.options.broker.UnSubscribeAll(dc.GetString(nodeID))
+	if dc.options.broker != nil {
+		return dc.options.broker.UnSubscribeAll(dc.GetString(nodeID))
+	}
+
+	return nil
 }
 
 func (dc *common) SetRequestProperty(key, value string) {

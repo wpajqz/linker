@@ -27,7 +27,7 @@ func main() {
 				),
 			),
 		),
-		linker.Broker(redis.NewBroker(redis.Address("127.0.0.1:6379"))),
+		linker.Broker(redis.NewBroker(redis.Address("121.41.20.11:6379"), redis.Password("links471155401"))),
 		linker.Timeout(timeout),
 		linker.WithOnError(linker.HandlerFunc(func(ctx linker.Context) {
 			ie := ctx.InternalError()

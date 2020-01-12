@@ -237,7 +237,7 @@ func (c *Client) SyncSend(operator string, param interface{}, callback RequestSt
 }
 
 // AsyncSend 向服务端发送请求，异步处理服务端返回结果
-func (c *Client) AsyncSend(operator string, param []byte, callback RequestStatusCallback) error {
+func (c *Client) AsyncSend(operator string, param interface{}, callback RequestStatusCallback) error {
 	if callback == nil {
 		return errors.New("callback can't be nil")
 	}

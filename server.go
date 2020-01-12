@@ -62,11 +62,13 @@ func (s *Server) registerInternalRouter(r *Router) *Router {
 			ctx.Error(StatusInternalServerError, err.Error())
 		}
 
-		ctx.subscribe(topic, func(bytes []byte) {
+		if err := ctx.subscribe(topic, func(bytes []byte) {
 			if _, err := ctx.write(topic, bytes); err != nil {
 				ctx.Error(StatusInternalServerError, err.Error())
 			}
-		})
+		}); err != nil {
+			ctx.Error(StatusInternalServerError, err.Error())
+		}
 	})
 
 	r.handlerContainer[OperatorRemoveListener] = HandlerFunc(func(ctx Context) {
@@ -81,7 +83,7 @@ func (s *Server) registerInternalRouter(r *Router) *Router {
 			ctx.Error(StatusInternalServerError, err.Error())
 		}
 
-		if err := ctx.unSubscribe(); err != nil {
+		if err := ctx.unSubscribe(topic); err != nil {
 			ctx.Error(StatusInternalServerError, err.Error())
 		}
 	})

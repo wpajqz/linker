@@ -2,7 +2,6 @@ package redis
 
 import (
 	"errors"
-	"fmt"
 	"sync"
 
 	"github.com/go-redis/redis"
@@ -15,28 +14,48 @@ type redisBroker struct {
 }
 
 func (rb *redisBroker) Publish(topic string, message interface{}) error {
-	count, err := rb.client.Publish(topic, message).Result()
+	_, err := rb.client.Publish(topic, message).Result()
 	if err != nil {
 		return err
 	}
 
-	fmt.Println("Subscribe count", count)
 	return nil
 }
 
-func (rb *redisBroker) Subscribe(nodeID, topic string, process func([]byte)) {
-	ps := rb.client.Subscribe(topic)
-	rb.pb.Store(nodeID, ps)
+func (rb *redisBroker) Subscribe(nodeID, topic string, process func([]byte)) error {
+	var ps *redis.PubSub
+	if v, ok := rb.pb.Load(nodeID); ok {
+		ps = v.(*redis.PubSub)
+		err := ps.Subscribe(topic)
+		if err != nil {
+			return err
+		}
+	} else {
+		ps = rb.client.Subscribe(topic)
+		rb.pb.Store(nodeID, ps)
+	}
 
 	ch := ps.Channel()
 	go func() {
 		for msg := range ch {
-			go process([]byte(msg.Payload))
+			if msg.Channel == topic {
+				go process([]byte(msg.Payload))
+			}
 		}
 	}()
+
+	return nil
 }
 
-func (rb *redisBroker) UnSubscribe(nodeID string) error {
+func (rb *redisBroker) UnSubscribe(nodeID, topic string) error {
+	if v, ok := rb.pb.Load(nodeID); ok {
+		return v.(*redis.PubSub).Unsubscribe(topic)
+	}
+
+	return errors.New("node's subscriber is not found")
+}
+
+func (rb *redisBroker) UnSubscribeAll(nodeID string) error {
 	if v, ok := rb.pb.Load(nodeID); ok {
 		return v.(*redis.PubSub).Close()
 	}

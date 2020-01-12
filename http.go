@@ -31,7 +31,7 @@ func (s *Server) handleWebSocketConnection(conn *websocket.Conn) error {
 			s.options.destructHandler.Handle(ctx)
 		}
 
-		if err := ctx.unSubscribe(); err != nil {
+		if err := ctx.unSubscribeAll(); err != nil {
 			ctx.Error(StatusInternalServerError, err.Error())
 		}
 

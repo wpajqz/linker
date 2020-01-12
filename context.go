@@ -36,8 +36,9 @@ type (
 		InternalError() string
 		RawBody() []byte
 		write(operator string, body []byte) (int, error)
-		subscribe(topic string, process func([]byte))
-		unSubscribe() error
+		subscribe(topic string, process func([]byte)) error
+		unSubscribe(topic string) error
+		unSubscribeAll() error
 	}
 
 	common struct {
@@ -185,16 +186,20 @@ func (dc *common) Publish(topic string, message interface{}) error {
 	return dc.options.broker.Publish(topic, data)
 }
 
-func (dc *common) subscribe(topic string, process func([]byte)) {
-	dc.options.broker.Subscribe(dc.GetString(nodeID), topic, process)
+func (dc *common) subscribe(topic string, process func([]byte)) error {
+	return dc.options.broker.Subscribe(dc.GetString(nodeID), topic, process)
 }
 
-func (dc *common) unSubscribe() error {
+func (dc *common) unSubscribe(topic string) error {
 	if dc.options.broker != nil {
-		return dc.options.broker.UnSubscribe(dc.GetString(nodeID))
+		return dc.options.broker.UnSubscribe(dc.GetString(nodeID), topic)
 	}
 
 	return nil
+}
+
+func (dc *common) unSubscribeAll() error {
+	return dc.options.broker.UnSubscribeAll(dc.GetString(nodeID))
 }
 
 func (dc *common) SetRequestProperty(key, value string) {

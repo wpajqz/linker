@@ -33,16 +33,14 @@ func (rb *redisBroker) Subscribe(nodeID, topic string, process func([]byte)) err
 	} else {
 		ps = rb.client.Subscribe(topic)
 		rb.pb.Store(nodeID, ps)
-	}
 
-	ch := ps.Channel()
-	go func() {
-		for msg := range ch {
-			if msg.Channel == topic {
+		go func(ps *redis.PubSub) {
+			ch := ps.Channel()
+			for msg := range ch {
 				go process([]byte(msg.Payload))
 			}
-		}
-	}()
+		}(ps)
+	}
 
 	return nil
 }

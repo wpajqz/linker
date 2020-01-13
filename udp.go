@@ -50,7 +50,7 @@ func (s *Server) handleUDPData(conn *net.UDPConn, remote *net.UDPAddr, data []by
 			ctx.Error(StatusInternalServerError, errMsg)
 		}
 
-		if err := ctx.unSubscribeAll(); err != nil {
+		if err := ctx.UnSubscribeAll(); err != nil {
 			ctx.Error(StatusInternalServerError, err.Error())
 		}
 	}()

@@ -62,7 +62,7 @@ func (s *Server) registerInternalRouter(r *Router) *Router {
 			ctx.Error(StatusInternalServerError, err.Error())
 		}
 
-		if err := ctx.subscribe(topic, func(bytes []byte) {
+		if err := ctx.Subscribe(topic, func(bytes []byte) {
 			if _, err := ctx.Write(topic, bytes); err != nil {
 				ctx.Error(StatusInternalServerError, err.Error())
 			}
@@ -83,7 +83,7 @@ func (s *Server) registerInternalRouter(r *Router) *Router {
 			ctx.Error(StatusInternalServerError, err.Error())
 		}
 
-		if err := ctx.unSubscribe(topic); err != nil {
+		if err := ctx.UnSubscribe(topic); err != nil {
 			ctx.Error(StatusInternalServerError, err.Error())
 		}
 	})

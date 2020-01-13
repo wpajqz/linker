@@ -25,7 +25,7 @@ func (s *Server) handleTCPConnection(conn *net.TCPConn) error {
 			s.options.destructHandler.Handle(ctx)
 		}
 
-		if err := ctx.unSubscribeAll(); err != nil {
+		if err := ctx.UnSubscribeAll(); err != nil {
 			ctx.Error(StatusInternalServerError, err.Error())
 		}
 

@@ -36,9 +36,9 @@ type (
 		RemoteAddr() string
 		InternalError() string
 		RawBody() []byte
-		subscribe(topic string, process func([]byte)) error
-		unSubscribe(topic string) error
-		unSubscribeAll() error
+		Subscribe(topic string, process func([]byte)) error
+		UnSubscribe(topic string) error
+		UnSubscribeAll() error
 	}
 
 	common struct {
@@ -186,11 +186,11 @@ func (dc *common) Publish(topic string, message interface{}) error {
 	return dc.options.broker.Publish(topic, data)
 }
 
-func (dc *common) subscribe(topic string, process func([]byte)) error {
+func (dc *common) Subscribe(topic string, process func([]byte)) error {
 	return dc.options.broker.Subscribe(dc.GetString(nodeID), topic, process)
 }
 
-func (dc *common) unSubscribe(topic string) error {
+func (dc *common) UnSubscribe(topic string) error {
 	if dc.options.broker != nil {
 		return dc.options.broker.UnSubscribe(dc.GetString(nodeID), topic)
 	}
@@ -198,7 +198,7 @@ func (dc *common) unSubscribe(topic string) error {
 	return nil
 }
 
-func (dc *common) unSubscribeAll() error {
+func (dc *common) UnSubscribeAll() error {
 	if dc.options.broker != nil {
 		return dc.options.broker.UnSubscribeAll(dc.GetString(nodeID))
 	}

@@ -71,7 +71,7 @@ func (c *ContextWebsocket) Error(code int, message string) {
 }
 
 // 向客户端发送数据
-func (c *ContextWebsocket) write(operator string, body []byte) (int, error) {
+func (c *ContextWebsocket) Write(operator string, body []byte) (int, error) {
 	p, err := NewPacket(crc32.ChecksumIEEE([]byte(operator)), 0, c.Response.Header, body, c.options.pluginForPacketSender)
 	if err != nil {
 		return 0, err

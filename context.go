@@ -24,6 +24,7 @@ type (
 		GetStringSlice(key string) (ss []string)
 		GetStringMap(key string) (sm map[string]interface{})
 		ParseParam(data interface{}) error
+		Write(operator string, body []byte) (int, error)
 		Success(body interface{})
 		Error(code int, message string)
 		Publish(topic string, message interface{}) error
@@ -35,7 +36,6 @@ type (
 		RemoteAddr() string
 		InternalError() string
 		RawBody() []byte
-		write(operator string, body []byte) (int, error)
 		subscribe(topic string, process func([]byte)) error
 		unSubscribe(topic string) error
 		unSubscribeAll() error

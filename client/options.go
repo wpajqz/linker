@@ -92,6 +92,6 @@ func PluginForPacketSender(plugins ...plugin.PacketPlugin) Option {
 
 func PluginForPacketReceiver(plugins ...plugin.PacketPlugin) Option {
 	return func(o *options) {
-		o.pluginForPacketSender = append(o.pluginForPacketSender, plugins...)
+		o.pluginForPacketReceiver = append(o.pluginForPacketReceiver, plugins...)
 	}
 }

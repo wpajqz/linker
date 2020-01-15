@@ -18,7 +18,7 @@ import (
 
 func (s *Server) handleWebSocketConnection(conn *websocket.Conn) error {
 	wsn := &webSocketConn{mutex: sync.Mutex{}, conn: conn}
-	var ctx Context = &ContextWebsocket{Conn: wsn}
+	var ctx = &ContextWebsocket{Conn: wsn}
 
 	if s.options.constructHandler != nil {
 		s.options.constructHandler.Handle(ctx)
@@ -111,7 +111,7 @@ func (s *Server) handleWebSocketConnection(conn *websocket.Conn) error {
 			return err
 		}
 
-		ctx = NewContextWebsocket(wsn, rp.Operator, rp.Sequence, rp.Header, rp.Body, s.options)
+		ctx = NewContextWebsocket(ctx.Context, wsn, rp.Operator, rp.Sequence, rp.Header, rp.Body, s.options)
 		go s.handleWebSocketPacket(ctx, conn, rp)
 	}
 }

@@ -1,6 +1,7 @@
 package linker
 
 import (
+	"context"
 	"fmt"
 	"net"
 
@@ -24,7 +25,7 @@ func (s *Server) handleUDPData(conn *net.UDPConn, remote *net.UDPAddr, data []by
 		return
 	}
 
-	var ctx Context = NewContextUdp(conn, remote, rp.Operator, rp.Sequence, rp.Header, rp.Body, s.options)
+	var ctx Context = NewContextUdp(context.Background(), conn, remote, rp.Operator, rp.Sequence, rp.Header, rp.Body, s.options)
 
 	ctx.Set(nodeID, uuid.NewV4().String())
 

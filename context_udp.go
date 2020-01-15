@@ -18,13 +18,13 @@ type ContextUdp struct {
 	Conn   *net.UDPConn
 }
 
-func NewContextUdp(conn *net.UDPConn, remote *net.UDPAddr, OperateType uint32, Sequence int64, Header, Body []byte, options Options) *ContextUdp {
+func NewContextUdp(ctx context.Context, conn *net.UDPConn, remote *net.UDPAddr, OperateType uint32, Sequence int64, Header, Body []byte, options Options) *ContextUdp {
 	return &ContextUdp{
 		common: common{
 			options:     options,
 			operateType: OperateType,
 			sequence:    Sequence,
-			Context:     context.Background(),
+			Context:     ctx,
 			Request:     struct{ Header, Body []byte }{Header: Header, Body: Body},
 			body:        Body,
 		},

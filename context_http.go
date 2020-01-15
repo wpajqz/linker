@@ -17,10 +17,10 @@ type ContextWebsocket struct {
 	Conn *webSocketConn
 }
 
-func NewContextWebsocket(conn *webSocketConn, OperateType uint32, Sequence int64, Header, Body []byte, options Options) *ContextWebsocket {
+func NewContextWebsocket(ctx context.Context, conn *webSocketConn, OperateType uint32, Sequence int64, Header, Body []byte, options Options) *ContextWebsocket {
 	return &ContextWebsocket{
 		common: common{
-			Context:     context.Background(),
+			Context:     ctx,
 			operateType: OperateType,
 			sequence:    Sequence,
 			options:     options,

@@ -23,6 +23,6 @@ func (d *Debug) Handle(header, body []byte) (h, b []byte) {
 	return header, body
 }
 
-func NewPlugin() *Debug {
-	return &Debug{}
+func NewPlugin(sender bool) *Debug {
+	return &Debug{Sender: sender}
 }

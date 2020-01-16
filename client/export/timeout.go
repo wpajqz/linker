@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-func (c *Client) SyncSendWithTimeout(ctx context.Context, operator string, param []byte, callback RequestStatusCallback) error {
+func (c *Client) SyncSendWithTimeout(ctx context.Context, operator string, param interface{}, callback RequestStatusCallback) error {
 	ch := make(chan error, 1)
 	go func() {
 		ch <- c.SyncSend(operator, param, callback)

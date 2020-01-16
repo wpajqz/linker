@@ -2,6 +2,7 @@ package export
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"net"
 	"time"
@@ -9,11 +10,6 @@ import (
 	"github.com/wpajqz/linker"
 	"github.com/wpajqz/linker/utils/convert"
 	"golang.org/x/sync/errgroup"
-)
-
-const (
-	networkTCP = "tcp"
-	networkUDP = "udp"
 )
 
 // handleConnection 处理客户端连接
@@ -24,12 +20,12 @@ func (c *Client) handleConnection(network string, conn net.Conn) {
 		var err error
 
 		switch network {
-		case networkTCP:
+		case linker.NetworkTCP:
 			err = c.handleReceivedTCPPackets(conn)
-		case networkUDP:
+		case linker.NetworkUDP:
 			err = c.handleReceivedUDPPackets(conn)
 		default:
-			panic("unsupported network, must be tcp or udp")
+			panic(fmt.Sprintf("unsupported network, must be %s or %s", linker.NetworkTCP, linker.NetworkUDP))
 		}
 
 		return err

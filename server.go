@@ -12,6 +12,11 @@ const (
 )
 
 const (
+	NetworkTCP = "tcp"
+	NetworkUDP = "udp"
+)
+
+const (
 	errorTag = "error"
 	nodeID   = "node_id"
 )

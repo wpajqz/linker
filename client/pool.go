@@ -46,6 +46,7 @@ func (c *Client) newExportPool() (pool.Pool, error) {
 			return nil, fmt.Errorf("brpc error: %s\n", err.Error())
 		}
 
+		exportClient.SetUDPPayload(c.options.udpPayload)
 		exportClient.SetContentType(c.options.contentType)
 		exportClient.SetPluginForPacketSender(c.options.pluginForPacketSender...)
 		exportClient.SetPluginForPacketReceiver(c.options.pluginForPacketReceiver...)

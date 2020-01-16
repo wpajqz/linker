@@ -47,6 +47,7 @@ type ReadyStateCallback interface {
 type Client struct {
 	conn                    net.Conn
 	closed                  bool
+	udpPayload              int
 	readyStateCallback      ReadyStateCallback
 	readyState              int
 	mutex                   *sync.Mutex
@@ -332,6 +333,10 @@ func (c *Client) AddMessageListener(topic string, callback Handler) error {
 	c.mutex.Unlock()
 
 	return nil
+}
+
+func (c *Client) SetUDPPayload(size int) {
+	c.udpPayload = size
 }
 
 func (c *Client) SetContentType(contentType string) {

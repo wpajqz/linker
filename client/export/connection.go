@@ -88,7 +88,7 @@ func (c *Client) handleReceivedUDPPackets(conn net.Conn) error {
 			}
 		}
 
-		var data []byte
+		var data = make([]byte, c.udpPayload)
 		n, _, err := udpConn.ReadFromUDP(data)
 		if err != nil {
 			continue

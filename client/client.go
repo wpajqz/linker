@@ -28,6 +28,7 @@ func NewClient(address []string, opts ...Option) (*Client, error) {
 	options := options{
 		network:     defaultNetwork,
 		contentType: codec.JSON,
+		udpPayload:  4096,
 		dialTimeout: 3 * time.Second,
 		initialCap:  10,
 		maxCap:      30,

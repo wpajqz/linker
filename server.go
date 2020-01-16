@@ -30,6 +30,7 @@ type (
 func NewServer(opts ...Option) *Server {
 	options := Options{
 		debug:       false,
+		udpPayload:  4096,
 		contentType: codec.JSON,
 	}
 

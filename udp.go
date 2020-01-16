@@ -127,7 +127,7 @@ func (s *Server) RunUDP(name, address string) error {
 	}
 
 	for {
-		var data []byte
+		var data = make([]byte, s.options.udpPayload)
 		n, remote, err := conn.ReadFromUDP(data)
 		if err != nil {
 			continue

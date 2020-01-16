@@ -9,6 +9,7 @@ import (
 type (
 	options struct {
 		network                 string
+		udpPayload              int
 		dialTimeout             time.Duration
 		initialCap              int
 		maxCap                  int
@@ -27,6 +28,12 @@ func Network(n string) Option {
 	return Option(func(o *options) {
 		o.network = n
 	})
+}
+
+func UDPPayload(size int) Option {
+	return func(o *options) {
+		o.udpPayload = size
+	}
 }
 
 func DialTimeout(n time.Duration) Option {

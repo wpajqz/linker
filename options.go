@@ -13,6 +13,7 @@ type (
 		debug                                                        bool
 		readBufferSize                                               int
 		writeBufferSize                                              int
+		udpPayload                                                   int
 		timeout                                                      time.Duration
 		contentType                                                  string
 		broker                                                       broker.Broker
@@ -40,6 +41,12 @@ func ReadBufferSize(size int) Option {
 func WriteBufferSize(size int) Option {
 	return func(o *Options) {
 		o.writeBufferSize = size
+	}
+}
+
+func UDPPayload(size int) Option {
+	return func(o *Options) {
+		o.udpPayload = size
 	}
 }
 

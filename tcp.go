@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"net"
-	"runtime"
 	"time"
 
 	uuid "github.com/satori/go.uuid"
@@ -83,12 +82,6 @@ func (s *Server) handleTCPConnection(conn *net.TCPConn) error {
 		sequence = convert.BytesToInt64(bSequence)
 		headerLength = convert.BytesToUint32(bHeaderLength)
 		bodyLength = convert.BytesToUint32(bBodyLength)
-		pacLen := headerLength + bodyLength + uint32(20)
-
-		if pacLen > s.options.maxPayload {
-			_, file, line, _ := runtime.Caller(1)
-			return SystemError{time.Now(), file, line, "packet larger than maxPayload"}
-		}
 
 		header := make([]byte, headerLength)
 		if _, err := io.ReadFull(conn, header); err != nil {

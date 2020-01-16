@@ -14,7 +14,6 @@ type (
 		readBufferSize                                               int
 		writeBufferSize                                              int
 		timeout                                                      time.Duration
-		maxPayload                                                   uint32
 		contentType                                                  string
 		broker                                                       broker.Broker
 		api                                                          api.API
@@ -53,12 +52,6 @@ func Timeout(d time.Duration) Option {
 func API(api api.API) Option {
 	return func(o *Options) {
 		o.api = api
-	}
-}
-
-func MaxPayload(maxPayload uint32) Option {
-	return func(o *Options) {
-		o.maxPayload = maxPayload
 	}
 }
 

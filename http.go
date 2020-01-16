@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"runtime"
 	"sync"
 	"time"
 
@@ -48,8 +47,6 @@ func (s *Server) handleWebSocketConnection(conn *websocket.Conn) error {
 		bodyLength    uint32
 	)
 
-	conn.SetReadLimit(int64(s.options.maxPayload))
-
 	for {
 		if s.options.timeout != 0 {
 			err := conn.SetReadDeadline(time.Now().Add(s.options.timeout))
@@ -87,12 +84,6 @@ func (s *Server) handleWebSocketConnection(conn *websocket.Conn) error {
 		sequence = convert.BytesToInt64(bSequence)
 		headerLength = convert.BytesToUint32(bHeaderLength)
 		bodyLength = convert.BytesToUint32(bBodyLength)
-		pacLen := headerLength + bodyLength + uint32(20)
-
-		if pacLen > s.options.maxPayload {
-			_, file, line, _ := runtime.Caller(1)
-			return SystemError{time.Now(), file, line, "packet larger than maxPayload"}
-		}
 
 		header := make([]byte, headerLength)
 		if _, err := io.ReadFull(r, header); err != nil {

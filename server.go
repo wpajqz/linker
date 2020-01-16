@@ -30,7 +30,6 @@ type (
 func NewServer(opts ...Option) *Server {
 	options := Options{
 		debug:       false,
-		maxPayload:  1024 * 1024,
 		contentType: codec.JSON,
 	}
 

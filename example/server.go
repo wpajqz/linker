@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"time"
 
@@ -24,6 +25,9 @@ func main() {
 				http.DialOptions(
 					client.InitialCapacity(1),
 					client.MaxCapacity(1),
+					client.WithOnError(func(err error) {
+						fmt.Println(err.Error())
+					}),
 				),
 			),
 		),

@@ -2,10 +2,8 @@ package export
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"net"
-	"strconv"
 	"time"
 
 	"github.com/wpajqz/linker"
@@ -90,7 +88,7 @@ func (c *Client) handleReceivedUDPPackets(conn net.Conn) error {
 			}
 		}
 
-		data := make([]byte, 0, c.maxPayload)
+		var data []byte
 		n, _, err := udpConn.ReadFromUDP(data)
 		if err != nil {
 			continue
@@ -133,7 +131,6 @@ func (c *Client) handleReceivedTCPPackets(conn net.Conn) error {
 		sequence      int64
 		headerLength  uint32
 		bodyLength    uint32
-		pacLen        uint32
 	)
 
 	for {
@@ -164,11 +161,6 @@ func (c *Client) handleReceivedTCPPackets(conn net.Conn) error {
 		sequence = convert.BytesToInt64(bSequence)
 		headerLength = convert.BytesToUint32(bHeaderLength)
 		bodyLength = convert.BytesToUint32(bBodyLength)
-
-		pacLen = headerLength + bodyLength + 20
-		if pacLen > uint32(c.maxPayload) {
-			return fmt.Errorf("the packet is big than %v\n", strconv.Itoa(c.maxPayload))
-		}
 
 		header := make([]byte, headerLength)
 		if n, err := io.ReadFull(conn, header); err != nil && n != int(headerLength) {

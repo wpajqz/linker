@@ -10,7 +10,6 @@ type (
 	options struct {
 		network                 string
 		dialTimeout             time.Duration
-		maxPayload              int
 		initialCap              int
 		maxCap                  int
 		contentType             string
@@ -33,12 +32,6 @@ func Network(n string) Option {
 func DialTimeout(n time.Duration) Option {
 	return Option(func(o *options) {
 		o.dialTimeout = n
-	})
-}
-
-func MaxPayload(n int) Option {
-	return Option(func(o *options) {
-		o.maxPayload = n
 	})
 }
 

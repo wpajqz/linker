@@ -56,7 +56,6 @@ type Client struct {
 	packet                  chan linker.Packet
 	pluginForPacketSender   []plugin.PacketPlugin
 	pluginForPacketReceiver []plugin.PacketPlugin
-	maxPayload              int
 	contentType             string
 	request, response       struct {
 		Header, Body []byte
@@ -333,11 +332,6 @@ func (c *Client) AddMessageListener(topic string, callback Handler) error {
 	c.mutex.Unlock()
 
 	return nil
-}
-
-// SetMaxPayload 设置可处理的数据包的最大长度
-func (c *Client) SetMaxPayload(maxPayload int) {
-	c.maxPayload = maxPayload
 }
 
 func (c *Client) SetContentType(contentType string) {

@@ -1,14 +1,18 @@
 package http
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/wpajqz/linker/api"
 	"github.com/wpajqz/linker/client"
 )
+
+const defaultDialTimeout = 30
 
 type (
 	request struct {
@@ -53,7 +57,8 @@ func (ha *httpAPI) Dial(network, address string) error {
 			session.SetRequestProperty(k, strings.Join(v, ","))
 		}
 
-		err = session.SyncSend(req.Method, req.Param, client.RequestStatusCallback{
+		to, _ := context.WithTimeout(context.Background(), ha.options.timeout)
+		err = session.SyncSendWithTimeout(to, req.Method, req.Param, client.RequestStatusCallback{
 			Success: func(header, body []byte) {
 				for _, v := range strings.Split(string(header), ";") {
 					if len(v) > 0 {
@@ -94,6 +99,7 @@ func (ha *httpAPI) Dial(network, address string) error {
 func NewAPI(address string, opts ...Option) api.API {
 	options := Options{
 		address: address,
+		timeout: defaultDialTimeout * time.Second,
 	}
 
 	for _, o := range opts {

@@ -157,8 +157,8 @@ func (s *Server) handleTCPPacket(ctx Context, rp Packet) {
 	ctx.Success(nil) // If it don't call the function of Success or Error, deal it by default
 }
 
-// RunTCP 开始运行Tcp服务
-func (s *Server) RunTCP(name, address string) error {
+// runTCP 开始运行Tcp服务
+func (s *Server) runTCP(name, address string) error {
 	tcpAddr, err := net.ResolveTCPAddr(name, address)
 	if err != nil {
 		return err

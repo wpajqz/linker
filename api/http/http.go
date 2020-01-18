@@ -33,6 +33,8 @@ func (ha *httpAPI) Dial(network, address string) error {
 		return err
 	}
 
+	gin.SetMode(gin.ReleaseMode)
+
 	app := gin.Default()
 
 	app.POST("/rpc", func(ctx *gin.Context) {

@@ -2,6 +2,7 @@ package linker
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"io"
 	"net"
@@ -158,29 +159,45 @@ func (s *Server) handleTCPPacket(ctx Context, rp Packet) {
 }
 
 // runTCP 开始运行Tcp服务
-func (s *Server) runTCP(name, address string) error {
-	tcpAddr, err := net.ResolveTCPAddr(name, address)
+func (s *Server) runTCP(address string) error {
+	var (
+		listener net.Listener
+		err      error
+	)
+
+	if s.options.tcpEndpoint.TLS != nil {
+		key := s.options.tcpEndpoint.TLS.Key
+		cert := s.options.tcpEndpoint.TLS.Cert
+
+		cer, err := tls.LoadX509KeyPair(cert, key)
+		if err != nil {
+			return err
+		}
+
+		config := &tls.Config{Certificates: []tls.Certificate{cer}}
+		listener, err = tls.Listen(NetworkTCP, address, config)
+	} else {
+		listener, err = net.Listen(NetworkTCP, address)
+	}
+
 	if err != nil {
 		return err
 	}
 
-	listener, err := net.ListenTCP(name, tcpAddr)
-	if err != nil {
-		return err
-	}
+	tl := listener.(*net.TCPListener)
 
 	defer listener.Close()
 
 	fmt.Printf("Listening and serving TCP on %s\n", address)
 
 	if s.options.api != nil {
-		if err := s.options.api.Dial(name, address); err != nil {
+		if err := s.options.api.Dial(NetworkTCP, address); err != nil {
 			return err
 		}
 	}
 
 	for {
-		conn, err := listener.AcceptTCP()
+		conn, err := tl.AcceptTCP()
 		if err != nil {
 			continue
 		}

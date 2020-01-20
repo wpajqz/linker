@@ -55,19 +55,19 @@ func (s *Server) Run() error {
 
 	if s.options.tcpEndpoint != nil {
 		eg.Go(func() error {
-			return s.runTCP(NetworkTCP, s.options.tcpEndpoint.Address)
+			return s.runTCP(s.options.tcpEndpoint.Address)
 		})
 	}
 
 	if s.options.httpEndpoint != nil {
 		eg.Go(func() error {
-			return s.runHTTP(s.options.httpEndpoint.Address, "/websocket", nil)
+			return s.runHTTP(s.options.httpEndpoint.Address, s.options.httpEndpoint.WSRoute, s.options.httpEndpoint.Handler)
 		})
 	}
 
 	if s.options.udpEndpoint != nil {
 		eg.Go(func() error {
-			return s.runUDP(NetworkUDP, s.options.udpEndpoint.Address)
+			return s.runUDP(s.options.udpEndpoint.Address)
 		})
 	}
 

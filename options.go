@@ -29,6 +29,12 @@ type (
 		Address string
 		WSRoute string
 		Handler http.Handler
+		TLS     *TLS
+	}
+
+	TLS struct {
+		Key  string
+		Cert string
 	}
 
 	Option func(o *Options)

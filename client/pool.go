@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/silenceper/pool"
+	"github.com/wpajqz/linker"
 	"github.com/wpajqz/linker/client/export"
 )
 
@@ -36,7 +37,7 @@ func (c *Client) newExportPool() (pool.Pool, error) {
 			}
 		}
 
-		if c.options.network == "tcp" {
+		if c.options.network == linker.NetworkTCP {
 			exportClient, err = export.NewClient(address, &ReadyStateCallback{Open: c.options.onOpen, Close: c.options.onClose, Error: func(err string) { c.options.onError(errors.New(err)) }})
 		} else {
 			exportClient, err = export.NewUDPClient(address, &ReadyStateCallback{Open: c.options.onOpen, Close: c.options.onClose, Error: func(err string) { c.options.onError(errors.New(err)) }})

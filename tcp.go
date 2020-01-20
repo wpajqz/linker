@@ -158,13 +158,13 @@ func (s *Server) handleTCPPacket(ctx Context, rp Packet) {
 }
 
 // runTCP 开始运行Tcp服务
-func (s *Server) runTCP(name, address string) error {
-	tcpAddr, err := net.ResolveTCPAddr(name, address)
+func (s *Server) runTCP(address string) error {
+	tcpAddr, err := net.ResolveTCPAddr(NetworkTCP, address)
 	if err != nil {
 		return err
 	}
 
-	listener, err := net.ListenTCP(name, tcpAddr)
+	listener, err := net.ListenTCP(NetworkTCP, tcpAddr)
 	if err != nil {
 		return err
 	}
@@ -174,7 +174,7 @@ func (s *Server) runTCP(name, address string) error {
 	fmt.Printf("Listening and serving TCP on %s\n", address)
 
 	if s.options.api != nil {
-		if err := s.options.api.Dial(name, address); err != nil {
+		if err := s.options.api.Dial(NetworkTCP, address); err != nil {
 			return err
 		}
 	}

@@ -55,7 +55,7 @@ func (s *Server) Run() error {
 
 	if s.options.tcpEndpoint != nil {
 		eg.Go(func() error {
-			return s.runTCP(NetworkTCP, s.options.tcpEndpoint.Address)
+			return s.runTCP(s.options.tcpEndpoint.Address)
 		})
 	}
 
@@ -67,7 +67,7 @@ func (s *Server) Run() error {
 
 	if s.options.udpEndpoint != nil {
 		eg.Go(func() error {
-			return s.runUDP(NetworkUDP, s.options.udpEndpoint.Address)
+			return s.runUDP(s.options.udpEndpoint.Address)
 		})
 	}
 

@@ -87,13 +87,13 @@ func (s *Server) handleUDPData(conn *net.UDPConn, remote *net.UDPAddr, data []by
 }
 
 // 开始运行Tcp服务
-func (s *Server) RunUDP(name, address string) error {
-	udpAddr, err := net.ResolveUDPAddr(name, address)
+func (s *Server) runUDP(address string) error {
+	udpAddr, err := net.ResolveUDPAddr(NetworkUDP, address)
 	if err != nil {
 		return err
 	}
 
-	conn, err := net.ListenUDP(name, udpAddr)
+	conn, err := net.ListenUDP(NetworkUDP, udpAddr)
 	if err != nil {
 		return err
 	}
@@ -101,12 +101,6 @@ func (s *Server) RunUDP(name, address string) error {
 	defer conn.Close()
 
 	fmt.Printf("Listening and serving UDP on %s\n", address)
-
-	if s.options.api != nil {
-		if err := s.options.api.Dial(name, address); err != nil {
-			return err
-		}
-	}
 
 	if s.options.readBufferSize > 0 {
 		err := conn.SetReadBuffer(s.options.readBufferSize)

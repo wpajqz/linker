@@ -161,8 +161,8 @@ func (s *Server) handleWebSocketPacket(ctx Context, conn *websocket.Conn, rp Pac
 	ctx.Success(nil) // If it don't call the function of Success or Error, deal it by default
 }
 
-// RunHTTP 开始运行HTTP服务
-func (s *Server) RunHTTP(address, wsRoute string, handler http.Handler) error {
+// runHTTP 开始运行HTTP服务
+func (s *Server) runHTTP(address, wsRoute string, handler http.Handler) error {
 	switch r := handler.(type) {
 	case *gin.Engine:
 		r.GET(wsRoute, func(ctx *gin.Context) {

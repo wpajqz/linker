@@ -6,13 +6,14 @@ import (
 	"time"
 
 	"github.com/silenceper/pool"
+	"github.com/wpajqz/linker"
 	"github.com/wpajqz/linker/client/export"
 	"github.com/wpajqz/linker/codec"
 )
 
 var (
 	defaultClient  *Client
-	defaultNetwork = "tcp"
+	defaultNetwork = linker.NetworkTCP
 )
 
 type (

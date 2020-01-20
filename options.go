@@ -1,6 +1,7 @@
 package linker
 
 import (
+	"net/http"
 	"time"
 
 	"github.com/wpajqz/linker/api"
@@ -21,6 +22,13 @@ type (
 		pluginForPacketSender                                        []plugin.PacketPlugin
 		pluginForPacketReceiver                                      []plugin.PacketPlugin
 		errorHandler, constructHandler, destructHandler, pingHandler Handler
+		httpEndpoint, tcpEndpoint, udpEndpoint                       *Endpoint
+	}
+
+	Endpoint struct {
+		Address string
+		WSRoute string
+		Handler http.Handler
 	}
 
 	Option func(o *Options)
@@ -107,5 +115,23 @@ func WithOnOpen(handler Handler) Option {
 func WithOnPing(handler Handler) Option {
 	return func(o *Options) {
 		o.pingHandler = handler
+	}
+}
+
+func WithHTTPEndpoint(e Endpoint) Option {
+	return func(o *Options) {
+		o.httpEndpoint = &e
+	}
+}
+
+func WithTCPEndpoint(e Endpoint) Option {
+	return func(o *Options) {
+		o.tcpEndpoint = &e
+	}
+}
+
+func WithUDPEndpoint(e Endpoint) Option {
+	return func(o *Options) {
+		o.udpEndpoint = &e
 	}
 }

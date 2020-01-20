@@ -2,6 +2,7 @@ package linker
 
 import (
 	"github.com/wpajqz/linker/codec"
+	"golang.org/x/sync/errgroup"
 )
 
 const (
@@ -25,8 +26,10 @@ type (
 	Handler interface {
 		Handle(Context)
 	}
+
 	HandlerFunc func(Context)
-	Server      struct {
+
+	Server struct {
 		options Options
 		router  *Router
 	}
@@ -37,6 +40,7 @@ func NewServer(opts ...Option) *Server {
 		debug:       false,
 		udpPayload:  4096,
 		contentType: codec.JSON,
+		tcpEndpoint: &Endpoint{Address: "localhost:8080"},
 	}
 
 	for _, o := range opts {
@@ -44,6 +48,30 @@ func NewServer(opts ...Option) *Server {
 	}
 
 	return &Server{options: options}
+}
+
+func (s *Server) Run() error {
+	var eg errgroup.Group
+
+	if s.options.tcpEndpoint != nil {
+		eg.Go(func() error {
+			return s.runTCP(s.options.tcpEndpoint.Address)
+		})
+	}
+
+	if s.options.httpEndpoint != nil {
+		eg.Go(func() error {
+			return s.runHTTP(s.options.httpEndpoint.Address, "/websocket", nil)
+		})
+	}
+
+	if s.options.udpEndpoint != nil {
+		eg.Go(func() error {
+			return s.runUDP(s.options.udpEndpoint.Address)
+		})
+	}
+
+	return eg.Wait()
 }
 
 // 绑定路由

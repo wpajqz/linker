@@ -83,6 +83,8 @@ func NewClient(address string, readyStateCallback ReadyStateCallback) (*Client, 
 		c.readyStateCallback = readyStateCallback
 	}
 
+	c.SetRequestProperty("v", linker.Version)
+
 	err := c.connect("tcp", address)
 	if err != nil {
 		return nil, err

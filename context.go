@@ -39,6 +39,7 @@ type (
 		Subscribe(topic string, process func([]byte)) error
 		UnSubscribe(topic string) error
 		UnSubscribeAll() error
+		Version() string
 	}
 
 	common struct {
@@ -254,4 +255,8 @@ func (dc *common) InternalError() string {
 
 func (dc *common) RawBody() []byte {
 	return dc.body
+}
+
+func (dc *common) Version() string {
+	return dc.GetRequestProperty("v")
 }

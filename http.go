@@ -246,5 +246,12 @@ func (s *Server) runHTTP(address, wsRoute string, handler http.Handler) error {
 
 	fmt.Printf("Listening and serving HTTP on %s\n", address)
 
+	if s.options.httpEndpoint.TLS != nil {
+		keyFile := s.options.httpEndpoint.TLS.Key
+		certFile := s.options.httpEndpoint.TLS.Cert
+
+		return http.ListenAndServeTLS(address, certFile, keyFile, handler)
+	}
+
 	return http.ListenAndServe(address, handler)
 }

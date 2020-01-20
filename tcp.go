@@ -184,9 +184,9 @@ func (s *Server) runTCP(address string) error {
 		return err
 	}
 
-	tl := listener.(*net.TCPListener)
-
 	defer listener.Close()
+
+	tl := listener.(*net.TCPListener)
 
 	fmt.Printf("Listening and serving TCP on %s\n", address)
 

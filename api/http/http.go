@@ -104,8 +104,6 @@ func (ha *httpAPI) Dial(network, address string) error {
 			},
 		}
 
-		var quit = make(chan bool)
-
 		conn, err := upgrade.Upgrade(ctx.Writer, ctx.Request, nil)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"msg": err.Error()})
@@ -126,19 +124,16 @@ func (ha *httpAPI) Dial(network, address string) error {
 
 		topics := ctx.QueryArray("topic")
 		defer func() {
-			_ = conn.Close()
 			for _, topic := range topics {
 				_ = session.RemoveMessageListener(topic)
 			}
 
+			_ = conn.Close()
 		}()
 
 		for _, topic := range topics {
 			err = session.AddMessageListener(topic, export.HandlerFunc(func(header, body []byte) {
-				err := conn.WriteMessage(websocket.TextMessage, body)
-				if err != nil {
-					quit <- true
-				}
+				_ = conn.WriteMessage(websocket.TextMessage, body)
 			}))
 
 			if err != nil {
@@ -147,7 +142,16 @@ func (ha *httpAPI) Dial(network, address string) error {
 			}
 		}
 
-		<-quit
+		for {
+			_, _, err := conn.ReadMessage()
+			if err != nil {
+				if websocket.IsCloseError(err, 1006) {
+					return
+				}
+
+				continue
+			}
+		}
 	})
 
 	go app.Run(ha.options.address)

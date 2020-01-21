@@ -143,13 +143,19 @@ func (ha *httpAPI) Dial(network, address string) error {
 		}
 
 		for {
-			_, _, err := conn.ReadMessage()
+			mt, p, err := conn.ReadMessage()
 			if err != nil {
-				if websocket.IsCloseError(err, 1006) {
+				return
+			}
+
+			switch mt {
+			case websocket.PingMessage:
+				err := conn.WriteMessage(websocket.PongMessage, p)
+				if err != nil {
 					return
 				}
-
-				continue
+			case websocket.CloseMessage:
+				return
 			}
 		}
 	})

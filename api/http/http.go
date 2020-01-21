@@ -112,6 +112,12 @@ func (ha *httpAPI) Dial(network, address string) error {
 			return
 		}
 
+		brpc, err := client.NewClient([]string{address}, ha.options.dialOptions...)
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"msg": err.Error()})
+			return
+		}
+
 		session, err := brpc.Session()
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"msg": err.Error()})

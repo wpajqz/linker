@@ -8,8 +8,10 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
 	"github.com/wpajqz/linker/api"
 	"github.com/wpajqz/linker/client"
+	"github.com/wpajqz/linker/client/export"
 )
 
 const defaultDialTimeout = 30
@@ -91,6 +93,55 @@ func (ha *httpAPI) Dial(network, address string) error {
 		ctx.Data(http.StatusOK, session.GetContentType(), b)
 
 		return
+	})
+
+	app.GET("/rpc/websocket", func(ctx *gin.Context) {
+		var upgrade = websocket.Upgrader{
+			HandshakeTimeout:  ha.options.timeout,
+			EnableCompression: true,
+			CheckOrigin: func(r *http.Request) bool {
+				return true
+			},
+		}
+
+		var quit = make(chan bool)
+
+		conn, err := upgrade.Upgrade(ctx.Writer, ctx.Request, nil)
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"msg": err.Error()})
+			return
+		}
+
+		session, err := brpc.Session()
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"msg": err.Error()})
+			return
+		}
+
+		topics := ctx.QueryArray("topic")
+		defer func() {
+			_ = conn.Close()
+			for _, topic := range topics {
+				_ = session.RemoveMessageListener(topic)
+			}
+
+		}()
+
+		for _, topic := range topics {
+			err = session.AddMessageListener(topic, export.HandlerFunc(func(header, body []byte) {
+				err := conn.WriteMessage(websocket.TextMessage, body)
+				if err != nil {
+					quit <- true
+				}
+			}))
+
+			if err != nil {
+				ctx.JSON(http.StatusInternalServerError, gin.H{"msg": err.Error()})
+				return
+			}
+		}
+
+		<-quit
 	})
 
 	go app.Run(ha.options.address)

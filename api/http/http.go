@@ -3,6 +3,7 @@ package http
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -125,7 +126,10 @@ func (ha *httpAPI) Dial(network, address string) error {
 		topics := ctx.QueryArray("topic")
 		defer func() {
 			for _, topic := range topics {
-				_ = session.RemoveMessageListener(topic)
+				err := session.RemoveMessageListener(topic)
+				if err != nil {
+					fmt.Printf("[api] remove message listener error: %s", err.Error())
+				}
 			}
 
 			_ = conn.Close()
@@ -133,7 +137,10 @@ func (ha *httpAPI) Dial(network, address string) error {
 
 		for _, topic := range topics {
 			err = session.AddMessageListener(topic, export.HandlerFunc(func(header, body []byte) {
-				_ = conn.WriteMessage(websocket.TextMessage, body)
+				err := conn.WriteMessage(websocket.TextMessage, body)
+				if err != nil {
+					fmt.Printf("[api] write message error: %s", err.Error())
+				}
 			}))
 
 			if err != nil {

@@ -8,11 +8,15 @@ import (
 	"github.com/wpajqz/linker/broker"
 )
 
-type redisBroker struct {
-	client *redis.Client
-	pb     sync.Map
-	pf     map[string]func([]byte)
-}
+type (
+	redisBroker struct {
+		client *redis.Client
+		pb     sync.Map
+		pf     map[string]topicMap
+	}
+
+	topicMap map[string]func([]byte)
+)
 
 func (rb *redisBroker) Publish(topic string, message interface{}) error {
 	_, err := rb.client.Publish(topic, message).Result()
@@ -32,17 +36,25 @@ func (rb *redisBroker) Subscribe(nodeID, topic string, process func([]byte)) err
 			return err
 		}
 
-		rb.pf[topic] = process
+		if rb.pf[nodeID] == nil {
+			rb.pf[nodeID] = make(topicMap)
+		}
+
+		rb.pf[nodeID][topic] = process
 	} else {
 		ps = rb.client.Subscribe(topic)
 		rb.pb.Store(nodeID, ps)
 
-		rb.pf[topic] = process
+		if rb.pf[nodeID] == nil {
+			rb.pf[nodeID] = make(topicMap)
+		}
+
+		rb.pf[nodeID][topic] = process
 
 		go func(ps *redis.PubSub) {
 			ch := ps.Channel()
 			for msg := range ch {
-				if v, ok := rb.pf[msg.Channel]; ok {
+				if v, ok := rb.pf[nodeID][msg.Channel]; ok {
 					go v([]byte(msg.Payload))
 				}
 			}
@@ -83,5 +95,5 @@ func NewBroker(opts ...Option) broker.Broker {
 		DB:       options.DB,
 	})
 
-	return &redisBroker{client: rc, pb: sync.Map{}, pf: make(map[string]func([]byte))}
+	return &redisBroker{client: rc, pb: sync.Map{}, pf: make(map[string]topicMap)}
 }

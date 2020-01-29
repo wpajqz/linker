@@ -7,7 +7,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/graphql-go/graphql"
-	"github.com/graphql-go/handler"
 	"github.com/wpajqz/linker/client"
 	"github.com/wpajqz/linker/codec"
 )
@@ -24,15 +23,7 @@ var queryType = graphql.NewObject(graphql.ObjectConfig{
 				},
 				"param": &graphql.ArgumentConfig{Type: graphql.String},
 			},
-		},
-	},
-})
-
-func (ja *graphqlAPI) hf(h *handler.Handler) gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		var requestType = h.Schema.QueryType().Fields()["request"]
-		if requestType != nil {
-			requestType.Resolve = func(p graphql.ResolveParams) (i interface{}, err error) {
+			Resolve: func(p graphql.ResolveParams) (i interface{}, err error) {
 				method := p.Args["method"]
 				param := p.Args["param"]
 
@@ -46,6 +37,7 @@ func (ja *graphqlAPI) hf(h *handler.Handler) gin.HandlerFunc {
 					errCallback error
 				)
 
+				ctx := p.Context.Value("ctx").(*gin.Context)
 				for k, v := range ctx.Request.Header {
 					session.SetRequestProperty(k, strings.Join(v, ","))
 				}
@@ -63,7 +55,7 @@ func (ja *graphqlAPI) hf(h *handler.Handler) gin.HandlerFunc {
 					}
 				}
 
-				to, _ := context.WithTimeout(context.Background(), ja.options.timeout)
+				to, _ := context.WithTimeout(context.Background(), ctx.GetDuration("timeout"))
 				err = session.SyncSendWithTimeout(to, method.(string), body, client.RequestStatusCallback{
 					Success: func(header, body []byte) {
 						for _, v := range strings.Split(string(header), ";") {
@@ -91,9 +83,7 @@ func (ja *graphqlAPI) hf(h *handler.Handler) gin.HandlerFunc {
 				}
 
 				return string(b), nil
-			}
-		}
-
-		h.ServeHTTP(ctx.Writer, ctx.Request)
-	}
-}
+			},
+		},
+	},
+})

@@ -43,7 +43,12 @@ func (ja *graphqlAPI) Dial(network, address string) error {
 	gin.SetMode(gin.ReleaseMode)
 
 	app := gin.Default()
-	app.Any("/graphql", ja.hf(h))
+	app.Any("/graphql", func(ctx *gin.Context) {
+		ctx.Set("ctx", ctx)
+		ctx.Set("timeout", ja.options.timeout)
+
+		h.ContextHandler(ctx, ctx.Writer, ctx.Request)
+	})
 
 	go app.Run(ja.options.address)
 

@@ -30,9 +30,7 @@ func (ja *graphqlAPI) Dial(network, address string) error {
 	gin.SetMode(gin.ReleaseMode)
 
 	app := gin.Default()
-
-	app.GET("/graphql", ja.hf())
-	app.POST("/graphql", ja.hf())
+	app.Any("/graphql", ja.hf())
 
 	go app.Run(ja.options.address)
 

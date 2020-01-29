@@ -4,13 +4,15 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/graphql-go/graphql"
+	"github.com/graphql-go/handler"
 	"github.com/wpajqz/linker/api"
 	"github.com/wpajqz/linker/client"
 )
 
-var brpc *client.Client
-
 const defaultDialTimeout = 30
+
+var brpc *client.Client
 
 type (
 	graphqlAPI struct {
@@ -27,10 +29,21 @@ func (ja *graphqlAPI) Dial(network, address string) error {
 		return err
 	}
 
+	schema, err := graphql.NewSchema(graphql.SchemaConfig{Query: queryType})
+	if err != nil {
+		return err
+	}
+
+	h := handler.New(&handler.Config{
+		Schema:   &schema,
+		Pretty:   ja.options.pretty,
+		GraphiQL: ja.options.graphQL,
+	})
+
 	gin.SetMode(gin.ReleaseMode)
 
 	app := gin.Default()
-	app.Any("/graphql", ja.hf())
+	app.Any("/graphql", ja.hf(schema, h))
 
 	go app.Run(ja.options.address)
 

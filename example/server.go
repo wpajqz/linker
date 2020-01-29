@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/wpajqz/linker"
-	"github.com/wpajqz/linker/api/http"
+	"github.com/wpajqz/linker/api/graphql"
 	"github.com/wpajqz/linker/broker/redis"
 	"github.com/wpajqz/linker/client"
 )
@@ -18,9 +18,11 @@ var topic = "/v1/example/subscribe"
 func main() {
 	server := linker.NewServer(
 		linker.API(
-			http.NewAPI(
+			graphql.NewAPI(
 				"127.0.0.1:9090",
-				http.DialOptions(
+				graphql.GraphQL(),
+				graphql.Pretty(),
+				graphql.DialOptions(
 					client.InitialCapacity(1),
 					client.MaxCapacity(1),
 					client.WithOnError(func(err error) {

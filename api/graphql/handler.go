@@ -28,67 +28,70 @@ var queryType = graphql.NewObject(graphql.ObjectConfig{
 	},
 })
 
-func (ja *graphqlAPI) hf(schema graphql.Schema, h *handler.Handler) gin.HandlerFunc {
+func (ja *graphqlAPI) hf(h *handler.Handler) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		schema.QueryType().Fields()["request"].Resolve = func(p graphql.ResolveParams) (i interface{}, err error) {
-			method := p.Args["method"]
-			param := p.Args["param"]
+		var requestType = h.Schema.QueryType().Fields()["request"]
+		if requestType != nil {
+			requestType.Resolve = func(p graphql.ResolveParams) (i interface{}, err error) {
+				method := p.Args["method"]
+				param := p.Args["param"]
 
-			session, err := brpc.Session()
-			if err != nil {
-				return nil, err
-			}
-
-			var (
-				b           []byte
-				errCallback error
-			)
-
-			for k, v := range ctx.Request.Header {
-				session.SetRequestProperty(k, strings.Join(v, ","))
-			}
-
-			coder, err := codec.NewCoder(session.GetContentType())
-			if err != nil {
-				return nil, err
-			}
-
-			var body map[string]interface{}
-			if param != nil {
-				err := coder.Decoder([]byte(param.(string)), &body)
+				session, err := brpc.Session()
 				if err != nil {
 					return nil, err
 				}
-			}
 
-			to, _ := context.WithTimeout(context.Background(), ja.options.timeout)
-			err = session.SyncSendWithTimeout(to, method.(string), body, client.RequestStatusCallback{
-				Success: func(header, body []byte) {
-					for _, v := range strings.Split(string(header), ";") {
-						if len(v) > 0 {
-							ss := strings.Split(v, "=")
-							if len(ss) > 1 {
-								ctx.Writer.Header().Set(ss[0], ss[1])
+				var (
+					b           []byte
+					errCallback error
+				)
+
+				for k, v := range ctx.Request.Header {
+					session.SetRequestProperty(k, strings.Join(v, ","))
+				}
+
+				coder, err := codec.NewCoder(session.GetContentType())
+				if err != nil {
+					return nil, err
+				}
+
+				var body map[string]interface{}
+				if param != nil {
+					err := coder.Decoder([]byte(param.(string)), &body)
+					if err != nil {
+						return nil, err
+					}
+				}
+
+				to, _ := context.WithTimeout(context.Background(), ja.options.timeout)
+				err = session.SyncSendWithTimeout(to, method.(string), body, client.RequestStatusCallback{
+					Success: func(header, body []byte) {
+						for _, v := range strings.Split(string(header), ";") {
+							if len(v) > 0 {
+								ss := strings.Split(v, "=")
+								if len(ss) > 1 {
+									ctx.Writer.Header().Set(ss[0], ss[1])
+								}
 							}
 						}
-					}
 
-					b = body
-				},
-				Error: func(code int, message string) {
-					errCallback = errors.New(message)
-				},
-			})
+						b = body
+					},
+					Error: func(code int, message string) {
+						errCallback = errors.New(message)
+					},
+				})
 
-			if err != nil {
-				return nil, err
+				if err != nil {
+					return nil, err
+				}
+
+				if errCallback != nil {
+					return nil, errCallback
+				}
+
+				return string(b), nil
 			}
-
-			if errCallback != nil {
-				return nil, errCallback
-			}
-
-			return string(b), nil
 		}
 
 		h.ServeHTTP(ctx.Writer, ctx.Request)

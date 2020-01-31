@@ -7,7 +7,6 @@ import (
 
 	"github.com/wpajqz/linker"
 	"github.com/wpajqz/linker/api/graphql"
-	"github.com/wpajqz/linker/broker/redis"
 	"github.com/wpajqz/linker/client"
 )
 
@@ -31,7 +30,6 @@ func main() {
 				),
 			),
 		),
-		linker.Broker(redis.NewBroker(redis.Address("121.41.20.11:6379"), redis.Password("links471155401"))),
 		linker.Timeout(timeout),
 		linker.WithHTTPEndpoint(linker.Endpoint{Address: "localhost:8081", WSRoute: "/websocket"}),
 		linker.WithUDPEndpoint(linker.Endpoint{Address: "localhost:8082"}),

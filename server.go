@@ -63,7 +63,7 @@ func (s *Server) Run() error {
 
 	if s.options.httpEndpoint != nil {
 		eg.Go(func() error {
-			return s.runHTTP(s.options.httpEndpoint.Address, "/websocket", nil)
+			return s.runHTTP(s.options.httpEndpoint.Address, s.options.httpEndpoint.WSRoute, s.options.httpEndpoint.Handler)
 		})
 	}
 

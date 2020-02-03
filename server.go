@@ -1,6 +1,7 @@
 package linker
 
 import (
+	"github.com/wpajqz/linker/broker/memory"
 	"github.com/wpajqz/linker/codec"
 	"golang.org/x/sync/errgroup"
 )
@@ -40,6 +41,7 @@ func NewServer(opts ...Option) *Server {
 		debug:       false,
 		udpPayload:  4096,
 		contentType: codec.JSON,
+		broker:      memory.NewBroker(),
 		tcpEndpoint: &Endpoint{Address: "localhost:8080"},
 	}
 

@@ -1,4 +1,4 @@
-module github.com/wpajqz/linker/v2
+module github.com/wpajqz/linker
 
 require (
 	github.com/coreos/bbolt v1.3.3 // indirect
@@ -25,13 +25,12 @@ require (
 	github.com/onsi/ginkgo v1.12.0 // indirect
 	github.com/onsi/gomega v1.9.0 // indirect
 	github.com/prometheus/client_golang v1.5.0 // indirect
-	github.com/prometheus/common v0.9.1
 	github.com/prometheus/procfs v0.0.10 // indirect
 	github.com/satori/go.uuid v1.2.0
 	github.com/silenceper/pool v0.0.0-20191105065223-1f4530b6ba17
 	github.com/soheilhy/cmux v0.1.4 // indirect
 	github.com/tmc/grpc-websocket-proxy v0.0.0-20200122045848-3419fae592fc // indirect
-	github.com/wpajqz/linker v1.2.7
+	github.com/ugorji/go v1.1.7 // indirect
 	github.com/xiang90/probing v0.0.0-20190116061207-43a291ad63a2 // indirect
 	go.etcd.io/bbolt v1.3.3 // indirect
 	go.etcd.io/etcd v3.3.18+incompatible
@@ -45,7 +44,7 @@ require (
 	golang.org/x/text v0.3.2 // indirect
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0 // indirect
 	golang.org/x/tools v0.0.0-20200305224536-de023d59a5d1 // indirect
-	google.golang.org/grpc v1.26.0
+	google.golang.org/grpc v1.26.0 // indirect
 	honnef.co/go/tools v0.0.1-2020.1.3 // indirect
 	sigs.k8s.io/yaml v1.2.0 // indirect
 )

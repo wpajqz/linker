@@ -58,6 +58,8 @@ func (ha *httpAPI) Dial(network, address string) error {
 			errCallback error
 		)
 
+		// 重置链接内保存的RequestProperty，避免影响到新过来的链接
+		session.Reset()
 		for k, v := range ctx.Request.Header {
 			session.SetRequestProperty(k, strings.Join(v, ","))
 		}

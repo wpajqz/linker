@@ -83,8 +83,6 @@ func NewClient(address string, readyStateCallback ReadyStateCallback) (*Client, 
 		c.readyStateCallback = readyStateCallback
 	}
 
-	c.SetRequestProperty("v", linker.Version)
-
 	err := c.connect("tcp", address)
 	if err != nil {
 		return nil, err
@@ -443,6 +441,12 @@ func (c *Client) SetResponseProperty(key, value string) {
 
 	c.response.Header = bytes.ReplaceAll(c.response.Header, old, new)
 	c.response.Header = append(c.response.Header, []byte(key+"="+value+";")...)
+}
+
+// Reset 重置header
+func (c *Client) Reset() {
+	c.request.Header = nil
+	c.response.Header = nil
 }
 
 // SetTimeout 设置服务端默认超时时间, 单位s

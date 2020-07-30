@@ -33,6 +33,7 @@ func NewClient(address []string, opts ...Option) (*Client, error) {
 		dialTimeout: 3 * time.Second,
 		initialCap:  10,
 		maxCap:      30,
+		ext:         make(map[string]string),
 	}
 
 	for _, o := range opts {

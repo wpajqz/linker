@@ -51,6 +51,9 @@ func (c *Client) newExportPool() (pool.Pool, error) {
 		exportClient.SetContentType(c.options.contentType)
 		exportClient.SetPluginForPacketSender(c.options.pluginForPacketSender...)
 		exportClient.SetPluginForPacketReceiver(c.options.pluginForPacketReceiver...)
+		for k, v := range c.options.ext {
+			exportClient.SetRequestProperty(k, v)
+		}
 
 		go func(ec *export.Client) {
 			ticker := time.NewTicker(time.Duration(interval) * time.Second)

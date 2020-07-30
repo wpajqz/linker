@@ -17,6 +17,7 @@ type (
 		idleTimeout             time.Duration
 		onOpen, onClose         func()
 		onError                 func(error)
+		ext                     map[string]string
 		pluginForPacketSender   []plugin.PacketPlugin
 		pluginForPacketReceiver []plugin.PacketPlugin
 	}
@@ -81,6 +82,12 @@ func WithOnClose(fn func()) Option {
 func WithOnError(fn func(err error)) Option {
 	return Option(func(o *options) {
 		o.onError = fn
+	})
+}
+
+func Ext(ext map[string]string) Option {
+	return Option(func(o *options) {
+		o.ext = ext
 	})
 }
 

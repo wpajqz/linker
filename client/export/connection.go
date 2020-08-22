@@ -37,15 +37,21 @@ func (c *Client) handleConnection(network string, conn net.Conn) {
 
 	// wait one second for receive and send routine loaded
 	time.Sleep(time.Second)
-	go c.readyStateCallback.OnOpen()
+	if c.readyStateCallback.OnOpen != nil {
+		go c.readyStateCallback.OnOpen()
+	}
 
 	err := eg.Wait()
 	if err != nil {
 		c.readyState = CLOSED
 		if err == io.EOF {
-			c.readyStateCallback.OnClose()
+			if c.readyStateCallback.OnClose != nil {
+				c.readyStateCallback.OnClose()
+			}
 		} else {
-			c.readyStateCallback.OnError(err.Error())
+			if c.readyStateCallback.OnError != nil {
+				c.readyStateCallback.OnError(err)
+			}
 		}
 		_ = c.Close()
 	}

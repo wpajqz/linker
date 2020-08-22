@@ -40,7 +40,7 @@ type RequestStatusCallback interface {
 type ReadyStateCallback interface {
 	OnOpen()
 	OnClose()
-	OnError(err string)
+	OnError(err error)
 }
 
 // Client 客户端结构体

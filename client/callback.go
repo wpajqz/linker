@@ -4,7 +4,7 @@ type (
 	ReadyStateCallback struct {
 		Open  func()
 		Close func()
-		Error func(err string)
+		Error func(err error)
 	}
 
 	RequestStatusCallback struct {
@@ -27,7 +27,7 @@ func (r *ReadyStateCallback) OnClose() {
 	}
 }
 
-func (r *ReadyStateCallback) OnError(err string) {
+func (r *ReadyStateCallback) OnError(err error) {
 	if r.Error != nil {
 		r.Error(err)
 	}

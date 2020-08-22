@@ -1,7 +1,6 @@
 package client
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -38,9 +37,9 @@ func (c *Client) newExportPool() (pool.Pool, error) {
 		}
 
 		if c.options.network == linker.NetworkTCP {
-			exportClient, err = export.NewClient(address, &ReadyStateCallback{Open: c.options.onOpen, Close: c.options.onClose, Error: func(err string) { c.options.onError(errors.New(err)) }})
+			exportClient, err = export.NewClient(address, &ReadyStateCallback{Open: c.options.onOpen, Close: c.options.onClose, Error: c.options.onError })
 		} else {
-			exportClient, err = export.NewUDPClient(address, &ReadyStateCallback{Open: c.options.onOpen, Close: c.options.onClose, Error: func(err string) { c.options.onError(errors.New(err)) }})
+			exportClient, err = export.NewUDPClient(address, &ReadyStateCallback{Open: c.options.onOpen, Close: c.options.onClose, Error: c.options.onError})
 		}
 
 		if err != nil {
